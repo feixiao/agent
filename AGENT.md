@@ -99,7 +99,8 @@ agent/
   - **端侧/车载/机器人 (C++ / Rust)**：以 `llama.cpp`、`MNN-LLM`、`TensorRT-LLM` 为主流底座，强制使用 GBNF 语法树约束输出，杜绝 Python 依赖与 GC 停顿；
   - **云端高并发微服务 (Go)**：以 `cloudwego/eino`、`Genkit (Go)` 为主流调度编排底座，支撑百万并发与全链路 Tracing；
   - **原型与算法基线 (Python)**：本仓库 `core/` 充当跨端状态机与排雷逻辑的 Reference Implementation，保持零第三方依赖以便 1:1 直译或绑定。
-  - 详细框架选型与落地参考：[`docs/architecture/AGENT_FRAMEWORKS_CPP_GO.md`](docs/architecture/AGENT_FRAMEWORKS_CPP_GO.md)。
+  - 详细框架选型与落地参考：[`docs/architecture/AGENT_FRAMEWORKS_CPP_GO.md`](docs/architecture/AGENT_FRAMEWORKS_CPP_GO.md)；
+  - 终端智能体 (CLI Coding Agent) 对比白皮书：[`docs/architecture/OMP_VS_CLAUDE_CODE_COMPARISON.md`](docs/architecture/OMP_VS_CLAUDE_CODE_COMPARISON.md)（深度解析 OMP 与 Claude Code 在上下文工程、Prewalk 阶梯模型编排与 Harness 控制底座的设计哲学）。
 
 
 ## 四、 常用开发与测试指令

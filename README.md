@@ -179,3 +179,4 @@ agent/
    - 本地实操套件：[`perception/labs/README.md`](perception/labs/README.md)
 5. **工业级 C++/Go 选型与生产落地**：
    - 端云生产框架实战指南：[`docs/architecture/AGENT_FRAMEWORKS_CPP_GO.md`](docs/architecture/AGENT_FRAMEWORKS_CPP_GO.md)（掌握 C++ 端侧运行时 `llama.cpp` / `MNN-LLM` 与 Go 云端微服务框架 `Eino` / `Genkit`）。
+   - 终端智能体架构对比白皮书：[`docs/architecture/OMP_VS_CLAUDE_CODE_COMPARISON.md`](docs/architecture/OMP_VS_CLAUDE_CODE_COMPARISON.md)（站在 Agent Harness 视角深度剖析 **OMP (Oh My Pi)** 与 **Claude Code**：垂直共生 vs 异构分工、Prewalk 阶梯调度、LSP 诊断与经济学选型）。
