@@ -1,17 +1,18 @@
 
-## 智能体设计模式
+## 智能体设计模式 (Agentic Design Patterns)
 
+> 本模块设计模式实现源自开源项目：**[xindoo/agentic-design-patterns](https://github.com/xindoo/agentic-design-patterns)**。
 
-#### 文档地址
-+ [智能体设计模式](https://docs.google.com/document/d/1rsaK53T3Lg5KoGwvf8ukOUvbELRtH-V0LnOIFDxBryE/preview?pli=1&tab=t.0#heading=h.pxcur8v2qagu)
+#### 原项目与文档
++ **GitHub 仓库**：[https://github.com/xindoo/agentic-design-patterns](https://github.com/xindoo/agentic-design-patterns)
++ **在线设计文档**：[智能体设计模式 (Google Docs)](https://docs.google.com/document/d/1rsaK53T3Lg5KoGwvf8ukOUvbELRtH-V0LnOIFDxBryE/preview?pli=1&tab=t.0#heading=h.pxcur8v2qagu)
 
-#### 推荐阅读
-+ [《深入理解 AI Agent》快速入门指南](../books/AI-Agents-in-Depth-QuickStart.md) — 全书 10 章精华浓缩，快速建立 Agent 设计完整认知框架
+#### 框架实现导航
++ [LangChain 实现目录](../../patterns/langchain/ReadMe.md)
++ [AutoGen 实现目录](../../patterns/autogen/ReadMe.md)
 
-#### 不同的实现
-+ [langchain](../../patterns/langchain/ReadMe.md)
-+ [autogen](../../patterns/autogen/ReadMe.md)
-
+#### 推荐理论扩展
++ [《深入理解 AI Agent》快速入门指南](../books/AI-Agents-in-Depth-QuickStart.md) — 了解底层 Harness、上下文工程与 12 大排雷地图
 ---
 
 ### 行业落地：智能座舱 Agent 架构

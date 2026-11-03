@@ -8,8 +8,8 @@
 
 ## 目录全景导航
 ├── docs/                          # 统一文档中心与理论知识库
-│   ├── books/                     # 经典理论：《深入理解 AI Agent》全本与速查指南
-│   ├── design_patterns/           # 8 大设计模式原理与架构白皮书
+│   ├── books/                     # 经典理论：李博杰《深入理解 AI Agent》全本与速查指南
+│   ├── design_patterns/           # 8 大设计模式原理与架构文档（对应 xindoo/agentic-design-patterns）
 │   ├── architecture/              # Harness 架构通用白皮书 (ai-agent-harness-architecture.md)
 │   └── multimodal/                # 音视频多模态与端侧全景指南 (AUDIO_VIDEO_MULTIMODAL_HANDBOOK.md)
 │
@@ -26,7 +26,7 @@
 │   ├── builtin/                   # 内置高频工具
 │   └── mcp_servers/               # Model Context Protocol (MCP) 服务生态
 │
-├── patterns/                      # 【模式工程实战】8 大经典 Agent 设计模式对照实现
+├── patterns/                      # 【模式工程实战】源自 xindoo/agentic-design-patterns 的 8 大模式多框架对照实现
 │   ├── langchain/                 # LangChain 实现（提示链、路由、并行、反思、工具、规划、多智能体、记忆）
 │   └── autogen/                   # AutoGen 0.4+ 实现（模式范例与 quickstart 快速上手）
 │
@@ -69,7 +69,8 @@ pip install -e ".[evals]"                # 安装评测套件
 1. **理论与心智模型**：
    - 必读：[`docs/books/AI-Agents-in-Depth-QuickStart.md`](docs/books/AI-Agents-in-Depth-QuickStart.md)（掌握 12 大排雷归因地图与 $Pass^k$ 法则）。
 2. **经典模式工程**：
-   - 查看 LangChain 8 大模式：[`patterns/langchain/ReadMe.md`](patterns/langchain/ReadMe.md)
+   - 模式总览：[`patterns/README.md`](patterns/README.md)（对应开源项目 [xindoo/agentic-design-patterns](https://github.com/xindoo/agentic-design-patterns)）
+   - 查看 LangChain 8 大模式实现：[`patterns/langchain/ReadMe.md`](patterns/langchain/ReadMe.md)
    - 查看 AutoGen 0.4+ 模式与上手：[`patterns/autogen/ReadMe.md`](patterns/autogen/ReadMe.md)
 3. **垂直行业架构**：
    - 车载智能座舱 Agent：[`apps/cockpit_agent/ReadMe.md`](apps/cockpit_agent/ReadMe.md)

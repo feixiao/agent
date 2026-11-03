@@ -25,8 +25,8 @@
 ```
 agent/
 ├── docs/                      # 知识库与规范文档
-│   ├── books/                 # 原著理论与速查指南
-│   ├── design_patterns/       # 设计模式白皮书
+│   ├── books/                 # 经典理论：李博杰《深入理解 AI Agent》全本与速查指南
+│   ├── design_patterns/       # 设计模式白皮书（对应 xindoo/agentic-design-patterns）
 │   ├── architecture/          # Harness 架构白皮书 (ai-agent-harness-architecture.md)
 │   └── multimodal/            # 音视频端侧指南 (AUDIO_VIDEO_MULTIMODAL_HANDBOOK.md)
 │
@@ -42,10 +42,9 @@ agent/
 │   ├── builtin/               # 内置核心工具
 │   └── mcp_servers/           # Model Context Protocol (MCP) 服务实现
 │
-├── patterns/                  # 8 大经典 Agent 模式对照实战
+├── patterns/                  # 【模式工程实战】源自 xindoo/agentic-design-patterns 的多框架对照实现
 │   ├── langchain/             # LangChain 实现版本
 │   └── autogen/               # AutoGen 0.4+ 实现版本及 quickstart/
-│
 ├── apps/                      # 垂直场景端到端工程落地
 │   ├── cockpit_agent/         # 智能座舱 Agent（MasterAgent + 垂类 Sub-Agents）
 │   ├── coding_agent/          # 代码智能体
