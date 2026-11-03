@@ -25,9 +25,9 @@
 ```
 agent/
 ├── docs/                      # 知识库与规范文档
-│   ├── books/                 # 经典理论：李博杰《深入理解 AI Agent》全本与速查指南
+│   ├── books/                 # 经典理论与电子书：《深入理解 AI Agent》全本、《智能体设计模式》中英版 (EPUB/PDF)
 │   ├── design_patterns/       # 设计模式白皮书（对应 xindoo/agentic-design-patterns）
-│   ├── architecture/          # Harness 架构白皮书 (ai-agent-harness-architecture.md)
+│   ├── architecture/          # Harness 架构白皮书与 C++/Go 工业级框架实战指南
 │   └── multimodal/            # 音视频端侧指南 (AUDIO_VIDEO_MULTIMODAL_HANDBOOK.md)
 │
 ├── core/                      # 【核心底座】Harness 运行时框架（自主可控，零外部大框架强依赖）
@@ -94,6 +94,13 @@ agent/
 - **首错定位 (First Mistake Identification)**：排查长长轨迹的 Agent 故障时，严禁仅看末端报错（如数据库连接超时）；必须使用前缀回归（Prefix Regression）截断排查，锁定首次偏离正确意图的关键步。
 
 ---
+### 7. 端云多技术栈分工准则 (Multi-Language Engineering Stack)
+- **端云分水岭**：
+  - **端侧/车载/机器人 (C++ / Rust)**：以 `llama.cpp`、`MNN-LLM`、`TensorRT-LLM` 为主流底座，强制使用 GBNF 语法树约束输出，杜绝 Python 依赖与 GC 停顿；
+  - **云端高并发微服务 (Go)**：以 `cloudwego/eino`、`Genkit (Go)` 为主流调度编排底座，支撑百万并发与全链路 Tracing；
+  - **原型与算法基线 (Python)**：本仓库 `core/` 充当跨端状态机与排雷逻辑的 Reference Implementation，保持零第三方依赖以便 1:1 直译或绑定。
+  - 详细框架选型与落地参考：[`docs/architecture/AGENT_FRAMEWORKS_CPP_GO.md`](docs/architecture/AGENT_FRAMEWORKS_CPP_GO.md)。
+
 
 ## 四、 常用开发与测试指令
 

@@ -1,6 +1,6 @@
 ### 智能体设计模式 (AutoGen 实现)
 
-> 本实现对应开源项目 [xindoo/agentic-design-patterns](https://github.com/xindoo/agentic-design-patterns) 的 AutoGen 分支。
+> 本实现对应开源项目 [xindoo/agentic-design-patterns](https://github.com/xindoo/agentic-design-patterns) 的 AutoGen 分支。配套电子书请参阅 [`docs/books/agentic-design-patterns-cn.epub`](../../docs/books/agentic-design-patterns-cn.epub)（[英文版](../../docs/books/agentic-design-patterns-en.epub)）。
 #### 例子说明
 + chap01 	提示链模式
 + chap02    路由模式

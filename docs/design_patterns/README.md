@@ -6,6 +6,10 @@
 #### 原项目与文档
 + **GitHub 仓库**：[https://github.com/xindoo/agentic-design-patterns](https://github.com/xindoo/agentic-design-patterns)
 + **在线设计文档**：[智能体设计模式 (Google Docs)](https://docs.google.com/document/d/1rsaK53T3Lg5KoGwvf8ukOUvbELRtH-V0LnOIFDxBryE/preview?pli=1&tab=t.0#heading=h.pxcur8v2qagu)
++ **离线电子书 (EPUB)**：
+  + [中文版电子书 (`agentic-design-patterns-cn.epub`)](../books/agentic-design-patterns-cn.epub)
+  + [英文版电子书 (`agentic-design-patterns-en.epub`)](../books/agentic-design-patterns-en.epub)
+  + [知识库索引与图书全集](../books/README.md)
 
 #### 框架实现导航
 + [LangChain 实现目录](../../patterns/langchain/ReadMe.md)

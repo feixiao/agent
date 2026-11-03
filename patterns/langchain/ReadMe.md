@@ -1,6 +1,6 @@
 ### 智能体设计模式 (LangChain 实现)
 
-> 本实现对应开源项目 [xindoo/agentic-design-patterns](https://github.com/xindoo/agentic-design-patterns) 的 LangChain 分支。
+> 本实现对应开源项目 [xindoo/agentic-design-patterns](https://github.com/xindoo/agentic-design-patterns) 的 LangChain 分支。配套电子书请参阅 [`docs/books/agentic-design-patterns-cn.epub`](../../docs/books/agentic-design-patterns-cn.epub)（[英文版](../../docs/books/agentic-design-patterns-en.epub)）。
 #### 创建环境
 ```shell
 pyenv virtualenv 3.12 llm

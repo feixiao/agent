@@ -1,6 +1,7 @@
 # 智能体设计模式实现 (Agentic Design Patterns)
 
 > 本目录下的设计模式代码实现对应开源项目：**[xindoo/agentic-design-patterns](https://github.com/xindoo/agentic-design-patterns)**。  
+> 离线电子书阅读：中英双语 EPUB 版位于 [`docs/books/agentic-design-patterns-cn.epub`](../docs/books/agentic-design-patterns-cn.epub) 与 [`docs/books/agentic-design-patterns-en.epub`](../docs/books/agentic-design-patterns-en.epub)。  
 > 深入理论、底层 Harness 与排雷地图请参阅：[`docs/books/AI-Agents-in-Depth-QuickStart.md`](../docs/books/AI-Agents-in-Depth-QuickStart.md)。
 
 ---

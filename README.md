@@ -8,9 +8,9 @@
 
 ## 目录全景导航
 ├── docs/                          # 统一文档中心与理论知识库
-│   ├── books/                     # 经典理论：李博杰《深入理解 AI Agent》全本与速查指南
+│   ├── books/                     # 经典理论与电子书：《深入理解 AI Agent》全本、《智能体设计模式》中英版 (EPUB/PDF)
 │   ├── design_patterns/           # 8 大设计模式原理与架构文档（对应 xindoo/agentic-design-patterns）
-│   ├── architecture/              # Harness 架构通用白皮书 (ai-agent-harness-architecture.md)
+│   ├── architecture/              # Harness 架构通用白皮书与 C++/Go 工业级框架选型指南
 │   └── multimodal/                # 音视频多模态与端侧全景指南 (AUDIO_VIDEO_MULTIMODAL_HANDBOOK.md)
 │
 ├── core/                          # 【核心底座】自主研发 Agent 运行时与 Harness 引擎
@@ -64,10 +64,107 @@ pip install -e ".[patterns-autogen]"     # 安装 AutoGen 模式依赖
 pip install -e ".[evals]"                # 安装评测套件
 ```
 
-### 2. 探索路径建议
+---
+
+## 🎯 小白入门指南：如何靠本项目吃透 AI Agent？
+
+> 如果你是刚接触 Agent 的新手，请把本仓库当作一份**从“会调包”到“懂底盘”的通关路线图**。不需要你懂复杂的深度学习数学，只要有基础 Python 读写能力，就能彻底搞懂真实工业级 Agent 的设计精髓。
+
+### 1. 概念破迷：30 秒搞懂什么是 Agent？
+* **普通聊天（ChatGPT）**：你问一句、它回一句，属于**单次开环嘴炮**，没有手脚，无法真正替你办事。
+* **AI 智能体（Agent）**：你给它一个目标（例如“帮我订去杭州最便宜的高铁并把行程写入日历”），它能**自我规划任务、主动调用外部工具（查票/写日历）、检查执行结果、报错自动纠错，直到达成目标**。
+* **极简本质公式**：
+  $$\text{Agent} = \text{大模型（负责概率思考的“脑”）} + \text{Harness（负责确定性控制的“手脚、仪表盘与刹车”）}$$
+
+---
+
+### 2. 五步通关实战路线图
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│  第 1 关：建立防坑直觉 (30分钟)                                            │
+│  阅读 docs/books/AI-Agents-in-Depth-QuickStart.md 中的 12 大排雷地图     │
+│  目标：明白为什么大模型做多步任务会死循环、乱扣费、胡言乱语 (Pass^k = p^k)  │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    │
+                                    ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│  第 2 关：上手经典 8 大模式 (1 ~ 2 天)                                   │
+│  阅读 docs/books/ 中的中英双语电子书，运行 patterns/ 示例                 │
+│  目标：掌握提示链、路由、并行、反思、工具调用、规划、多智能体与记忆 8 种核心招式 │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    │
+                                    ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│  第 3 关：拆解核心白盒底盘 (2 ~ 3 天)                                    │
+│  阅读 core/ 源码（纯 Python、无黑盒框架强依赖）                           │
+│  目标：看懂防死循环熔断器 (loop)、KV-Cache 前缀静止 (context) 与幂等键沙箱   │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    │
+                                    ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│  第 4 关：观摩企业级垂类落地 (3 ~ 5 天)                                  │
+│  研究 apps/cockpit_agent (车载智能座舱) 与 apps/coding_agent (代码助理)  │
+│  目标：看懂真实的 Master-SubAgent 主从分工与防行号漂移的原位精准替换机制 │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    │
+                                    ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│  第 5 关：工业级跨语言与端云架构 (进阶视野)                               │
+│  阅读 docs/architecture/AGENT_FRAMEWORKS_CPP_GO.md                     │
+│  目标：理解为什么端侧座舱必须用 C++ (llama.cpp)，高并发微服务首选 Go (Eino)│
+└────────────────────────────────────────────────────────────────────────┘
+```
+
+#### 详细通关指引：
+
+1. **第一关 · 建立防坑直觉（打破“大模型万能”盲目崇拜）**：
+   - **必读文件**：[`docs/books/AI-Agents-in-Depth-QuickStart.md`](docs/books/AI-Agents-in-Depth-QuickStart.md)
+   - **核心收获**：掌握复合概率法则 $Pass^k = p^k$（如果单步成功率是 95%，连续做 10 步端到端成功率仅剩 59.8%）。彻底搞懂为什么 Agent 上线不能靠碰运气，必须依靠工程底盘兜底。
+
+2. **第二关 · 动手跑通经典 8 大模式（体验 Agent 的手和脚）**：
+   - **参考书籍**：中英双语 EPUB（[`agentic-design-patterns-cn.epub`](docs/books/agentic-design-patterns-cn.epub)）
+   - **动手代码**：进入 [`patterns/`](patterns/README.md)，推荐先看 [`patterns/langchain/`](patterns/langchain/ReadMe.md)：
+     - **提示链 (Chaining)**：任务流水线串联；
+     - **路由 (Routing)**：按意图分配不同模型或分支；
+     - **反思 (Reflection)**：AI 生成内容后自己挑刺检查；
+     - **工具使用 (Tool Use)**：让 AI 学会查天气、搜计算器；
+     - **多智能体 (Multi-Agent)**：多个 Agent 角色对话协同。
+
+3. **第三关 · 拆开黑盒看底盘：学习自主研发的 `core/` 运行时**：
+   - 现成大框架（如 LangChain/AutoGen）封装过深，出现 Bug 很难排查。本项目在 [`core/`](core/) 中用纯 Python 提供了精炼白盒实现：
+     - **防死循环熔断 (`core/loop/`)**：看如何用 30 行代码实现熔断器，连续 2 次参数相同或遇到报错立即熔断，防止烧光 Token；
+     - **省钱与提速缓存 (`core/context/`)**：看为什么 Prompt 开头绝对不能加动态时间戳，如何保持前缀静止最大化命中 GPU KV Cache；
+     - **防重复扣款与操作幂等 (`core/sandbox/`)**：看如何在工具调用中注入唯一幂等键 (`idempotency_key`)，彻底解决弱网重试导致重复扣款。
+
+4. **第四关 · 观摩真实产业落地**：
+   - 学习 [`apps/cockpit_agent/`](apps/cockpit_agent/ReadMe.md)：车载座舱中，主中枢 Agent 如何解析用户一句话，将车控指令下发给空调、座椅子 Agent。
+   - 学习 [`apps/coding_agent/`](apps/coding_agent/)：看代码助手为什么不能盲目依赖行号（防止行号漂移），而是采用 AST 语法分析与特征原位替换。
+
+5. **第五关 · 拓展工业级视野**：
+   - 学习 [`docs/architecture/AGENT_FRAMEWORKS_CPP_GO.md`](docs/architecture/AGENT_FRAMEWORKS_CPP_GO.md)：理解真实业务中，端侧嵌入式/车载设备对零 GC 和低延迟的要求（为什么用 C++），以及云端大并发微服务网关的要求（为什么用 Go `cloudwego/eino`）。
+
+---
+
+### 3. 小白常见问题答疑 (FAQ)
+
+* **Q: 我没有昂贵的独立显卡（GPU），能跑这个项目吗？**
+  * **A: 完全可以！** Agent 的开发重心在**逻辑编排、工具调用与工程状态控制**，不在模型训练。你可以直接配置云端 API（如 DeepSeek、OpenAI、Kimi），或在本地电脑用 CPU 安装 [Ollama](https://ollama.com/)（运行轻量模型如 `qwen2.5:3b` 或 `deepseek-r1:1.5b`），零显卡成本即可跑通全部案例。
+
+* **Q: 我刚学完 Python 基础，能看懂本项目代码吗？**
+  * **A: 毫无压力。** 本项目 `core/` 遵循极简微内核哲学，没有任何花哨的黑魔法和臃肿依赖，主要使用标准数据结构、枚举与简单的状态流转，代码注释详尽，非常适合作为入门的第一个工程级开源项目阅读。
+
+* **Q: 我应该先看书还是先动手写代码？**
+  * **A: 推荐“两头并进”**：先花 20 分钟翻翻 [`docs/books/AI-Agents-in-Depth-QuickStart.md`](docs/books/AI-Agents-in-Depth-QuickStart.md) 建立大局观，然后直接进入 `patterns/` 跑一个工具调用的 Demo；当产生疑问（“它怎么会死循环？”）时，再来看 `core/` 的实现原理。
+
+---
+
+## 探索路径索引
 
 1. **理论与心智模型**：
-   - 必读：[`docs/books/AI-Agents-in-Depth-QuickStart.md`](docs/books/AI-Agents-in-Depth-QuickStart.md)（掌握 12 大排雷归因地图与 $Pass^k$ 法则）。
+   - 书籍索引中心：[`docs/books/README.md`](docs/books/README.md)（收录两部经典著作全本及速查清单）
+   - 核心理论速查：[`docs/books/AI-Agents-in-Depth-QuickStart.md`](docs/books/AI-Agents-in-Depth-QuickStart.md)（掌握 12 大排雷归因地图与 $Pass^k$ 法则）
+   - 模式电子书：中英双语 EPUB（[`agentic-design-patterns-cn.epub`](docs/books/agentic-design-patterns-cn.epub) / [`agentic-design-patterns-en.epub`](docs/books/agentic-design-patterns-en.epub)）
 2. **经典模式工程**：
    - 模式总览：[`patterns/README.md`](patterns/README.md)（对应开源项目 [xindoo/agentic-design-patterns](https://github.com/xindoo/agentic-design-patterns)）
    - 查看 LangChain 8 大模式实现：[`patterns/langchain/ReadMe.md`](patterns/langchain/ReadMe.md)
@@ -77,3 +174,5 @@ pip install -e ".[evals]"                # 安装评测套件
 4. **端侧多模态实践**：
    - 音视频与边缘节点手册：[`docs/multimodal/AUDIO_VIDEO_MULTIMODAL_HANDBOOK.md`](docs/multimodal/AUDIO_VIDEO_MULTIMODAL_HANDBOOK.md)
    - 本地实操套件：[`perception/labs/README.md`](perception/labs/README.md)
+5. **工业级 C++/Go 选型与生产落地**：
+   - 端云生产框架实战指南：[`docs/architecture/AGENT_FRAMEWORKS_CPP_GO.md`](docs/architecture/AGENT_FRAMEWORKS_CPP_GO.md)（掌握 C++ 端侧运行时 `llama.cpp` / `MNN-LLM` 与 Go 云端微服务框架 `Eino` / `Genkit`）。
