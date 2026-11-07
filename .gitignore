@@ -53,3 +53,7 @@ htmlcov/
 # Local logs and temporary outputs
 *.log
 perception/labs/*.tmp
+data/
+indexes/
+trajectory.json
+last_run.json

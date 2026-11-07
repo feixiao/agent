@@ -60,7 +60,7 @@ class TestPatternsEnv(unittest.TestCase):
             self.assertEqual(type(ag_client).__name__, "OpenAIChatCompletionClient")
 
             cr_llm = create_crewai_llm()
-            self.assertEqual(cr_llm.model, "qwen3.8-27b-splash")
+            self.assertEqual(cr_llm.model, "openai/qwen3.8-27b-splash")
 
 
 if __name__ == "__main__":

@@ -27,7 +27,19 @@
 * **核心速查与排雷指南**：[`AI-Agents-in-Depth-QuickStart.md`](AI-Agents-in-Depth-QuickStart.md)
   * 涵盖核心公式 $\text{Agent} = \text{Model} + \text{Harness}$ 与复合概率法则 $Pass^k = p^k$
   * 工业级 12 大排雷归因地图（上下文膨胀、死循环、工具幻觉、并发竞争等）
-
+* **全书 10 章配套实战代码 (109 个实验)**：详见 [实验库总览](../../experiments/README.md)
+  * [第 1 章 · AI Agent 入门](../../experiments/chapter1/README.md)
+  * [第 2 章 · 上下文工程](../../experiments/chapter2/README.md)
+  * [第 3 章 · 用户记忆和知识库](../../experiments/chapter3/README.md)
+  * [第 4 章 · 工具](../../experiments/chapter4/README.md)
+  * [第 5 章 · Coding Agent 与通用 Agent](../../experiments/chapter5/README.md)
+  * [第 6 章 · 交互：观察与动作空间的扩展](../../experiments/chapter6/README.md)
+  * [第 7 章 · Agent 的评估](../../experiments/chapter7/README.md)
+  * [第 8 章 · 模型后训练](../../experiments/chapter8/README.md)
+  * [第 9 章 · Agent 的持续进化](../../experiments/chapter9/README.md)
+  * [第 10 章 · 多 Agent 协作](../../experiments/chapter10/README.md)
+* **核心共享 Provider 基础设施**：[`experiments/agentbook/`](../../experiments/agentbook/)（统一模型路由、厂商密钥与后端适配）
+* **22 个实战 Agent 技能包**：[`experiments/skills/`](../../experiments/skills/README.md)（涵盖上下文工程、KV-Cache、记忆系统、工具设计、评测与自进化闭环）
 ---
 
 ## 阅读建议

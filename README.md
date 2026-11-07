@@ -127,11 +127,13 @@ cp .env.example .env
 # 2. 使用 uv 安装基础运行时与依赖
 uv sync
 
-# 3. 按需安装特定扩展模块（例如模式实现、评测套件）
+# 3. 按需安装特定扩展模块（例如设计模式、章节实验、评测套件）
 uv sync --extra patterns               # 安装设计模式全部依赖 (LangChain + AutoGen)
-# uv sync --extra patterns-langchain   # 仅 LangChain 依赖
-# uv sync --extra patterns-autogen     # 仅 AutoGen 依赖
-# uv sync --extra evals                # 评测套件
+uv sync --extra ch1                    # 仅安装第 1 章实验依赖 (可替换为 ch2 ~ ch10)
+uv sync --extra evals                  # 评测套件
+
+# 4. 运行章节配套实验示例
+uv run python experiments/chapter1/context/main.py --help
 ```
 ---
 
@@ -139,6 +141,21 @@ uv sync --extra patterns               # 安装设计模式全部依赖 (LangCha
 
 ```text
 agent/
+├── experiments/                   # 【书籍配套实验库】源自《深入理解 AI Agent》全书 10 章 109 个配套实验与设施
+│   ├── agentbook/                 # 【Provider 基础设施】统一厂商适配层、模型解析、多模型路由与 Key 管理
+│   ├── chapter1/                  # 第 1 章 · AI Agent 入门（上下文消融、多轮搜索、代码执行、离线自学习）
+│   ├── chapter2/                  # 第 2 章 · 上下文工程（KV-Cache、提示注入防御、上下文压缩、注意力可视化）
+│   ├── chapter3/                  # 第 3 章 · 用户记忆与知识库（Agentic-RAG、向量/稀疏检索、长期用户画像）
+│   ├── chapter4/                  # 第 4 章 · 工具（MCP 协议、多工具动态发现与路由、通知调度中心）
+│   ├── chapter5/                  # 第 5 章 · Coding Agent 与通用 Agent（代码生成、沙箱隔离、多厂商容灾切换）
+│   ├── chapter6/                  # 第 6 章 · 交互与空间扩展（异步事件流、端到端语音交互、Computer Use）
+│   ├── chapter7/                  # 第 7 章 · Agent 的评估（Tau-Bench、成本收益分析、Elo 胜率天梯）
+│   ├── chapter8/                  # 第 8 章 · 模型后训练（CoT 蒸馏、SFT 数据审计、RL 奖励建模）
+│   ├── chapter9/                  # 第 9 章 · Agent 的持续进化（自进化工具、轨迹校验器、故障规避）
+│   ├── chapter10/                 # 第 10 章 · 多 Agent 协作（长文档分布式翻译、狼人杀协同、组织治理）
+│   ├── skills/                    # 【22 个生产级 Agent 技能包】按需触发的高频开发知识包与实操 SOP
+│   └── README.md                  # 实验库快速导航与总览
+│
 ├── docs/                          # 统一文档中心与理论知识库
 │   ├── books/                     # 经典理论与电子书：《深入理解 AI Agent》全本、《智能体设计模式》中英版 (EPUB/PDF)
 │   ├── design_patterns/           # 8 大设计模式原理与架构文档（对应 xindoo/agentic-design-patterns）
@@ -176,11 +193,10 @@ agent/
 │   ├── metrics/                   # 核心指标（Pass^k 连续成功率、单步准确率、Token 成本）
 │   └── prefix_regression/         # 故障归因：前缀回归定位首个偏离错误 (First Mistake)
 │
-├── tests/                         # 单元与集成测试套件
+├── tests/                         # 单元与回归测试套件 (包含 720+ 自动化测试)
 ├── pyproject.toml                 # 模块化依赖定义
 └── README.md                      # 本文档
 ```
-
 ---
 
 ## 📚 探索路径索引与参考
@@ -193,11 +209,23 @@ agent/
    - 模式总览：[`patterns/README.md`](patterns/README.md)（对应开源项目 [xindoo/agentic-design-patterns](https://github.com/xindoo/agentic-design-patterns)）
    - 查看 LangChain 8 大模式实现：[`patterns/langchain/ReadMe.md`](patterns/langchain/ReadMe.md)
    - 查看 AutoGen 0.4+ 模式与上手：[`patterns/autogen/ReadMe.md`](patterns/autogen/ReadMe.md)
-3. **垂直行业架构**：
+3. **深入理解 AI Agent 全套 10 章配套实战 (109 个实验)**：详见 [实验库总览](experiments/README.md)
+   - [第 1 章 · AI Agent 入门](experiments/chapter1/README.md)：上下文消融、多轮搜索与代码解释器
+   - [第 2 章 · 上下文工程](experiments/chapter2/README.md)：KV Cache 命中率分析、提示注入攻防与上下文压缩
+   - [第 3 章 · 用户记忆与知识库](experiments/chapter3/README.md)：Agentic-RAG、结构化知识图谱与混合召回
+   - [第 4 章 · 工具工程](experiments/chapter4/README.md)：Model Context Protocol (MCP)、动态工具发现与人机协同审批
+   - [第 5 章 · Coding Agent 与通用智能体](experiments/chapter5/README.md)：代码生成、执行沙箱安全审计与跨服务商热备切换
+   - [第 6 章 · 观察与动作空间扩展](experiments/chapter6/README.md)：异步事件驱动架构、端到端实时语音与 GUI 自动化
+   - [第 7 章 · Agent 的评估](experiments/chapter7/README.md)：多维指标度量、Elo 胜率天梯与成本收益分析
+   - [第 8 章 · 模型后训练](experiments/chapter8/README.md)：思考链 (CoT) 蒸馏、SFT 样本数据审计与强化学习对齐
+   - [第 9 章 · Agent 的持续进化](experiments/chapter9/README.md)：工具自进化、执行轨迹校验器与错误经验闭环
+   - [第 10 章 · 多 Agent 协作](experiments/chapter10/README.md)：分布式多角色协作、长文档编排翻译与群体博弈
+   - [22 个生产级 Agent Skills 库](experiments/skills/README.md)：支持 Claude Code 与各类 Coding Agent 的即用技能包
+4. **垂直行业架构**：
    - 车载智能座舱 Agent：[`apps/cockpit_agent/ReadMe.md`](apps/cockpit_agent/ReadMe.md)
-4. **端侧多模态实践**：
+5. **端侧多模态实践**：
    - 音视频与边缘节点手册：[`docs/multimodal/AUDIO_VIDEO_MULTIMODAL_HANDBOOK.md`](docs/multimodal/AUDIO_VIDEO_MULTIMODAL_HANDBOOK.md)
    - 本地实操套件：[`perception/labs/README.md`](perception/labs/README.md)
-5. **工业级 C++/Go 选型与生产落地**：
+6. **工业级 C++/Go 选型与生产落地**：
    - 端云生产框架实战指南：[`docs/architecture/AGENT_FRAMEWORKS_CPP_GO.md`](docs/architecture/AGENT_FRAMEWORKS_CPP_GO.md)（掌握 C++ 端侧运行时 `llama.cpp` / `MNN-LLM` 与 Go 云端微服务框架 `Eino` / `Genkit`）。
    - 终端智能体架构对比白皮书：[`docs/architecture/OMP_VS_CLAUDE_CODE_COMPARISON.md`](docs/architecture/OMP_VS_CLAUDE_CODE_COMPARISON.md)（站在 Agent Harness 视角深度剖析 **OMP (Oh My Pi)** 与 **Claude Code**：垂直共生 vs 异构分工、Prewalk 阶梯调度、LSP 诊断与经济学选型）。
