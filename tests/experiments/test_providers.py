@@ -45,6 +45,10 @@ PROVIDER_KEY_VARS = [
     "KIMI_BASE_URL",
     "OLLAMA_BASE_URL",
     "OPENAI_BASE_URL",
+    "LLM_BASE_URL",
+    "LLM_API_KEY",
+    "LLM_MODEL",
+    "LLM_PROVIDER",
 ]
 
 

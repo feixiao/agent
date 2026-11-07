@@ -122,6 +122,9 @@ PROVIDERS: dict[str, Provider] = {
 
 # Provider names used interchangeably in the chapters, mapped to canonical ones.
 _ALIASES = {
+    "default": "openai",
+    "env": "openai",
+    "local": "openai",
     "moonshot": "kimi",
     "ark": "doubao",
     "google": "gemini",

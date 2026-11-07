@@ -173,6 +173,8 @@ def resolve_backend(
         # ':free' zero-cost selector. Without this, the documented free recipe
         # silently resolves the paid OPENROUTER_DEFAULT_MODEL instead.
         resolved_model = os.getenv("OPENROUTER_MODEL", "").strip() or spec.default_model
+    elif spec.name == "openai":
+        resolved_model = os.getenv("LLM_MODEL", "").strip() or os.getenv("OPENAI_MODEL", "").strip() or spec.default_model
     else:
         resolved_model = spec.default_model
     key = (api_key or "").strip() or spec.api_key()
@@ -191,8 +193,10 @@ def resolve_backend(
     ):
         return build_openrouter_backend(resolved_model, available_openrouter_key, spec.name)
 
-    # 2. The provider's own credential, or a provider that needs none.
-    if key or not spec.requires_key:
+    # 2. The provider's own credential, or a provider that needs none (or local/openai with LLM_BASE_URL).
+    env_base_url = os.getenv("LLM_BASE_URL", "").strip() or os.getenv("OPENAI_BASE_URL", "").strip()
+    is_custom_openai = spec.name == "openai" and bool(env_base_url)
+    if key or not spec.requires_key or is_custom_openai:
         return Backend(
             api_key=key or _PLACEHOLDER_KEY,
             base_url=spec.resolved_base_url(),
@@ -212,5 +216,22 @@ def resolve_backend(
     if available_openrouter_key:
         return build_openrouter_backend(resolved_model, available_openrouter_key, spec.name)
 
-    # 4. Nothing is configured.
+    # 4. Universal fallback to repository .env LLM configuration when configured.
+    if env_base_url:
+        env_model = (
+            model_clean
+            or os.getenv("LLM_MODEL", "").strip()
+            or os.getenv("OPENAI_MODEL", "").strip()
+            or spec.default_model
+        )
+        env_key = os.getenv("LLM_API_KEY", "").strip() or os.getenv("OPENAI_API_KEY", "").strip() or _PLACEHOLDER_KEY
+        return Backend(
+            api_key=env_key,
+            base_url=env_base_url,
+            model=env_model,
+            provider="openai",
+            using_openrouter=False,
+        )
+
+    # 5. Nothing is configured.
     raise _missing_key_error(spec)

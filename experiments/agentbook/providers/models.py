@@ -59,6 +59,8 @@ class Provider:
             value = os.getenv(var, "").strip()
             if value:
                 return value
+        if self.name == "openai":
+            return os.getenv("LLM_API_KEY", "").strip() or ""
         return ""
 
     def resolved_base_url(self) -> str:
@@ -69,7 +71,13 @@ class Provider:
             otherwise the built-in ``base_url``.
         """
         if self.base_url_var:
-            return os.getenv(self.base_url_var, "").strip() or self.base_url
+            val = os.getenv(self.base_url_var, "").strip()
+            if val:
+                return val
+        if self.name == "openai":
+            val = os.getenv("LLM_BASE_URL", "").strip() or os.getenv("OPENAI_BASE_URL", "").strip()
+            if val:
+                return val
         return self.base_url
 
 

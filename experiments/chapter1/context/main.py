@@ -1209,8 +1209,8 @@ def main():
     parser.add_argument(
         "--provider",
         choices=SUPPORTED_PROVIDERS,
-        default="doubao",
-        help="LLM 提供商（默认：doubao；openrouter 或缺失主 key 时经 OpenRouter 兜底；ollama 为本地免费）"
+        default=os.getenv("LLM_PROVIDER", "openai"),
+        help="LLM 提供商（默认优先读取 .env 中的 LLM_PROVIDER，即 openai 兼容端点）",
     )
     parser.add_argument(
         "--model",
