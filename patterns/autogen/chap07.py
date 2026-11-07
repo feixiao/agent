@@ -57,7 +57,7 @@ def _extract_text(messages: Iterable) -> str:
 
 
 def _build_client():
-    return create_autogen_client(default="qwen3:8b", temperature=0.3)
+    return create_autogen_client(temperature=0.3)
 
 
 async def main() -> None:

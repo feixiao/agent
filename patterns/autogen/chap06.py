@@ -59,7 +59,7 @@ def _extract_text(messages: Iterable) -> str:
 
 
 def _build_client():
-    return create_autogen_client(default="qwen3:8b", temperature=0.4)
+    return create_autogen_client(temperature=0.4)
 
 
 def _split_sections(text: str) -> Tuple[str, str]:

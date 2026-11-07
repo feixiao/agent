@@ -6,8 +6,7 @@ Autogen-AgentChat 版本：并行示例（总结 / 问题 / 关键术语 -> 综�
 
 运行示例：
 ```bash
-export LLM_MODEL=deepseek-r1:8b
-python3 autogen/chap03.py
+uv run python patterns/autogen/chap03.py
 ```
 
 依赖：autogen-agentchat、autogen-core、autogen-ext 已安装并可用。
@@ -45,9 +44,8 @@ async def run_agent(agent: AssistantAgent, prompt: str) -> str:
 
 
 async def run_parallel_example(topic: str) -> None:
-    model_name = get_model(default="deepseek-r1:14b")
+    model_name = get_model()
     print(f"使用模型: {model_name} (Endpoint: {get_base_url()})")
-
     client = create_autogen_client(model_name=model_name)
 
     def make_agent(name: str, system_prompt: str) -> AssistantAgent:

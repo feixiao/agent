@@ -6,13 +6,12 @@
 2) 将提取到的规格格式化为 JSON（包含 cpu, memory, storage 三个字段）。
 
 使用方法：
-- 设置环境变量 `LLM_MODEL` 指定 Ollama 模型（默认 `deepseek-r1:14b`）。
-- 确保本地 Ollama 服务在运行（默认 http://localhost:11434），并且模型可用。
+- 在根目录 `.env` 中配置 `LLM_BASE_URL` 与 `LLM_MODEL`。
+- 确保本地推理服务（LM Studio / Ollama / vLLM）已启动并已加载对应模型。
 
 示例运行：
 ```bash
-export LLM_MODEL=deepseek-r1:8b
-python3 AgenticDesignPatterns/autogen/chap01.py
+uv run python patterns/autogen/chap01.py
 ```
 """
 
@@ -88,7 +87,7 @@ async def run_chain(input_text: str, model_name: str):
 async def main():
     # 待处理的示例文本（与 langchain 示例一致）
     input_text = "The new laptop model features a 3.5 GHz octa-core processor, 16GB of RAM, and a 1TB NVMe SSD."
-    model_name = get_model(default="deepseek-r1:8b")
+    model_name = get_model()
     print(f"使用模型: {model_name} (Endpoint: {get_base_url()})")
     await run_chain(input_text, model_name)
 

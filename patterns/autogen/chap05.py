@@ -65,7 +65,7 @@ def _extract_text(messages: Iterable) -> str:
 
 
 def _build_client():
-	return create_autogen_client(default="deepseek-r1:14b", temperature=0.2)
+	return create_autogen_client(temperature=0.2)
 
 
 def search_information(query: str) -> str:

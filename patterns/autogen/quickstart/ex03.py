@@ -28,7 +28,7 @@ from patterns.env import create_autogen_client, get_model
 # MagenticOneGroupChat(磁性一号群聊)
 # 策略：​ 这是 SelectorGroupChat的一个特定实现。它提供了一个预设的、基于 LLM 的​ speaker_selection_method函数。
 async def main():
-    model_name = get_model(default="qwen3:8b")
+    model_name = get_model()
     model_client = create_autogen_client(model_name=model_name)
 
     # Create the primary agent. 

@@ -7,8 +7,7 @@ AssistantAgent 版本的路由示例（无回退）
 
 运行示例：
 ```bash
-export LLM_MODEL=deepseek-r1:8b
-python3 autogen/chap02.py
+uv run python patterns/autogen/chap02.py
 ```
 """
 
@@ -90,7 +89,7 @@ async def route_request_with_agent(agent: Any, request: str) -> str:
 
 
 async def main():
-    model_name = get_model(default="deepseek-r1:8b")
+    model_name = get_model()
     print(f"使用模型: {model_name} (Endpoint: {get_base_url()})")
 
     agent_client = create_autogen_client(model_name=model_name)

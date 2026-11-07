@@ -19,26 +19,31 @@ from typing import Any, Optional
 
 from dotenv import find_dotenv, load_dotenv
 
-# Automatically load .env from current working directory or upward
-_DOTENV_PATH = find_dotenv(usecwd=True)
-if not _DOTENV_PATH:
+def _find_env_file() -> Optional[str]:
+    """Find .env file, falling back to .env.example if .env is missing."""
+    path = find_dotenv(usecwd=True)
+    if path and Path(path).exists():
+        return path
+
     repo_root = Path(__file__).resolve().parent.parent
     candidate = repo_root / ".env"
     if candidate.exists():
-        _DOTENV_PATH = str(candidate)
+        return str(candidate)
 
+    candidate_example = repo_root / ".env.example"
+    if candidate_example.exists():
+        return str(candidate_example)
+
+    return None
+
+_DOTENV_PATH = _find_env_file()
 if _DOTENV_PATH:
     load_dotenv(_DOTENV_PATH, override=False)
 
 
 def load_patterns_env() -> bool:
-    """Explicitly trigger environment variable reloading from .env."""
-    dotenv_path = find_dotenv(usecwd=True)
-    if not dotenv_path:
-        repo_root = Path(__file__).resolve().parent.parent
-        candidate = repo_root / ".env"
-        if candidate.exists():
-            dotenv_path = str(candidate)
+    """Explicitly trigger environment variable reloading from .env or .env.example."""
+    dotenv_path = _find_env_file()
     if dotenv_path:
         return load_dotenv(dotenv_path, override=True)
     return False

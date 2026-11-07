@@ -29,7 +29,7 @@ logger.addHandler(logging.StreamHandler())
 logger.setLevel(logging.INFO)
 
 async def main():
-	model_name = get_model(default="deepseek-r1:8b")
+	model_name = get_model()
 	logging.info(f"Using model: {model_name} (Endpoint: {get_base_url()})")
 	ollama_model_client = create_autogen_client(model_name=model_name)
 
