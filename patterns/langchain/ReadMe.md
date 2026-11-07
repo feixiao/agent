@@ -18,16 +18,20 @@ uv run python chap01.py
 - `LLM_MODEL`: 模型名称（如 `qwen3.8-27b-splash`）
 - `LLM_API_KEY`: API Key（本地推理服务保持默认 `not-needed` 即可）
 
-#### 例子说明
-+ chap01 	提示链模式
-+ chap02    路由模式
-+ chap03	并行化模式
-+ chap04    反思模式
-+ chap05    工具模式
-+ chap06	规划模式
-+ chap07	多智能体协作模式
-+ chap08	内存管理
+#### 例子说明与模式介绍
 
+基于 LangChain 0.2+ / LangGraph / CrewAI 覆盖的 8 大核心设计模式实现：
+
+| 章节与文件 | 模式名称 | LangChain 核心机制与场景说明 |
+| :--- | :--- | :--- |
+| **[`chap01.py`](chap01.py)** | **Prompt Chaining（提示链模式）** | **LCEL 链式组合**：利用 LangChain 表达式语言（LCEL `|` 管道操作符）将提取链与格式化转换链串联成单一可运行单元。 |
+| **[`chap02.py`](chap02.py)** | **Routing（路由模式）** | **RunnableBranch 条件分流**：使用 `RunnableBranch` 根据分类模型的输出条件动态路由到预订处理、问答检索或未明兜底链路。 |
+| **[`chap03.py`](chap03.py)** | **Parallelization（并行化模式）** | **RunnableParallel 并发编排**：利用 `RunnableParallel` 并行执行摘要提炼、问题生成与术语抽取三路独立子任务，大幅压低整体时延。 |
+| **[`chap04.py`](chap04.py)** | **Reflection（反思模式）** | **反思与自我纠错循环**：构建生成者-评估者循环，通过多次自我评估生成代码的阶乘逻辑与异常处理，并完成自我修正。 |
+| **[`chap05.py`](chap05.py)** | **Tool Calling（工具调用模式）** | **轻量工具扩展与模型兼容**：面向端侧模型实现“轻量 ReAct 决策 -> 本地 `@tool` 执行 -> 汇总回答”，无需强依赖模型原生函数调用。 |
+| **[`chap06.py`](chap06.py)** | **Planning（规划模式）** | **CrewAI 规划与撰写流水线**：利用 CrewAI 编排文章规划师（Planner）与撰写人，先制定要点规划再展开为结构化摘要。 |
+| **[`chap07.py`](chap07.py)** | **Multi-Agent Collaboration（多智能体协作）** | **专业角色分工与交接**：通过 CrewAI 组织高级研究分析师与科技内容撰写人顺序交接协作，产出多维度 AI 行业洞察报告。 |
+| **[`chap08_01.py`](chap08_01.py)**<br>**[`chap08_02.py`](chap08_02.py)** | **Memory Management（记忆管理模式）** | **短期对话缓冲与语义检索**：`chap08_01` 演示基于 Session ID 的对话上下文滚动缓冲；`chap08_02` 演示基于 LangGraph Store 的向量语义记忆检索与持久化。 |
 ## 关于 chap05.py：在“不支持 Tools”的模型上实现工具增强
 
 某些本地模型（例如 `registry.ollama.ai/library/deepseek-r1:14b`）当前不支持原生的 function/tool calling。
