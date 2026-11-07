@@ -3,13 +3,20 @@
 # Agents
 # https://microsoft.github.io/autogen/stable//user-guide/agentchat-user-guide/tutorial/agents.html
 
+import os
+import sys
+from pathlib import Path
+import asyncio
+from dotenv import find_dotenv, load_dotenv
+
+# 确保根目录在 sys.path 中并加载统一环境变量
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+load_dotenv(find_dotenv(usecwd=True))
+
 from autogen_agentchat.agents import AssistantAgent
 from autogen_agentchat.messages import StructuredMessage
 from autogen_agentchat.ui import Console
-# from autogen_ext.models.openai import OpenAIChatCompletionClient
-from autogen_ext.models.ollama import OllamaChatCompletionClient
-import os
-import asyncio
+from patterns.env import create_autogen_client, get_model, get_provider
 
 # Define a tool that searches the web for information.
 # For simplicity, we will use a mock function here that returns a static string.
@@ -27,8 +34,9 @@ async def main():
     # Autogen 的 Ollama 客户端会把 model="xxx:8b" 先解析成基名 xxx 再查一张内置的“模型能力表”，决定是否支持工具调用、推理、vision 等。你的 “deepseek-r1-tool-calling” 这个基名不在这张表里，所以报 KeyError。
     # ollama rm deepseek-r1:8b
     # ollama cp deepseek-r1-tool-calling:8b deepseek-r1:8b 
-    model_name = "qwen3:8b"
-    model_client = OllamaChatCompletionClient(model=model_name)
+    model_name = get_model(default="qwen3:8b")
+    print(f"Using model: {model_name} (Provider: {get_provider()})")
+    model_client = create_autogen_client(model_name=model_name)
     
     agent = AssistantAgent(
         name="assistant",

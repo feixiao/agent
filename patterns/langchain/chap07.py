@@ -1,8 +1,15 @@
 import os
+import sys
+from pathlib import Path
+from dotenv import find_dotenv, load_dotenv
 
-from crewai import Agent, Task, Crew, Process
-from crewai import LLM
+from crewai import Agent, Task, Crew, Process, LLM
 
+# 确保根目录在 sys.path 中并加载统一环境变量
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+load_dotenv(find_dotenv(usecwd=True))
+
+from patterns.env import create_crewai_llm
 # 多智能体协作设计模式
 # 要点总结：
 # 多智能体协作涉及多个智能体共同努力以实现一个共同目标。
@@ -17,11 +24,8 @@ def main():
     # 定义要使用的语言模型。
     # 对于前沿（预览版）功能，您可以使用 "ollama deepseek"。
     # 使用本地 Ollama 模型（确保 Ollama 在本机运行并已拉取 deepseek-r1:14b）
-    llm = LLM(
-        model="ollama/deepseek-r1:14b",
-        base_url="http://localhost:11434",
-        temperature=0.3,
-    )
+    # 使用统一环境变量读取提供商与模型（支持 Ollama 与 OpenAI）
+    llm = create_crewai_llm(temperature=0.3)
 
     # 定义具有特定角色和目标的代理
     researcher = Agent(

@@ -1,36 +1,23 @@
 
 # 提示链
-from typing import Optional
 import os
+import sys
+from pathlib import Path
+from typing import Optional
+from dotenv import find_dotenv, load_dotenv
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
-# 使用 Ollama 本地部署的 deepseek-chat 模型 
-# pip install langchain langchain-community langchain-openai langgraph
-# ollama run  deepseek-r1:14b
+# 确保根目录在 sys.path 中并加载统一环境变量
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+load_dotenv(find_dotenv(usecwd=True))
 
-def build_model(provider: str, model_name: Optional[str] = None):
-	provider = provider.lower()
+from patterns.env import create_langchain_model
 
-	if provider == "openai":
-		# 延迟导入，避免未安装依赖或本地无用时报错
-		from langchain_openai import ChatOpenAI
+def build_model(provider: Optional[str] = None, model_name: Optional[str] = None):
+	return create_langchain_model(provider=provider, model_name=model_name)
 
-		name = model_name or os.getenv("LLM_MODEL") or "gpt-4o-mini"
-		return ChatOpenAI(model=name)
-
-	if provider == "ollama":
-		# 延迟导入，避免未安装依赖或本地无用时报错
-		from langchain_ollama import ChatOllama
-
-		name = model_name or os.getenv("LLM_MODEL") or "deepseek-r1:14b"
-		return ChatOllama(model=name)
-
-	raise ValueError(
-		f"Unsupported provider: {provider}. Use 'openai' or 'ollama'."
-	)
-
-llm = build_model("ollama")
+llm = build_model()
 
 # --- 提示 1：提取信息 ---
 # 第一个用于从输入字符串中提取技术规格信息
@@ -59,11 +46,12 @@ full_chain = (
    | StrOutputParser()
 )
 
-# --- 运行提示链 ---
-input_text = "The new laptop model features a 3.5 GHz octa-core processor, 16GB of RAM, and a 1TB NVMe SSD."
+if __name__ == "__main__":
+    # --- 运行提示链 ---
+    input_text = "The new laptop model features a 3.5 GHz octa-core processor, 16GB of RAM, and a 1TB NVMe SSD."
 
-# 使用输入文本字典执行整个提示链。
-final_result = full_chain.invoke({"text_input": input_text})
+    # 使用输入文本字典执行整个提示链。
+    final_result = full_chain.invoke({"text_input": input_text})
 
-print("\n--- 最终 JSON 输出 ---")
-print(final_result)
+    print("\n--- 最终 JSON 输出 ---")
+    print(final_result)

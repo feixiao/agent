@@ -23,7 +23,48 @@
 
 ---
 
+## 环境管理与统一 LLM 配置 (uv & env)
+
+本项目使用 **uv** 进行现代、统一的工程与依赖管理，并对所有设计模式示例统一采用 `.env` 环境变量配置 LLM。
+
+### 1. 快速配置环境
+```bash
+# 1. 从项目根目录复制环境变量模板
+cp .env.example .env
+
+# 2. 使用 uv 安装设计模式依赖（可选择安装全部或单独安装某个框架）
+uv sync --extra patterns               # 同时安装 LangChain 与 AutoGen 依赖
+# 或单独安装：
+# uv sync --extra patterns-langchain   # 仅 LangChain 依赖
+# uv sync --extra patterns-autogen     # 仅 AutoGen 依赖
+```
+
+### 2. 统一环境变量说明 (`.env`)
+
+| 环境变量 | 说明 | 默认值 / 推荐值 |
+| :--- | :--- | :--- |
+| `LLM_PROVIDER` | 模型提供商 (`ollama` 或 `openai`) | `ollama` |
+| `LLM_MODEL` | 模型名称 | `deepseek-r1:8b` / `qwen3:8b` / `gpt-4o-mini` |
+| `OLLAMA_HOST` | 本地 Ollama 接口地址 | `http://localhost:11434` |
+| `LLM_BASE_URL` | 通用兼容 API 端点 (可选) | `http://localhost:11434` 或第三方网关 |
+| `OPENAI_API_KEY` | OpenAI API 密钥 (仅 provider=openai 时需要) | - |
+| `OPENAI_BASE_URL`| OpenAI 协议服务地址 (可选) | `https://api.openai.com/v1` |
+| `LLM_TEMPERATURE`| 全局采样温度 (可选) | `0.7` |
+
+### 3. 运行模式示例
+通过 `uv run` 可以在任意目录下以锁定依赖和统一环境变量运行任意章节示例：
+```bash
+# 运行 LangChain 模式示例
+uv run python patterns/langchain/chap01.py
+
+# 运行 AutoGen 模式示例
+uv run python patterns/autogen/chap01.py
+```
+
+---
+
 ## 目录结构
 
-- **`langchain/`**：基于 LangChain 0.2+ 的 8 大设计模式 Python 实现及 requirements 依赖。
-- **`autogen/`**：基于 AutoGen 的 8 大设计模式实现；`quickstart/` 提供 AutoGen 0.4+ AgentChat 与 Teams 快速上手用例。
+- **`langchain/`**：基于 LangChain 0.2+ 的 8 大设计模式 Python 实现。
+- **`autogen/`**：基于 AutoGen 0.4+ 的 8 大设计模式实现；`quickstart/` 提供 AgentChat 与 Teams 快速上手用例。
+- **`env.py`**：统一的 LLM 环境变量加载与模型工厂（同时支持 LangChain、AutoGen、CrewAI）。

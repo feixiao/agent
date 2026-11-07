@@ -16,46 +16,29 @@
 """
 
 import os
+import sys
+from pathlib import Path
 import asyncio
 from typing import Optional, List
+from dotenv import find_dotenv, load_dotenv
 
 import nest_asyncio
 from langchain_core.tools import tool  # 定义/注册可被 LC 使用的 Python 工具
 from langchain_core.prompts import ChatPromptTemplate  # 构造对话提示模版
 from langchain_core.output_parsers import StrOutputParser  # 将模型输出解析为纯文本字符串
 
-def build_model(provider: str, model_name: Optional[str] = None):
-  """根据提供商构建聊天模型。
+# 确保根目录在 sys.path 中并加载统一环境变量
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+load_dotenv(find_dotenv(usecwd=True))
 
-  参数：
-  - provider: "openai" 或 "ollama"
-  - model_name: 可选模型名；不传则读取环境变量 LLM_MODEL；再不传使用合理默认值。
+from patterns.env import create_langchain_model
 
-  说明：采用“延迟导入”，避免未安装某些依赖时报 ImportError。
-  """
-  provider = provider.lower()
-
-  if provider == "openai":
-    # OpenAI 聊天模型（需要有效的 OpenAI API Key）
-    from langchain_openai import ChatOpenAI
-
-    name = model_name or os.getenv("LLM_MODEL") or "gpt-4o-mini"
-    return ChatOpenAI(model=name)
-
-  if provider == "ollama":
-    # 本地 Ollama 模型（例如 deepseek-r1:14b）。注意：该模型不支持 tools。
-    from langchain_ollama import ChatOllama
-
-    name = model_name or os.getenv("LLM_MODEL") or "deepseek-r1:14b"
-    return ChatOllama(model=name)
-
-  raise ValueError(
-    f"Unsupported provider: {provider}. Use 'openai' or 'ollama'."
-  )
+def build_model(provider: Optional[str] = None, model_name: Optional[str] = None):
+	return create_langchain_model(provider=provider, model_name=model_name)
 
 try:
     # 需要一个具有函数/工具调用功能的模型。
-    llm = build_model("ollama")
+    llm = build_model()
     print(f"✅ 语言模型已初始化: {getattr(llm, 'model', 'unknown')}")
 except Exception as e:
     print(f"初始化语言模型时出错: {e}")
@@ -171,5 +154,6 @@ async def main():
   ]
   await asyncio.gather(*tasks)
 
-nest_asyncio.apply()  # 允许在 Jupyter/交互式环境中再次进入事件循环
-asyncio.run(main())   # 运行示例
+if __name__ == "__main__":
+    nest_asyncio.apply()  # 允许在 Jupyter/交互式环境中再次进入事件循环
+    asyncio.run(main())   # 运行示例

@@ -6,9 +6,18 @@
 
 
 import os
+import sys
+from pathlib import Path
 import asyncio
+import logging
+from dotenv import find_dotenv, load_dotenv
+
+# 确保根目录在 sys.path 中并加载统一环境变量
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+load_dotenv(find_dotenv(usecwd=True))
+
 from autogen_core.models import UserMessage
-from autogen_ext.models.ollama import OllamaChatCompletionClient
+from patterns.env import create_autogen_client, get_model, get_provider
 import logging
 
 # AutoGen uses standard Python logging module to log events like model calls and responses
@@ -20,8 +29,9 @@ logger.addHandler(logging.StreamHandler())
 logger.setLevel(logging.INFO)
 
 async def main():
-	model_name = os.getenv("LLM_MODEL", "deepseek-r1:8b")
-	ollama_model_client = OllamaChatCompletionClient(model=model_name)
+	model_name = get_model(default="deepseek-r1:8b")
+	logging.info(f"Using model: {model_name} (Provider: {get_provider()})")
+	ollama_model_client = create_autogen_client(model_name=model_name)
 
 	response = await ollama_model_client.create([UserMessage(content="What is the capital of France?", source="user")])
 	logging.info(response)

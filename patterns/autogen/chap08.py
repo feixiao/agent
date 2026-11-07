@@ -1,16 +1,23 @@
 # https://microsoft.github.io/autogen/stable//user-guide/agentchat-user-guide/memory.html#
 
 
+import os
+import sys
+from pathlib import Path
+import asyncio
+from dotenv import find_dotenv, load_dotenv
+
+# 确保根目录在 sys.path 中并加载统一环境变量
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+load_dotenv(find_dotenv(usecwd=True))
+
 from autogen_agentchat.agents import AssistantAgent
 from autogen_agentchat.ui import Console
 from autogen_core.memory import ListMemory, MemoryContent, MemoryMimeType
-from autogen_ext.models.ollama import OllamaChatCompletionClient
-import asyncio
-import os
+from patterns.env import create_autogen_client
 
-def _build_client() -> OllamaChatCompletionClient:
-	model_name = os.getenv("LLM_MODEL", "qwen3:8b")
-	return OllamaChatCompletionClient(model=model_name, temperature=0.2)
+def _build_client():
+	return create_autogen_client(default="qwen3:8b", temperature=0.2)
 
 # Initialize user memory
 async def main():

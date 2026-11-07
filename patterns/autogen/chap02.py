@@ -13,9 +13,17 @@ python3 autogen/chap02.py
 """
 
 import os
+import sys
+from pathlib import Path
 import asyncio
 from typing import Any
+from dotenv import find_dotenv, load_dotenv
 
+# 确保根目录在 sys.path 中并加载统一环境变量
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+load_dotenv(find_dotenv(usecwd=True))
+
+from patterns.env import create_autogen_client, get_model, get_provider
 try:
     # AssistantAgent 位于 autogen_agentchat.agents 模块内
     from autogen_agentchat.agents import AssistantAgent  # type: ignore
@@ -82,13 +90,10 @@ async def route_request_with_agent(agent: Any, request: str) -> str:
 
 
 async def main():
-    model_name = os.getenv("LLM_MODEL", "deepseek-r1:8b")
-    print(f"使用模型: {model_name}")
+    model_name = get_model(default="deepseek-r1:8b")
+    print(f"使用模型: {model_name} (Provider: {get_provider()})")
 
-    # 构造 AssistantAgent：该版本需要显式传入 model_client
-    from autogen_ext.models.ollama import OllamaChatCompletionClient
-
-    agent_client = OllamaChatCompletionClient(model=model_name)
+    agent_client = create_autogen_client(model_name=model_name)
     agent = AssistantAgent(
         name="router",
         model_client=agent_client,

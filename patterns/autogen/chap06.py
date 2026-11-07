@@ -5,14 +5,21 @@ We use RoundRobinGroupChat with a TextMentionTermination keyword. Planner
 creates bullet points, writer produces the summary and appends the stop word.
 """
 
-import asyncio
 import os
+import sys
+from pathlib import Path
+import asyncio
 from typing import Iterable, List, Tuple
+from dotenv import find_dotenv, load_dotenv
+
+# 确保根目录在 sys.path 中并加载统一环境变量
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+load_dotenv(find_dotenv(usecwd=True))
 
 from autogen_agentchat.agents import AssistantAgent
 from autogen_agentchat.conditions import TextMentionTermination
 from autogen_agentchat.teams import RoundRobinGroupChat  # type: ignore
-from autogen_ext.models.ollama import OllamaChatCompletionClient
+from patterns.env import create_autogen_client
 
 # 规划使代理能够将复杂目标分解为可操作的顺序步骤。 
 # 它对于处理多步骤任务、工作流自动化和驾驭复杂环境至关重要。
@@ -51,9 +58,8 @@ def _extract_text(messages: Iterable) -> str:
     return "\n".join(filter(None, parts)).strip()
 
 
-def _build_client() -> OllamaChatCompletionClient:
-    model_name = os.getenv("LLM_MODEL", "qwen3:8b")
-    return OllamaChatCompletionClient(model=model_name, temperature=0.4)
+def _build_client():
+    return create_autogen_client(default="qwen3:8b", temperature=0.4)
 
 
 def _split_sections(text: str) -> Tuple[str, str]:

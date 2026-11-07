@@ -1,7 +1,14 @@
 # Teams
 # A team is a group of agents that work together to achieve a common goal.
 import os
+import sys
+from pathlib import Path
 import asyncio
+from dotenv import find_dotenv, load_dotenv
+
+# 确保根目录在 sys.path 中并加载统一环境变量
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+load_dotenv(find_dotenv(usecwd=True))
 
 from autogen_agentchat.agents import AssistantAgent
 from autogen_agentchat.base import TaskResult
@@ -9,7 +16,7 @@ from autogen_agentchat.conditions import ExternalTermination, TextMentionTermina
 from autogen_agentchat.teams import RoundRobinGroupChat
 from autogen_agentchat.ui import Console
 from autogen_core import CancellationToken
-from autogen_ext.models.ollama import OllamaChatCompletionClient
+from patterns.env import create_autogen_client, get_model, get_provider
 
 # RoundRobinGroupChat(轮询群聊)
 # 策略：​ 这是最简单、最直接的策略。它严格按照成员列表 (agents参数) 中智能体的顺序来选择下一个发言者。
@@ -21,9 +28,8 @@ from autogen_ext.models.ollama import OllamaChatCompletionClient
 # MagenticOneGroupChat(磁性一号群聊)
 # 策略：​ 这是 SelectorGroupChat的一个特定实现。它提供了一个预设的、基于 LLM 的​ speaker_selection_method函数。
 async def main():
-	# Create an OpenAI model client.
-    model_name = "qwen3:8b"
-    model_client = OllamaChatCompletionClient(model=model_name)
+    model_name = get_model(default="qwen3:8b")
+    model_client = create_autogen_client(model_name=model_name)
 
     # Create the primary agent. 
     primary_agent = AssistantAgent(

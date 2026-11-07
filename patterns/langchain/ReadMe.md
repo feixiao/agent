@@ -1,14 +1,23 @@
 ### 智能体设计模式 (LangChain 实现)
 
 > 本实现对应开源项目 [xindoo/agentic-design-patterns](https://github.com/xindoo/agentic-design-patterns) 的 LangChain 分支。配套电子书请参阅 [`docs/books/agentic-design-patterns-cn.epub`](../../docs/books/agentic-design-patterns-cn.epub)（[英文版](../../docs/books/agentic-design-patterns-en.epub)）。
-#### 创建环境
+#### 环境与依赖管理 (uv)
 ```shell
-pyenv virtualenv 3.12 llm
-pyenv activate llm
-pyenv deactivate llm
+# 1. 同步安装 LangChain 模式依赖
+uv sync --extra patterns-langchain
 
-pip install -r requirements.txt
+# 2. 配置环境变量 (复制根目录模板)
+cp ../../.env.example ../../.env
+
+# 3. 使用 uv 运行示例
+uv run python chap01.py
 ```
+
+所有示例统一支持通过根目录 `.env` 或环境变量配置：
+- `LLM_PROVIDER`: `ollama` (默认) 或 `openai`
+- `LLM_MODEL`: 模型名称 (默认随 provider 智能适配，如 `deepseek-r1:14b` 或 `gpt-4o-mini`)
+- `OLLAMA_HOST`: Ollama 接口地址 (默认 `http://localhost:11434`)
+- `OPENAI_API_KEY` / `OPENAI_BASE_URL`: OpenAI 接口认证及端点
 
 #### 例子说明
 + chap01 	提示链模式

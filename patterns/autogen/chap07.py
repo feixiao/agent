@@ -9,14 +9,21 @@ Autogen 版本：多智能体协作（研究员 -> 撰稿人），参考 `langch
 默认模型 qwen3:8b，可通过环境变量 LLM_MODEL 覆盖。
 """
 
-import asyncio
 import os
+import sys
+from pathlib import Path
+import asyncio
 from typing import Iterable, List
+from dotenv import find_dotenv, load_dotenv
+
+# 确保根目录在 sys.path 中并加载统一环境变量
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+load_dotenv(find_dotenv(usecwd=True))
 
 from autogen_agentchat.agents import AssistantAgent
 from autogen_agentchat.conditions import TextMentionTermination
 from autogen_agentchat.teams import RoundRobinGroupChat  # type: ignore
-from autogen_ext.models.ollama import OllamaChatCompletionClient
+from patterns.env import create_autogen_client
 
 
 def _extract_text(messages: Iterable) -> str:
@@ -49,9 +56,8 @@ def _extract_text(messages: Iterable) -> str:
     return "\n".join(filter(None, parts)).strip()
 
 
-def _build_client() -> OllamaChatCompletionClient:
-    model_name = os.getenv("LLM_MODEL", "qwen3:8b")
-    return OllamaChatCompletionClient(model=model_name, temperature=0.3)
+def _build_client():
+    return create_autogen_client(default="qwen3:8b", temperature=0.3)
 
 
 async def main() -> None:

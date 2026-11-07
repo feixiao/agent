@@ -4,13 +4,19 @@ Creates a simple coder/reviewer pair that iterates until the code passes review
 or the maximum number of rounds is reached.
 """
 
-import asyncio
 import os
+import sys
+from pathlib import Path
+import asyncio
 from typing import Iterable, List
+from dotenv import find_dotenv, load_dotenv
+
+# 确保根目录在 sys.path 中并加载统一环境变量
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+load_dotenv(find_dotenv(usecwd=True))
 
 from autogen_agentchat.agents import AssistantAgent
-from autogen_ext.models.ollama import OllamaChatCompletionClient
-
+from patterns.env import create_autogen_client
 
 def _extract_text_contents(messages: Iterable) -> str:
     """Flatten TaskResult.messages into a single text string without depending on SDK internals."""
@@ -48,10 +54,9 @@ def _extract_text_contents(messages: Iterable) -> str:
     return "\n".join(filter(None, chunks)).strip()
 
 
-def _build_client() -> OllamaChatCompletionClient:
-    model_name = os.getenv("LLM_MODEL", "deepseek-r1:8b")
+def _build_client():
     # Keep temperature conservative for deterministic improvements.
-    return OllamaChatCompletionClient(model=model_name, temperature=0.2)
+    return create_autogen_client(temperature=0.2)
 
 
 async def run_reflection_loop() -> None:

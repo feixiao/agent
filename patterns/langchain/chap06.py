@@ -1,7 +1,15 @@
 import os
+import sys
+from pathlib import Path
 from typing import Optional
+from dotenv import find_dotenv, load_dotenv
 from crewai import Agent, Task, Crew, Process, LLM
 
+# 确保根目录在 sys.path 中并加载统一环境变量
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+load_dotenv(find_dotenv(usecwd=True))
+
+from patterns.env import create_crewai_llm
 # 规划使代理能够将复杂目标分解为可操作的顺序步骤。 
 # 它对于处理多步骤任务、工作流自动化和驾驭复杂环境至关重要。
 # LLM 可以根据任务描述生成分步方法来执行规划。
@@ -22,14 +30,8 @@ CrewAI 的 Agent 接受 CrewAI 自带的 LLM 实例。
 注意：CrewAI 通过 LiteLLM 适配各 Provider，请确保当前 Python 环境已安装 litellm。
 """
 
-# 1) 使用 CrewAI 原生 LLM 直接连接本地 Ollama
-_model_name = os.getenv("LLM_MODEL") or "deepseek-r1:14b"
-_ollama_host = os.getenv("OLLAMA_HOST", "http://localhost:11434")
-llm = LLM(
-  model=f"ollama/{_model_name}",
-  base_url=_ollama_host,
-  temperature=0.7,
-)
+# 1) 使用统一环境变量构造 CrewAI 原生 LLM（支持 Ollama 与 OpenAI）
+llm = create_crewai_llm(temperature=0.7)
 
 # 2. 定义一个清晰且专注的代理
 planner_writer_agent = Agent(
@@ -69,9 +71,10 @@ crew = Crew(
     process=Process.sequential,
  )
 
-# 执行任务
-print("## 正在运行规划和撰写任务 ##")
-result = crew.kickoff()
+if __name__ == "__main__":
+    # 执行任务
+    print("## 正在运行规划和撰写任务 ##")
+    result = crew.kickoff()
 
-print("\n\n---\n## 任务结果 ##\n---")
-print(result)
+    print("\n\n---\n## 任务结果 ##\n---")
+    print(result)

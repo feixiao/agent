@@ -103,12 +103,14 @@ agent/
   - 终端智能体 (CLI Coding Agent) 对比白皮书：[`docs/architecture/OMP_VS_CLAUDE_CODE_COMPARISON.md`](docs/architecture/OMP_VS_CLAUDE_CODE_COMPARISON.md)（深度解析 OMP 与 Claude Code 在上下文工程、Prewalk 阶梯模型编排与 Harness 控制底座的设计哲学）。
 
 
-## 四、 常用开发与测试指令
+## 四、 常用开发与测试指令 (uv 管理)
+
+工程使用 `uv` 统一管理 Python 环境、虚拟环境与依赖版本：
 
 ### 1. 运行核心底座单元测试
 测试用例保持轻量无外部大包依赖，修改 `core/` 或 `tools/` 后必须立即执行：
 ```bash
-python3 -m unittest discover tests
+uv run python -m unittest discover tests
 ```
 
 ### 2. 运行多模态与感知层套件
@@ -119,16 +121,17 @@ bash run_all_labs.sh
 ```
 
 ### 3. 运行设计模式示例
+模式依赖与统一环境变量均通过 `uv` 管理：
 ```bash
-# LangChain 模式示例
-cd patterns/langchain
-python3 chap01.py
+# 安装设计模式依赖（可包含 langchain 与 autogen）
+uv sync --extra patterns
 
-# AutoGen 模式示例
-cd patterns/autogen
-python3 chap01.py
+# 运行 LangChain 模式示例
+uv run python patterns/langchain/chap01.py
+
+# 运行 AutoGen 模式示例
+uv run python patterns/autogen/chap01.py
 ```
-
 ---
 
 ## 五、 代码贡献与变更检查清单 (Checklist)

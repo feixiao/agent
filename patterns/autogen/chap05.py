@@ -11,11 +11,19 @@ that can call tools (e.g., qwen3:8b) and the SDK exposes Tool, tool schemas are 
 while keeping the manual fallback.
 """
 
+import os
+import sys
+from pathlib import Path
 import asyncio
 import json
-import os
 from typing import Iterable, List, Tuple
+from dotenv import find_dotenv, load_dotenv
 
+# 确保根目录在 sys.path 中并加载统一环境变量
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+load_dotenv(find_dotenv(usecwd=True))
+
+from patterns.env import create_autogen_client
 from autogen_agentchat.agents import AssistantAgent
 try:
 	# Some SDK versions expose a Tool helper; keep optional to avoid import errors.
@@ -56,9 +64,8 @@ def _extract_text(messages: Iterable) -> str:
 	return "\n".join(filter(None, parts)).strip()
 
 
-def _build_client() -> OllamaChatCompletionClient:
-	model_name = os.getenv("LLM_MODEL", "deepseek-r1:14b")
-	return OllamaChatCompletionClient(model=model_name, temperature=0.2)
+def _build_client():
+	return create_autogen_client(default="deepseek-r1:14b", temperature=0.2)
 
 
 def search_information(query: str) -> str:

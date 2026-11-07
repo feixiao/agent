@@ -14,11 +14,18 @@ python3 autogen/chap03.py
 """
 
 import os
+import sys
+from pathlib import Path
 import asyncio
 from typing import Any
+from dotenv import find_dotenv, load_dotenv
+
+# 确保根目录在 sys.path 中并加载统一环境变量
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+load_dotenv(find_dotenv(usecwd=True))
 
 from autogen_agentchat.agents import AssistantAgent
-from autogen_ext.models.ollama import OllamaChatCompletionClient
+from patterns.env import create_autogen_client, get_model, get_provider
 
 
 def extract_text(task_result: Any) -> str:
@@ -38,10 +45,10 @@ async def run_agent(agent: AssistantAgent, prompt: str) -> str:
 
 
 async def run_parallel_example(topic: str) -> None:
-    model_name = os.getenv("LLM_MODEL", "deepseek-r1:14b")
-    print(f"使用模型: {model_name}")
+    model_name = get_model(default="deepseek-r1:14b")
+    print(f"使用模型: {model_name} (Provider: {get_provider()})")
 
-    client = OllamaChatCompletionClient(model=model_name)
+    client = create_autogen_client(model_name=model_name)
 
     def make_agent(name: str, system_prompt: str) -> AssistantAgent:
         return AssistantAgent(

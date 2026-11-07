@@ -118,17 +118,21 @@
 
 ## ⚡ 快速上手
 
-### 1. 环境准备
+### 1. 环境准备 (使用 uv 管理)
+工程使用 `uv` 进行高效环境隔离与依赖管理，统一使用 `.env` 声明 LLM 配置：
 ```bash
-# 基础运行时
-pip install -e .
+# 1. 配置环境变量 (提供 Ollama / OpenAI 开箱即用配置)
+cp .env.example .env
 
-# 安装特定能力扩展
-pip install -e ".[patterns-langchain]"   # 安装 LangChain 模式依赖
-pip install -e ".[patterns-autogen]"     # 安装 AutoGen 模式依赖
-pip install -e ".[evals]"                # 安装评测套件
+# 2. 使用 uv 安装基础运行时与依赖
+uv sync
+
+# 3. 按需安装特定扩展模块（例如模式实现、评测套件）
+uv sync --extra patterns               # 安装设计模式全部依赖 (LangChain + AutoGen)
+# uv sync --extra patterns-langchain   # 仅 LangChain 依赖
+# uv sync --extra patterns-autogen     # 仅 AutoGen 依赖
+# uv sync --extra evals                # 评测套件
 ```
-
 ---
 
 ## 🗺️ 仓库目录全景导航

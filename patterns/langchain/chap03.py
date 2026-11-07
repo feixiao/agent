@@ -1,38 +1,27 @@
 # 并行化
 
-import os 
+import os
+import sys
+from pathlib import Path
 import asyncio
 from typing import Optional
-
+from dotenv import find_dotenv, load_dotenv
 
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import Runnable, RunnableParallel, RunnablePassthrough
 
-def build_model(provider: str, model_name: Optional[str] = None):
-	provider = provider.lower()
+# 确保根目录在 sys.path 中并加载统一环境变量
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+load_dotenv(find_dotenv(usecwd=True))
 
-	if provider == "openai":
-		# 延迟导入，避免未安装依赖或本地无用时报错
-		from langchain_openai import ChatOpenAI
+from patterns.env import create_langchain_model
 
-		name = model_name or os.getenv("LLM_MODEL") or "gpt-4o-mini"
-		return ChatOpenAI(model=name)
-
-	if provider == "ollama":
-		# 延迟导入，避免未安装依赖或本地无用时报错
-		from langchain_ollama import ChatOllama
-
-		name = model_name or os.getenv("LLM_MODEL") or "deepseek-r1:14b"
-		return ChatOllama(model=name)
-
-	raise ValueError(
-		f"Unsupported provider: {provider}. Use 'openai' or 'ollama'."
-	)
-
+def build_model(provider: Optional[str] = None, model_name: Optional[str] = None):
+	return create_langchain_model(provider=provider, model_name=model_name)
 
 try:
-   llm = build_model("ollama")
+   llm = build_model()
 except Exception as e:
    print(f"初始化语言模型时出错: {e}")
    llm = None
