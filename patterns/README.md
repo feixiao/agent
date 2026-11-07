@@ -40,17 +40,14 @@ uv sync --extra patterns               # 同时安装 LangChain 与 AutoGen 依�
 ```
 
 ### 2. 统一环境变量说明 (`.env`)
+所有模式示例统一采用兼容 OpenAI 协议的接口标准，通用支持 **LM Studio**、**Ollama**、**vLLM** 以及各类云端大模型，无需区分后端提供商，只需配置服务地址与模型名：
 
-| 环境变量 | 说明 | 默认值 / 推荐值 |
+| 环境变量 | 说明 | 示例值 |
 | :--- | :--- | :--- |
-| `LLM_PROVIDER` | 模型提供商 (`ollama` 或 `openai`) | `ollama` |
-| `LLM_MODEL` | 模型名称 | `deepseek-r1:8b` / `qwen3:8b` / `gpt-4o-mini` |
-| `OLLAMA_HOST` | 本地 Ollama 接口地址 | `http://localhost:11434` |
-| `LLM_BASE_URL` | 通用兼容 API 端点 (可选) | `http://localhost:11434` 或第三方网关 |
-| `OPENAI_API_KEY` | OpenAI API 密钥 (仅 provider=openai 时需要) | - |
-| `OPENAI_BASE_URL`| OpenAI 协议服务地址 (可选) | `https://api.openai.com/v1` |
+| `LLM_BASE_URL` | 模型服务接口地址（支持 LM Studio、Ollama、vLLM 等） | `http://localhost:1234/v1` 或 `http://localhost:11434/v1` |
+| `LLM_MODEL` | 模型名称（与本地加载或云端的模型一致） | `qwen3.8-27b-splash` |
+| `LLM_API_KEY` | API 密钥（本地服务如 LM Studio / Ollama 无需真实 key，保留默认即可） | `not-needed` |
 | `LLM_TEMPERATURE`| 全局采样温度 (可选) | `0.7` |
-
 ### 3. 运行模式示例
 通过 `uv run` 可以在任意目录下以锁定依赖和统一环境变量运行任意章节示例：
 ```bash

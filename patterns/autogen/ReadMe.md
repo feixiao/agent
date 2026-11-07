@@ -13,11 +13,10 @@ cp ../../.env.example ../../.env
 uv run python chap01.py
 ```
 
-所有示例统一支持通过根目录 `.env` 或环境变量配置：
-- `LLM_PROVIDER`: `ollama` (默认) 或 `openai`
-- `LLM_MODEL`: 模型名称 (默认 `deepseek-r1:8b` / `qwen3:8b` / `gpt-4o-mini`)
-- `OLLAMA_HOST`: 本地 Ollama 接口地址 (默认 `http://localhost:11434`)
-- `OPENAI_API_KEY` / `OPENAI_BASE_URL`: OpenAI 接口认证及端点
+所有示例统一支持通过根目录 `.env` 或环境变量配置（无需区分提供商，只需地址与模型）：
+- `LLM_BASE_URL`: 服务地址（如 LM Studio: `http://localhost:1234/v1`, Ollama: `http://localhost:11434/v1`）
+- `LLM_MODEL`: 模型名称（如 `qwen3.8-27b-splash`）
+- `LLM_API_KEY`: API Key（本地推理服务保持默认 `not-needed` 即可）
 
 #### 例子说明
 + chap01 	提示链模式

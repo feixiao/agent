@@ -27,7 +27,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 load_dotenv(find_dotenv(usecwd=True))
 
 from autogen_core.models import UserMessage
-from patterns.env import create_autogen_client, get_model, get_provider
+from patterns.env import create_autogen_client, get_base_url, get_model
 
 async def run_chain(input_text: str, model_name: str):
     """执行两步提示链：提取 -> 转换。
@@ -89,7 +89,7 @@ async def main():
     # 待处理的示例文本（与 langchain 示例一致）
     input_text = "The new laptop model features a 3.5 GHz octa-core processor, 16GB of RAM, and a 1TB NVMe SSD."
     model_name = get_model(default="deepseek-r1:8b")
-    print(f"使用模型: {model_name} (Provider: {get_provider()})")
+    print(f"使用模型: {model_name} (Endpoint: {get_base_url()})")
     await run_chain(input_text, model_name)
 
 

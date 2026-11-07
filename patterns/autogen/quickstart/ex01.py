@@ -17,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 load_dotenv(find_dotenv(usecwd=True))
 
 from autogen_core.models import UserMessage
-from patterns.env import create_autogen_client, get_model, get_provider
+from patterns.env import create_autogen_client, get_base_url, get_model
 import logging
 
 # AutoGen uses standard Python logging module to log events like model calls and responses
@@ -30,7 +30,7 @@ logger.setLevel(logging.INFO)
 
 async def main():
 	model_name = get_model(default="deepseek-r1:8b")
-	logging.info(f"Using model: {model_name} (Provider: {get_provider()})")
+	logging.info(f"Using model: {model_name} (Endpoint: {get_base_url()})")
 	ollama_model_client = create_autogen_client(model_name=model_name)
 
 	response = await ollama_model_client.create([UserMessage(content="What is the capital of France?", source="user")])

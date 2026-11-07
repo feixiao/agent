@@ -16,7 +16,7 @@ from autogen_agentchat.conditions import ExternalTermination, TextMentionTermina
 from autogen_agentchat.teams import RoundRobinGroupChat
 from autogen_agentchat.ui import Console
 from autogen_core import CancellationToken
-from patterns.env import create_autogen_client, get_model, get_provider
+from patterns.env import create_autogen_client, get_model
 
 # RoundRobinGroupChat(轮询群聊)
 # 策略：​ 这是最简单、最直接的策略。它严格按照成员列表 (agents参数) 中智能体的顺序来选择下一个发言者。

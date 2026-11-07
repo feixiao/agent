@@ -16,7 +16,7 @@ load_dotenv(find_dotenv(usecwd=True))
 from autogen_agentchat.agents import AssistantAgent
 from autogen_agentchat.messages import StructuredMessage
 from autogen_agentchat.ui import Console
-from patterns.env import create_autogen_client, get_model, get_provider
+from patterns.env import create_autogen_client, get_base_url, get_model
 
 # Define a tool that searches the web for information.
 # For simplicity, we will use a mock function here that returns a static string.
@@ -35,7 +35,7 @@ async def main():
     # ollama rm deepseek-r1:8b
     # ollama cp deepseek-r1-tool-calling:8b deepseek-r1:8b 
     model_name = get_model(default="qwen3:8b")
-    print(f"Using model: {model_name} (Provider: {get_provider()})")
+    print(f"Using model: {model_name} (Endpoint: {get_base_url()})")
     model_client = create_autogen_client(model_name=model_name)
     
     agent = AssistantAgent(

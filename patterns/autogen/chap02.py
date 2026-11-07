@@ -23,7 +23,7 @@ from dotenv import find_dotenv, load_dotenv
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 load_dotenv(find_dotenv(usecwd=True))
 
-from patterns.env import create_autogen_client, get_model, get_provider
+from patterns.env import create_autogen_client, get_base_url, get_model
 try:
     # AssistantAgent 位于 autogen_agentchat.agents 模块内
     from autogen_agentchat.agents import AssistantAgent  # type: ignore
@@ -91,7 +91,7 @@ async def route_request_with_agent(agent: Any, request: str) -> str:
 
 async def main():
     model_name = get_model(default="deepseek-r1:8b")
-    print(f"使用模型: {model_name} (Provider: {get_provider()})")
+    print(f"使用模型: {model_name} (Endpoint: {get_base_url()})")
 
     agent_client = create_autogen_client(model_name=model_name)
     agent = AssistantAgent(
