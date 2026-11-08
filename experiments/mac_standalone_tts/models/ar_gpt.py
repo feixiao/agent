@@ -150,7 +150,9 @@ class ARGptModel(nn.Module):
             text_tokens = text_tokens.unsqueeze(0)
 
         B = text_tokens.size(0)
-        text_emb = self.text_embedding(text_tokens) + self.modality_embedding(torch.zeros_like(text_tokens))
+        text_mod = self.modality_embedding.weight[0].view(1, 1, -1)
+        sem_mod = self.modality_embedding.weight[1].view(1, 1, -1)
+        text_emb = self.text_embedding(text_tokens) + text_mod
 
         if prompt_semantic_tokens is not None and prompt_semantic_tokens.size(1) > 0:
             if prompt_semantic_tokens.ndim == 1:
@@ -163,7 +165,7 @@ class ARGptModel(nn.Module):
         eos_id = 2
 
         for _ in range(max_new_tokens):
-            sem_emb = self.semantic_embedding(curr_sem) + self.modality_embedding(torch.ones_like(curr_sem))
+            sem_emb = self.semantic_embedding(curr_sem) + sem_mod
             combined_emb = torch.cat([text_emb, sem_emb], dim=1)
             combined_emb = self.pos_encoder(combined_emb)
             combined_emb = self.layer_norm(combined_emb)
@@ -176,18 +178,14 @@ class ARGptModel(nn.Module):
 
             # Top-K filtering
             if top_k > 0:
-                values, _ = torch.topk(next_logits, min(top_k, next_logits.size(-1)))
-                min_val = values[:, -1].unsqueeze(-1)
-                next_logits = torch.where(next_logits < min_val, torch.full_like(next_logits, float("-inf")), next_logits)
+                min_val = torch.topk(next_logits, min(top_k, next_logits.size(-1)))[0][..., -1, None]
+                next_logits = next_logits.masked_fill(next_logits < min_val, float("-inf"))
 
             # Top-P (nucleus) filtering
             if top_p < 1.0:
                 sorted_logits, sorted_indices = torch.sort(next_logits, descending=True)
                 cumulative_probs = torch.cumsum(F.softmax(sorted_logits, dim=-1), dim=-1)
-                sorted_indices_to_remove = cumulative_probs > top_p
-                # Shift right so we keep at least one token
-                sorted_indices_to_remove[..., 1:] = sorted_indices_to_remove[..., :-1].clone()
-                sorted_indices_to_remove[..., 0] = 0
+                sorted_indices_to_remove = F.pad((cumulative_probs > top_p)[..., :-1], (1, 0), value=False)
                 indices_to_remove = sorted_indices_to_remove.scatter(1, sorted_indices, sorted_indices_to_remove)
                 next_logits = next_logits.masked_fill(indices_to_remove, float("-inf"))
 
