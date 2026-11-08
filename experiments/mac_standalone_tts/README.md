@@ -8,7 +8,7 @@
 - **Metal (MPS) 深度学习加速**：充分释放 Apple Silicon 统一内存带宽与 GPU 算力。
 - **双阶段 GPT-SoVITS 架构**：AR-GPT 学习自然换气与韵律，SoVITS/HiFi-GAN 神经声码器渲染 32kHz 高保真无电音波形。
 - **开箱即用生态兼容**：内置标准 OpenAI TTS 协议 (`POST /v1/audio/speech`)，即插即用接入 Legado 开源阅读、Calibre 电子书与 Mac 快捷指令。
-- **极致性能**：Apple M4 Max 实测 **RTF 0.2079**（10 秒语音仅需 2 秒生成，4.82x 吞吐量）。
+- **极致性能**：Apple M4 Max 实测 **RTF 0.2000**（首字延迟 195.19ms，5.00x 吞吐量）。
 
 ## 快速上手
 
