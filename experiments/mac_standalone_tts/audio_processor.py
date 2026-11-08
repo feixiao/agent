@@ -72,8 +72,8 @@ class AudioProcessor:
         gain = 10.0 ** ((target_db - current_db) / 20.0)
         normalized = wav * gain
         max_amp = torch.max(torch.abs(normalized))
-        if max_amp > 0.95:
-            normalized = normalized / max_amp * 0.95
+        scale = torch.clamp(0.95 / (max_amp + 1e-9), max=1.0)
+        normalized = normalized * scale
         return normalized
 
     def slice_by_silence(
