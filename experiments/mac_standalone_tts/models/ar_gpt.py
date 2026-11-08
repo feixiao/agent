@@ -69,10 +69,18 @@ class ARGptModel(nn.Module):
         # Projection head to semantic token vocabulary
         self.head = nn.Linear(self.config.d_model, self.config.semantic_vocab_size)
 
+        # Precomputed boolean causal mask buffer for fast Metal attention without per-step allocation
+        causal_mask_bool = torch.triu(
+            torch.ones((self.config.max_seq_len, self.config.max_seq_len), dtype=torch.bool),
+            diagonal=1,
+        )
+        self.register_buffer("causal_mask_bool", causal_mask_bool)
+
     def _generate_causal_mask(self, sz: int, device: torch.device) -> torch.Tensor:
-        """Generate upper triangular causal mask."""
-        mask = torch.triu(torch.full((sz, sz), float("-inf"), device=device), diagonal=1)
-        return mask
+        """Return contiguous boolean upper-triangular causal mask."""
+        if sz <= self.config.max_seq_len:
+            return self.causal_mask_bool[:sz, :sz].contiguous()
+        return torch.triu(torch.ones((sz, sz), dtype=torch.bool, device=device), diagonal=1)
 
     def forward(
         self,
