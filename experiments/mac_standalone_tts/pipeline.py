@@ -313,7 +313,6 @@ class MacTTSPipeline:
         state = {
             "gpt": self.gpt.state_dict(),
             "sovits": self.sovits.state_dict(),
-            "config": self.config,
         }
         torch.save(state, str(path))
 
@@ -322,6 +321,6 @@ class MacTTSPipeline:
         path = Path(path)
         if not path.exists():
             raise FileNotFoundError(f"Checkpoint not found: {path}")
-        state = torch.load(str(path), map_location=self.device)
+        state = torch.load(str(path), map_location=self.device, weights_only=True)
         self.gpt.load_state_dict(state["gpt"])
         self.sovits.load_state_dict(state["sovits"])
