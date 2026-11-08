@@ -118,6 +118,9 @@ def resolve_key(provider: str) -> tuple[str, str]:
         value = os.getenv(name)
         if value:
             return value, name
+    if not spec.requires_key or spec.name in ("openai", "ollama", "comfyui"):
+        local_key = os.getenv("LLM_API_KEY", "") or os.getenv("OPENAI_API_KEY", "") or "not-needed"
+        return local_key, "LLM_API_KEY"
     raise RuntimeError(
         f"No direct credential for {provider}; expected one of "
         f"{', '.join(spec.key_vars) or '(none)'}"
@@ -563,11 +566,14 @@ def write_json(path: Path, payload: Dict[str, Any]) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    default_provider = os.getenv("LLM_PROVIDER", "local")
+    if default_provider not in SUPPORTED_PROVIDERS:
+        default_provider = "local"
     parser.add_argument(
         "--provider",
-        default="kimi",
+        default=default_provider,
         choices=SUPPORTED_PROVIDERS,
-        help="Provider to run every arm against (default: kimi).",
+        help=f"Provider to run every arm against (default: {default_provider}).",
     )
     parser.add_argument(
         "--model",

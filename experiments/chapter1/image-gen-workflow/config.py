@@ -56,6 +56,11 @@ class Config:
     OPENAI_BASE_URL: str = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
     GPT_IMAGE_MODEL: str = os.getenv("GPT_IMAGE_MODEL", "gpt-image-2")
 
+    # ---- 本地出图：ComfyUI（Qwen Image 2.1 等本地模型）----
+    COMFYUI_BASE_URL: str = os.getenv("COMFYUI_BASE_URL", "http://127.0.0.1:8188")
+    COMFYUI_IMAGE_MODEL: str = os.getenv("COMFYUI_IMAGE_MODEL", "qwen_image_2.1")
+    COMFYUI_WORKFLOW: str = os.getenv("COMFYUI_WORKFLOW", "")
+
     # ---- 运行参数 ----
     TASK_POLL_INTERVAL: float = float(os.getenv("TASK_POLL_INTERVAL", "5"))
     TASK_POLL_TIMEOUT: float = float(os.getenv("TASK_POLL_TIMEOUT", "180"))

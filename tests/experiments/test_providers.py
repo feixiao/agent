@@ -49,6 +49,8 @@ PROVIDER_KEY_VARS = [
     "LLM_API_KEY",
     "LLM_MODEL",
     "LLM_PROVIDER",
+    "COMFYUI_API_KEY",
+    "COMFYUI_BASE_URL",
 ]
 
 

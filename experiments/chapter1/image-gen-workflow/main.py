@@ -127,7 +127,7 @@ def run_one(requirement: Dict[str, str], route: str, run_dir: Path) -> Dict[str,
     return run_record
 
 
-ALL_ROUTES = ["workflow", "native", "native_gptimage"]
+ALL_ROUTES = ["workflow", "native", "native_gptimage", "comfyui"]
 
 
 def main() -> int:
@@ -146,7 +146,7 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    if not Config.validate():
+    if args.route != "comfyui" and not Config.validate():
         return 1
 
     run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")

@@ -37,19 +37,27 @@ def kimi_chat(messages, book: ReceiptBook, name: str, model: str = CODEGEN_MODEL
               max_tokens: int = 8192, temperature: float | None = None) -> tuple[str, dict]:
     started = utc_now()
     t0 = time.time()
-    payload = {"model": model, "messages": messages, "max_tokens": max_tokens}
+
+    local_url = os.getenv("LLM_BASE_URL", "").strip() or os.getenv("OPENAI_BASE_URL", "").strip()
+    use_local = ("KIMI_API_KEY" not in os.environ) and bool(local_url)
+
+    endpoint = f"{local_url}/chat/completions" if use_local else MOONSHOT_URL
+    target_model = (os.getenv("LLM_MODEL", "").strip() or os.getenv("OPENAI_MODEL", "").strip() or "qwen3.8-27b-splash") if use_local else model
+    provider_name = "local" if use_local else "moonshot"
+    auth_header = f"Bearer {os.getenv('LLM_API_KEY', 'not-needed')}" if use_local else f"Bearer {os.environ.get('KIMI_API_KEY', '')}"
+
+    payload = {"model": target_model, "messages": messages, "max_tokens": max_tokens}
     if temperature is not None:
         payload["temperature"] = temperature
     try:
         r = requests.post(
-            MOONSHOT_URL,
-            headers={"Authorization": f"Bearer {os.environ['KIMI_API_KEY']}"},
+            endpoint,
+            headers={"Authorization": auth_header},
             json=payload, timeout=600,
         )
         data = r.json()
-    except Exception as e:  # 网络/解析失败同样留证
         ended = utc_now()
-        book.record(name, provider="moonshot", endpoint=MOONSHOT_URL, model=model,
+        book.record(name, provider=provider_name, endpoint=endpoint, model=target_model,
                     request=_sanitize(payload), response={"error": repr(e)},
                     started_utc=started, ended_utc=ended,
                     latency_ms=int((time.time() - t0) * 1000), status="error")
@@ -59,7 +67,7 @@ def kimi_chat(messages, book: ReceiptBook, name: str, model: str = CODEGEN_MODEL
     content = None
     if r.ok:
         content = data["choices"][0]["message"]["content"]
-    book.record(name, provider="moonshot", endpoint=MOONSHOT_URL, model=model,
+    book.record(name, provider=provider_name, endpoint=endpoint, model=target_model,
                 request=_sanitize(payload),
                 response={"status_code": r.status_code, "content": content,
                           "usage": data.get("usage"), "error": data.get("error")},

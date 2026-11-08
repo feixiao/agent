@@ -118,6 +118,14 @@ PROVIDERS: dict[str, Provider] = {
         base_url_var="OLLAMA_BASE_URL",
         requires_key=False,
     ),
+    "comfyui": Provider(
+        name="comfyui",
+        base_url="http://127.0.0.1:8188",
+        default_model="qwen_image_2.1",
+        key_vars=("COMFYUI_API_KEY",),
+        base_url_var="COMFYUI_BASE_URL",
+        requires_key=False,
+    ),
 }
 
 # Provider names used interchangeably in the chapters, mapped to canonical ones.
@@ -132,6 +140,8 @@ _ALIASES = {
     # select Alibaba's DashScope-compatible endpoint rather than SiliconFlow.
     "qwen": "dashscope",
     "bailian": "dashscope",
+    "comfy": "comfyui",
+    "qwen_image": "comfyui",
 }
 
 # Every accepted name, canonical plus aliases. Chapter CLIs use this for their

@@ -108,28 +108,35 @@ def _finish(record: Dict[str, Any], t0: float) -> Dict[str, Any]:
 
 
 def rewrite_prompt(requirement: str) -> Tuple[Dict[str, str], Dict[str, Any]]:
-    """工作流路线节点 1：用 Kimi 把口语化需求改写为 SD 风格提示词。"""
+    """工作流路线节点 1：用 LLM 把口语化需求改写为 SD 风格提示词（优先本地端点）。"""
+    import os
     from openai import OpenAI
 
+    local_url = os.getenv("LLM_BASE_URL", "").strip() or os.getenv("OPENAI_BASE_URL", "").strip()
+    is_local = bool(local_url) and not bool(Config.KIMI_API_KEY)
+    provider = "local" if is_local else "moonshot"
+    model = (os.getenv("LLM_MODEL", "").strip() or os.getenv("OPENAI_MODEL", "").strip() or "qwen3.8-27b-splash") if is_local else Config.REWRITE_MODEL
+    base_url = local_url if is_local else Config.KIMI_BASE_URL
+    api_key = (os.getenv("LLM_API_KEY", "").strip() or os.getenv("OPENAI_API_KEY", "").strip() or "not-needed") if is_local else Config.KIMI_API_KEY
+
     record = _new_call_record(
-        provider="moonshot",
-        model=Config.REWRITE_MODEL,
-        endpoint=f"{Config.KIMI_BASE_URL}/chat/completions",
+        provider=provider,
+        model=model,
+        endpoint=f"{base_url}/chat/completions",
     )
     record["request"] = {
         "messages": [
             {"role": "system", "content": REWRITE_SYSTEM_PROMPT},
             {"role": "user", "content": requirement},
         ],
-        # kimi-k3 只允许 temperature=1（默认值），显式传其他值会被 400 拒绝
     }
     t0 = time.monotonic()
     try:
-        client = OpenAI(api_key=Config.KIMI_API_KEY, base_url=Config.KIMI_BASE_URL)
-        resp = client.chat.completions.create(
-            model=Config.REWRITE_MODEL,
-            messages=record["request"]["messages"],
-        )
+        client = OpenAI(api_key=api_key, base_url=base_url)
+        kwargs = {"model": model, "messages": record["request"]["messages"]}
+        if is_local:
+            kwargs["temperature"] = float(os.getenv("LLM_TEMPERATURE", "0.7"))
+        resp = client.chat.completions.create(**kwargs)
         record["response_id"] = resp.id
         record["usage"] = resp.usage.model_dump() if resp.usage else {}
         raw = resp.choices[0].message.content or ""
@@ -341,6 +348,64 @@ def generate_image_gpt_image(
 
 
 # ---------------------------------------------------------------------------
+# 本地路线：ComfyUI（Qwen Image 2.1 等本地模型）
+# ---------------------------------------------------------------------------
+
+
+def generate_image_comfyui(
+    prompt: str, negative_prompt: str = ""
+) -> Tuple[bytes, str, List[Dict[str, Any]]]:
+    """通过 ComfyUI (Qwen Image 2.1) 本地文生图。返回 (图片字节, mime, call records)。"""
+    try:
+        from agentbook.comfyui import generate_image_comfyui as _gen_comfy
+    except ImportError:
+        import sys
+        from pathlib import Path
+        sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+        from agentbook.comfyui import generate_image_comfyui as _gen_comfy
+
+    img_bytes, mime, call_rec = _gen_comfy(
+        prompt=prompt,
+        negative_prompt=negative_prompt,
+        base_url=Config.COMFYUI_BASE_URL,
+        model=Config.COMFYUI_IMAGE_MODEL,
+        workflow_file=Config.COMFYUI_WORKFLOW,
+    )
+    return img_bytes, mime, [call_rec]
+
+
+def run_comfyui_route(requirement: str) -> Dict[str, Any]:
+    """本地路线：提示词改写 → ComfyUI Qwen Image 2.1 本地出图。"""
+    nodes: List[Dict[str, Any]] = []
+
+    rewrite, rec = rewrite_prompt(requirement)
+    nodes.append({"node": "rewrite", "call": rec, "output": rewrite})
+
+    image_bytes, mime, recs = generate_image_comfyui(
+        rewrite["prompt"], rewrite["negative_prompt"]
+    )
+    nodes.append(
+        {
+            "node": "image_generate",
+            "calls": recs,
+            "output": {
+                "prompt_used": rewrite["prompt"],
+                "negative_prompt_used": rewrite["negative_prompt"],
+                "engine": "comfyui",
+                "model": Config.COMFYUI_IMAGE_MODEL,
+            },
+        }
+    )
+    return {
+        "route": "comfyui",
+        "rewrite": rewrite,
+        "image_bytes": image_bytes,
+        "mime": mime,
+        "nodes": nodes,
+        "error": None,
+    }
+
+# ---------------------------------------------------------------------------
 # 三条路线的编排
 # ---------------------------------------------------------------------------
 
@@ -352,9 +417,18 @@ def run_workflow_route(requirement: str) -> Dict[str, Any]:
     rewrite, rec = rewrite_prompt(requirement)
     nodes.append({"node": "rewrite", "call": rec, "output": rewrite})
 
-    image_bytes, mime, recs = generate_image_wanx(
-        rewrite["prompt"], rewrite["negative_prompt"]
+    use_comfy = (
+        os.getenv("IMAGE_PROVIDER") == "comfyui"
+        or not Config.DASHSCOPE_API_KEY
     )
+    if use_comfy:
+        image_bytes, mime, recs = generate_image_comfyui(
+            rewrite["prompt"], rewrite["negative_prompt"]
+        )
+    else:
+        image_bytes, mime, recs = generate_image_wanx(
+            rewrite["prompt"], rewrite["negative_prompt"]
+        )
     nodes.append(
         {
             "node": "image_generate",
@@ -405,4 +479,5 @@ ROUTE_RUNNERS = {
     "workflow": run_workflow_route,
     "native": run_native_route,
     "native_gptimage": run_native_gpt_image_route,
+    "comfyui": run_comfyui_route,
 }
