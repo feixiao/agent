@@ -9,4 +9,4 @@ export PYTHONUNBUFFERED=1
 export PYTORCH_ENABLE_MPS_FALLBACK=1
 
 # Execute deterministic benchmark on Mac Apple Silicon
-uv run python -m experiments.mac_standalone_tts.benchmark
+uv run python -m mac_standalone_tts.benchmark

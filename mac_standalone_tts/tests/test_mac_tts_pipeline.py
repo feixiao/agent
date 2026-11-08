@@ -5,14 +5,14 @@ import pytest
 import torch
 import numpy as np
 
-from experiments.mac_standalone_tts.config import MacTTSConfig, get_optimal_device
-from experiments.mac_standalone_tts.audio_processor import AudioProcessor
-from experiments.mac_standalone_tts.phoneme_aligner import PhonemeAligner, SP_ID, AP_ID
-from experiments.mac_standalone_tts.models.ar_gpt import ARGptModel
-from experiments.mac_standalone_tts.models.sovits_generator import SoVITSGenerator
-from experiments.mac_standalone_tts.models.discriminator import MultiPeriodDiscriminator, MultiScaleDiscriminator
-from experiments.mac_standalone_tts.pipeline import MacTTSPipeline
-from experiments.mac_standalone_tts.benchmark import generate_reference_fixture, run_mac_benchmark
+from mac_standalone_tts.config import MacTTSConfig, get_optimal_device
+from mac_standalone_tts.audio_processor import AudioProcessor
+from mac_standalone_tts.phoneme_aligner import PhonemeAligner, SP_ID, AP_ID
+from mac_standalone_tts.models.ar_gpt import ARGptModel
+from mac_standalone_tts.models.sovits_generator import SoVITSGenerator
+from mac_standalone_tts.models.discriminator import MultiPeriodDiscriminator, MultiScaleDiscriminator
+from mac_standalone_tts.pipeline import MacTTSPipeline
+from mac_standalone_tts.benchmark import generate_reference_fixture, run_mac_benchmark
 
 
 def test_device_detection():

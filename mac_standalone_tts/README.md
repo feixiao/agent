@@ -19,19 +19,19 @@
 
 ### 2. 运行自动化测试套件
 ```bash
-PYTHONPATH=. uv run pytest experiments/mac_standalone_tts/tests/test_mac_tts_pipeline.py -v
+PYTHONPATH=. uv run pytest mac_standalone_tts/tests/test_mac_tts_pipeline.py -v
 ```
 
 ### 3. 一键离线合成
 ```bash
-PYTHONPATH=. uv run python -m experiments.mac_standalone_tts.cli infer \
+PYTHONPATH=. uv run python -m mac_standalone_tts.cli infer \
     --text "苹果芯片的统一内存与Metal加速，让本地语音微调和离线推理成为现实。" \
     --output ./output.wav
 ```
 
 ### 4. 启动本地脱网 HTTP 服务 & WebUI
 ```bash
-PYTHONPATH=. uv run python -m experiments.mac_standalone_tts.cli serve --host 127.0.0.1 --port 8000
+PYTHONPATH=. uv run python -m mac_standalone_tts.cli serve --host 127.0.0.1 --port 8000
 ```
 访问浏览器 `http://127.0.0.1:8000/` 即可试听。
 

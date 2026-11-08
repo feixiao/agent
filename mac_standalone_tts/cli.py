@@ -224,26 +224,26 @@ def main():
 
     # Sample generator
     p_samp = subparsers.add_parser("generate-sample", help="Generate synthetic dry voice sample for testing")
-    p_samp.add_argument("--output", "-o", default="experiments/mac_standalone_tts/work/my_voice_raw.wav", help="Output path")
+    p_samp.add_argument("--output", "-o", default="mac_standalone_tts/work/my_voice_raw.wav", help="Output path")
     p_samp.add_argument("--duration", "-d", type=float, default=6.0, help="Duration in seconds")
 
     # Preprocess
     p_prep = subparsers.add_parser("preprocess", help="Slice and preprocess dry audio")
     p_prep.add_argument("--input", "-i", required=True, help="Path to raw audio recording (wav/mp3)")
-    p_prep.add_argument("--out-dir", "-o", default="experiments/mac_standalone_tts/work/dataset", help="Output directory")
+    p_prep.add_argument("--out-dir", "-o", default="mac_standalone_tts/work/dataset", help="Output directory")
 
     # Train
     p_train = subparsers.add_parser("train", help="Fine-tune models on dataset slices")
-    p_train.add_argument("--dataset", "-d", default="experiments/mac_standalone_tts/work/dataset", help="Dataset directory containing manifest.json")
+    p_train.add_argument("--dataset", "-d", default="mac_standalone_tts/work/dataset", help="Dataset directory containing manifest.json")
     p_train.add_argument("--epochs", "-e", type=int, default=5, help="Number of training epochs")
-    p_train.add_argument("--out-checkpoint", "-o", default="experiments/mac_standalone_tts/work/checkpoint_my_voice.pt", help="Checkpoint save path")
+    p_train.add_argument("--out-checkpoint", "-o", default="mac_standalone_tts/work/checkpoint_my_voice.pt", help="Checkpoint save path")
 
     # Infer
     p_infer = subparsers.add_parser("infer", help="Synthesize speech from text")
     p_infer.add_argument("--text", "-t", required=True, help="Text to synthesize")
     p_infer.add_argument("--prompt-wav", "-p", default=None, help="Reference prompt audio clip")
     p_infer.add_argument("--checkpoint", "-c", default=None, help="Model checkpoint path")
-    p_infer.add_argument("--output", "-o", default="experiments/mac_standalone_tts/work/output.wav", help="Output WAV path")
+    p_infer.add_argument("--output", "-o", default="mac_standalone_tts/work/output.wav", help="Output WAV path")
     p_infer.add_argument("--temperature", type=float, default=0.8)
     p_infer.add_argument("--top-k", type=int, default=50)
     p_infer.add_argument("--top-p", type=float, default=0.95)

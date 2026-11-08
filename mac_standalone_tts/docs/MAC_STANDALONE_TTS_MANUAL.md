@@ -23,29 +23,29 @@
 
 ```bash
 # 1. 生成 6 秒标准谐波参考声音样本（若有自己的录音可跳过）
-PYTHONPATH=. uv run python -m experiments.mac_standalone_tts.cli generate-sample \
+PYTHONPATH=. uv run python -m mac_standalone_tts.cli generate-sample \
     -o ./my_voice_raw.wav -d 6.0
 
 # 2. 执行 VAD 自动切分、响度标准化与音素对齐
-PYTHONPATH=. uv run python -m experiments.mac_standalone_tts.cli preprocess \
+PYTHONPATH=. uv run python -m mac_standalone_tts.cli preprocess \
     -i ./my_voice_raw.wav -o ./dataset
 
 # 3. 在 Mac Metal (MPS) 上执行本地微调训练并保存检查点（仅需数秒）
-PYTHONPATH=. uv run python -m experiments.mac_standalone_tts.cli train \
+PYTHONPATH=. uv run python -m mac_standalone_tts.cli train \
     --dataset ./dataset --epochs 3 --out-checkpoint ./checkpoint_my_voice.pt
 
 # 4. 加载微调模型执行离线高保真语音合成
-PYTHONPATH=. uv run python -m experiments.mac_standalone_tts.cli infer \
+PYTHONPATH=. uv run python -m mac_standalone_tts.cli infer \
     --text "苹果芯片的统一内存与Metal加速，让本地语音微调和离线推理成为现实。" \
     --checkpoint ./checkpoint_my_voice.pt \
     --output ./output_mac.wav
 
 # 5. 自动检测合成音频的物理声学质量指标（电平、削波、频宽、平坦度）
-PYTHONPATH=. uv run python -m experiments.mac_standalone_tts.cli eval-audio \
+PYTHONPATH=. uv run python -m mac_standalone_tts.cli eval-audio \
     --input ./output_mac.wav
 
 # 6. 启动脱网 HTTP 听书服务与可视化网页界面（浏览器访问 http://127.0.0.1:8000/）
-PYTHONPATH=. uv run python -m experiments.mac_standalone_tts.cli serve --port 8000
+PYTHONPATH=. uv run python -m mac_standalone_tts.cli serve --port 8000
 ```
 ---
 
@@ -156,7 +156,7 @@ export PYTORCH_MPS_HIGH_WATERMARK_RATIO=0.0
 
 ### 4.1 一键执行自动化切分与特征提取
 ```bash
-PYTHONPATH=. uv run python -m experiments.mac_standalone_tts.cli preprocess \
+PYTHONPATH=. uv run python -m mac_standalone_tts.cli preprocess \
     --input ./my_voice_raw.wav \
     --out-dir ./dataset
 ```
@@ -176,14 +176,14 @@ PYTHONPATH=. uv run python -m experiments.mac_standalone_tts.cli preprocess \
 
 ```bash
 # 启动本地 MPS 微调训练并自动保存权重检查点
-PYTHONPATH=. uv run python -m experiments.mac_standalone_tts.cli train \
+PYTHONPATH=. uv run python -m mac_standalone_tts.cli train \
     --dataset ./dataset \
     --epochs 5 \
     --out-checkpoint ./checkpoint_my_voice.pt
 ```
 
 ### 5.2 关键微调参数配置与 Apple Silicon 专属建议
-在 `experiments/mac_standalone_tts/config.py` 中可针对你的 Mac 内存进行微调优化：
+在 `mac_standalone_tts/config.py` 中可针对你的 Mac 内存进行微调优化：
 - **`batch_size`**：
   - 16GB 统一内存：设置为 `2`，`gradient_accumulation_steps=4`
   - 32GB~64GB 统一内存：设置为 `4`，`gradient_accumulation_steps=2`
@@ -204,14 +204,14 @@ PYTHONPATH=. uv run python -m experiments.mac_standalone_tts.cli train \
 
 ```bash
 # 基础合成示例
-PYTHONPATH=. uv run python -m experiments.mac_standalone_tts.cli infer \
+PYTHONPATH=. uv run python -m mac_standalone_tts.cli infer \
     --text "苹果芯片的统一内存与Metal加速，让本地语音微调和离线推理成为现实。" \
     --output ./output_mac.wav
 ```
 
 ### 6.2 引入参考音频进行音色克隆（Few-shot / In-Context）
 ```bash
-PYTHONPATH=. uv run python -m experiments.mac_standalone_tts.cli infer \
+PYTHONPATH=. uv run python -m mac_standalone_tts.cli infer \
     --text "只要几秒钟的干声提示，系统就能即时提取我的音色特征并发出自然的声音。" \
     --prompt-wav ./dataset/slices/slice_0001.wav \
     --temperature 0.75 \
@@ -230,7 +230,7 @@ PYTHONPATH=. uv run python -m experiments.mac_standalone_tts.cli infer \
 合成音频完成后，可直接运行内置的声学分析工具，自动提取并打印广播级物理声学质量报告（包含平均电平、峰值安全阈值、削波点数与频谱谐波平坦度）：
 
 ```bash
-PYTHONPATH=. uv run python -m experiments.mac_standalone_tts.cli eval-audio \
+PYTHONPATH=. uv run python -m mac_standalone_tts.cli eval-audio \
     --input ./output_mac.wav
 ```
 
@@ -259,7 +259,7 @@ Acoustic & Signal Quality Report (声学与信号质量检测)
 ### 7.1 启动本地脱网服务
 在 Mac 终端运行：
 ```bash
-PYTHONPATH=. uv run python -m experiments.mac_standalone_tts.cli serve --host 127.0.0.1 --port 8000
+PYTHONPATH=. uv run python -m mac_standalone_tts.cli serve --host 127.0.0.1 --port 8000
 ```
 服务启动后控制台显示：
 ```

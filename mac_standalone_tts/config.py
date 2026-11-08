@@ -99,7 +99,7 @@ class MacTTSConfig:
     sovits: SoVITSConfig = field(default_factory=SoVITSConfig)
     train: TrainConfig = field(default_factory=TrainConfig)
     device: torch.device = field(default_factory=get_optimal_device)
-    work_dir: Path = field(default_factory=lambda: Path("experiments/mac-standalone-tts/work"))
+    work_dir: Path = field(default_factory=lambda: Path("mac_standalone_tts/work"))
 
     def __post_init__(self):
         self.work_dir.mkdir(parents=True, exist_ok=True)
