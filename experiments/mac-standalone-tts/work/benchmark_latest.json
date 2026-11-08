@@ -1,0 +1,11 @@
+{
+  "device": "mps",
+  "primary_metric": "rtf",
+  "rtf": 0.2062,
+  "latency_ms": 201.27,
+  "throughput_sec_per_sec": 4.85,
+  "finetune_step_ms": 32.73,
+  "mps_memory_mb": 346.33,
+  "audio_duration_s": 0.976,
+  "sample_rate": 32000
+}

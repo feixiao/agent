@@ -48,6 +48,7 @@ class MacTTSPipeline:
         self.opt_gpt = None
         self.opt_sovits = None
         self.opt_disc = None
+        self._step_count = 0
 
     def init_optimizers(self):
         """Initialize AdamW optimizers for Apple Silicon fine-tuning."""
@@ -192,10 +193,10 @@ class MacTTSPipeline:
 
         step_elapsed = (time.perf_counter() - step_t0) * 1000.0  # ms
 
-        # Periodic MPS unified memory cache clearance
-        if self.device.type == "mps":
+        # Periodic MPS unified memory cache clearance based on configured interval
+        self._step_count += 1
+        if self.device.type == "mps" and (self._step_count % self.config.train.empty_cache_interval == 0):
             torch.mps.empty_cache()
-
         return {
             "gpt_loss": float(gpt_loss.item()),
             "disc_loss": float(loss_disc_total.item()),
