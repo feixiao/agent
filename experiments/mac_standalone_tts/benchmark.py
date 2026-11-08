@@ -140,7 +140,7 @@ def run_mac_benchmark(output_json: Optional[Path] = None) -> dict:
             mps_mem_mb = 0.0
 
     # Save output audio artifact
-    artifacts_dir = Path("experiments/mac-standalone-tts/work/artifacts")
+    artifacts_dir = Path("experiments/mac_standalone_tts/work/artifacts")
     artifacts_dir.mkdir(parents=True, exist_ok=True)
     if last_wav is not None:
         pipeline.audio_proc.save_audio(artifacts_dir / "bench_sample.wav", last_wav, config.audio.sample_rate)
@@ -166,7 +166,7 @@ def run_mac_benchmark(output_json: Optional[Path] = None) -> dict:
 
 
 def main():
-    json_path = Path("experiments/mac-standalone-tts/work/benchmark_latest.json")
+    json_path = Path("experiments/mac_standalone_tts/work/benchmark_latest.json")
     res = run_mac_benchmark(output_json=json_path)
 
     # Print canonical METRIC lines
