@@ -4,6 +4,12 @@ The previous companion sent Responses-style hosted tools to Chat Completions
 through a proxy and then reported an empty ``tool_calls`` list.  This module
 uses the actual ``/v1/responses`` protocol and preserves its typed output items
 (``web_search_call``, ``code_interpreter_call``, messages, and citations).
+
+【中文说明】本文件是实验 1-3 的核心模块：严格按 OpenAI Responses API
+（/v1/responses）协议调用托管 web_search 与 code_interpreter 原生工具，
+并保留类型化输出项（web_search_call / code_interpreter_call / 引用）。
+注意：真实调用需要 OpenAI/OpenRouter/DashScope 等外部 API Key；
+--dry-run 只组装请求体不联网（见 main.py 的 _run_single）。
 """
 
 from __future__ import annotations
@@ -19,7 +25,12 @@ logger = logging.getLogger(__name__)
 
 
 class GPT5NativeAgent:
-    """GPT-5.6 Sol with OpenAI-hosted web search and Python tools."""
+    """GPT-5.6 Sol with OpenAI-hosted web search and Python tools.
+
+    【中文说明】Responses API 原生工具智能体：构造含托管 web_search /
+    code_interpreter 的请求，解析服务端返回的类型化输出项，并把每轮
+    请求/响应/耗时记入 self.api_turns 作为验收证据。
+    """
 
     def __init__(
         self,

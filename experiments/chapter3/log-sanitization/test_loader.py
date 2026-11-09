@@ -1,5 +1,8 @@
 """
-Test Case Loader for User Memory Evaluation Framework
+测试用例加载器：从同章的 user-memory-evaluation 框架读取三层评测用例。
+
+作用：把 3-1 的评测集（layer1/2/3 YAML 用例 + 对话历史）桥接给本实验的
+LLM 批量脱敏路径，保证两个实验共享同一套"含敏感信息的对话"语料。
 """
 
 import sys

@@ -190,7 +190,9 @@ def main(argv: Optional[list] = None):
             _save_output(args.output, result)
         return
 
-    # 在线模式：需要 API Key
+    # 在线模式（LLM 模式开关：--provider kimi）：需要 Moonshot/Kimi API Key，
+    # 并调用 Kimi 内置 web_search 工具（Moonshot 专有能力，OpenRouter 兜底没有）。
+    # 本地测试未配置该 Key 时，可改用 --provider offline-demo 走离线路径。
     api_key = Config.get_api_key(args.api_key)
     if not api_key and not os.getenv("OPENROUTER_API_KEY"):
         Config.validate()

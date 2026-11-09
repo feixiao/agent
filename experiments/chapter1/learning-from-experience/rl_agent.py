@@ -1,6 +1,11 @@
 """
 Traditional Reinforcement Learning Agent using Q-learning.
 This demonstrates the classical RL approach that requires extensive training.
+
+【中文说明】本文件是「传统强化学习智能体」的核心模块。
+它实现了一个表格型 Q-learning 智能体（QLearningAgent），在文本寻宝游戏中
+通过大量试错（更新状态-动作价值表 Q-table）来学会游戏规则——对应实验 7-1。
+文件末尾的 DQNAgent 是一个简化占位实现（未使用神经网络，仅演示接口）。
 """
 
 import numpy as np
@@ -15,6 +20,10 @@ class QLearningAgent:
     """
     Q-learning agent for the treasure hunt game.
     Uses tabular Q-learning with state-action pairs.
+
+    【中文说明】表格型 Q-learning 智能体：用一张 Q 表记录「状态→动作→价值」，
+    通过反复玩游戏的试错来更新 Q 值（更新参数式的学习），这是本实验与传统
+    LLM 上下文学习的对比对象。
     """
     
     def __init__(self, 
@@ -54,6 +63,10 @@ class QLearningAgent:
         """
         Create a hashable representation of the game state.
         This is crucial for tabular Q-learning.
+
+        【中文说明】把当前游戏局面（所在房间、持有物品、房间内物品、锁住的出口、
+        是否有未击败的守卫）拼成一个字符串作为状态的「哈希」。表格型 Q-learning
+        必须有离散可哈希的状态表示，这是能查 Q 表的前提。
         """
         # Include relevant state information
         state_parts = [
@@ -69,6 +82,10 @@ class QLearningAgent:
     def choose_action(self, game: TreasureHuntGame, training: bool = True) -> str:
         """
         Choose an action using epsilon-greedy strategy.
+
+        【中文说明】ε-贪心选动作：训练时以概率 ε 随机探索、否则选 Q 值最大的动作；
+        评估时（training=False）纯贪心。若某状态的所有动作都尚未探索过（Q 值全 0），
+        则退回随机选择，避免一直卡在未知状态。
         """
         available_actions = game.get_available_actions()
         
@@ -101,6 +118,10 @@ class QLearningAgent:
         """
         Update Q-value using the Q-learning update rule.
         Q(s,a) <- Q(s,a) + α[r + γ max Q(s',a') - Q(s,a)]
+
+        【中文说明】Q-learning 的核心更新公式：用「实际得到的奖励 + 折扣后的
+        下一状态最大 Q 值」作为目标，把当前 Q 值朝目标拉近 α 比例。
+        到达终止状态（done）时目标就是即时奖励本身。
         """
         current_q = self.q_table[state][action]
         

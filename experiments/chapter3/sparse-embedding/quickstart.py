@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """
-Quick start script for the Educational Sparse Vector Search Engine
-Demonstrates basic usage in a simple, interactive way
+教学用稀疏向量搜索引擎（BM25）快速上手脚本（实验 3-5 交互入口）。
+
+在内置的 10 篇示例文档上初始化引擎，然后进入交互式查询循环：
+输入查询语句即返回 top-5 结果及逐词 TF/IDF 贡献日志。
+（注意：含 stdin 交互循环，非交互环境下会阻塞等待输入。）
 """
 
 import logging

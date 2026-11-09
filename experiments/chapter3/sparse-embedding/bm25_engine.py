@@ -1,6 +1,14 @@
 """
-BM25 Sparse Vector Search Engine
-An educational implementation of BM25 algorithm with inverted index
+BM25 稀疏向量搜索引擎（教学版，实验 3-5 核心模块）
+
+本文件从零实现了完整的 BM25 稀疏检索链路，不依赖任何第三方检索库：
+  - TextProcessor：分词（保留数字、代码、邮箱、URL 等特殊 token）+ 停用词过滤
+  - InvertedIndex：倒排索引（词 -> 文档 posting list，记录词频 df）
+  - BM25：Robertson/Sparck Jones 打分公式，可输出逐词 TF/IDF/贡献的教学日志
+  - SparseSearchEngine：对外门面，负责文档写入、查询、top-k 排序
+
+设计目的：让读者能"手算对账"——每个分数都能由 TF、IDF、文档长度推出，
+从而理解稀疏检索在精确关键词上的强项、以及在纯同义词查询上的短板。
 """
 
 import math
@@ -18,7 +26,11 @@ logger = logging.getLogger(__name__)
 
 
 class TextProcessor:
-    """Text preprocessing for indexing and searching"""
+    """文本预处理：分词 + 停用词过滤。
+
+    分词器刻意多组正则优先匹配：邮箱、URL、连字符代码（XK9-2B4-7Q1）、
+    版本号、十六进制、技术缩写（C++/.NET）——保证"看起来是专有值"的 token 整体入索引。
+    """
     
     def __init__(self):
         # Common English stop words
@@ -115,7 +127,10 @@ class TextProcessor:
 
 
 class InvertedIndex:
-    """Inverted index data structure for efficient term lookup"""
+    """倒排索引（Inverted Index）：term -> 文档 posting list，支持 O(1) 词级查找。
+
+    维护三张表：posting list（词出现在哪些文档）、文档频率 df、词频 TF。
+    """
     
     def __init__(self):
         # Main inverted index: term -> set of document IDs
@@ -245,7 +260,11 @@ class InvertedIndex:
 
 
 class BM25:
-    """BM25 ranking algorithm implementation"""
+    """BM25 排序算法：对 (词, 文档) 计算 TF/IDF 贡献并求和打分。
+
+    为什么需要 k1 和 b：k1 控制词频饱和速度（出现 10 次不比 1 次强 10 倍），
+    b 控制文档长度归一化（短文档中的命中词更"珍贵"）。
+    """
     
     def __init__(self, index: InvertedIndex, k1: float = 1.5, b: float = 0.75):
         """
@@ -301,6 +320,8 @@ class BM25:
         return idf
     
     def calculate_term_score(self, term: str, doc_id: int) -> float:
+        # BM25 单项贡献：idf * tf*(k1+1) / (tf + k1*(1-b+b*dl/avgdl))，
+        # 其中 dl 是目标文档长度、avgdl 是全库平均长度（长度归一化）。
         """Calculate BM25 score for a single term in a document"""
         # Get term frequency in document
         tf = self.index.term_frequency.get(doc_id, Counter()).get(term, 0)
@@ -407,7 +428,7 @@ class BM25:
 
 
 class SparseSearchEngine:
-    """Main search engine combining all components"""
+    """对外门面：组合 TextProcessor + InvertedIndex + BM25，提供 index/search API。"""
     
     def __init__(self):
         self.index = InvertedIndex()
@@ -459,7 +480,11 @@ class SparseSearchEngine:
         return doc_ids
     
     def search(self, query: str, top_k: int = 10) -> List[Dict]:
-        """Search for documents matching the query"""
+        """查询入口：先分词，再逐词在倒排索引上打分，按总分取 top-k。
+
+        纯同义词查询（如查 "cat" 而语料只写 kitten/feline）会得 0 分——
+        这正是演示 BM25 短板的机制，也是后面实验引入稠密向量的动机。
+        """
         if self.bm25 is None:
             logger.warning("No documents indexed yet")
             return []

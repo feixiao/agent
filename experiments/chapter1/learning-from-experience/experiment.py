@@ -1,6 +1,13 @@
 """
 Experiment runner to compare traditional RL vs LLM-based in-context learning.
 This replicates the key insights from "The Second Half" blog post.
+
+【中文说明】本文件是实验 7-1/7-2 的入口脚本：在同一寻宝游戏中对比
+「传统 Q-learning（更新参数式学习）」与「LLM 上下文学习（把经验留在输入中）」。
+常用命令：
+  python experiment.py --mode qlearning            # 纯离线 Q-learning 全流程
+  python experiment.py --mode both --model kimi-k3 # RL vs LLM 对比（LLM 需 API Key）
+结果（含学习曲线）写入 results/<时间戳>/experiment_results.json。
 """
 
 import os
@@ -63,6 +70,9 @@ class ExperimentRunner:
             epsilon_decay: Per-episode epsilon decay
             epsilon_min: Minimum exploration rate
             checkpoint_interval: Record/print a learning-curve row every N episodes
+
+        【中文说明】实验 7-1 主流程：训练 Q-learning（默认 1 万局）→ 打印学习曲线
+        （滑动窗口胜率）→ 训练后贪婪策略评估。全程离线，无需 API。
         """
         print("\n" + "="*60)
         print("TRADITIONAL RL EXPERIMENT (Q-Learning)")
@@ -167,6 +177,10 @@ class ExperimentRunner:
             num_eval_episodes: Number of episodes to evaluate
             verbose: Whether to print details
             stochastic: Whether to use stochastic environment
+
+        【中文说明】实验 7-2 主流程：LLM 智能体把历史「动作→反馈」经验放进
+        上下文，通过推理概括游戏规则并据此决策——不更新任何参数。
+        需要 Moonshot/DashScope API Key，缺失时打印警告并跳过（返回 None）。
         """
         print("\n" + "="*70)
         print(f"LLM-BASED IN-CONTEXT LEARNING EXPERIMENT ({model})")

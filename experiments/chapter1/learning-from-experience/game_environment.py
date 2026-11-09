@@ -1,6 +1,14 @@
 """
 Text-based treasure hunt game with hidden mechanics.
 Inspired by Shunyu Yao's insights on reasoning and generalization in AI.
+
+【中文说明】本文件是「文本寻宝游戏」环境模块（纯离线，不依赖任何 API）。
+智能体通过文字反馈与游戏交互，必须从经验中发现以下隐藏机制：
+1. 特定颜色的钥匙才能开对应颜色的门；
+2. 守卫挡住宝藏，需要特定（合成）武器才能击败；
+3. 某些物品可以合成新物品（隐藏合成系统）；
+4. 药水提供临时能力。
+这个「规则不公开」的设计正是对比 Q-learning 与 LLM 上下文学习的前提。
 """
 
 import random
@@ -43,6 +51,10 @@ class TreasureHuntGame:
     2. Guards block access to treasures and require specific weapons
     3. Some items combine to create new items (hidden crafting)
     4. Potions provide temporary abilities
+
+    【中文说明】游戏主类：构建房间图（入口/仓库/走廊/守卫室/宝藏室等），
+    处理移动、拿取、使用、攻击、合成等动作并返回（文字反馈, 奖励, 是否结束）。
+    stochastic=True 时奖励/动作会加入随机扰动，用于鲁棒性实验。
     """
     
     def __init__(self, seed: int = None, stochastic: bool = False):

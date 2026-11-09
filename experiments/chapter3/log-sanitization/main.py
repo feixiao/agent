@@ -1,6 +1,15 @@
 #!/usr/bin/env python3
 """
-Main script for Log Sanitization using Local LLM
+日志脱敏实验（实验 3-3）主入口。
+
+三种运行方式：
+  1. 批量评测（默认）：加载 user-memory-evaluation 的 Layer 3 用例，用 LLM 检测 PII；
+  2. --input FILE：对单个日志文件脱敏（regex 或 llm 引擎），结果写入 <输入>.sanitized；
+  3. --demo：跑内置样本演示（默认 regex 离线引擎；--mode llm 走本地 Ollama）。
+
+为什么需要它：Agent 运行中会把对话、工具输出、错误栈写进日志，其中常夹带
+密钥 / 令牌 / 信用卡号等敏感值；本实验对比"纯正则"与"正则+LLM"两种脱敏策略
+在漏检率与误伤（utility 损失）上的权衡。
 """
 
 import argparse

@@ -1,6 +1,13 @@
 """
 Kimi Web Search Agent
 一个基于 Kimi API 的智能搜索 Agent，能够理解用户问题，通过搜索引擎获取信息，并总结出答案。
+
+【中文说明】本文件是核心模块：
+- WebSearchAgent：在线模式（--provider kimi）的核心，调用 Kimi Formula 官方
+  web_search 工具执行 ReAct 循环（思考→行动→观察），需 Moonshot API Key；
+  Moonshot Key 缺失时自动切换 OpenRouter 兜底（此时没有真实联网搜索）。
+- run_offline_demo()：离线演示模式（--provider offline-demo）的入口，
+  回放预先写好的示例轨迹，无需 API Key / 联网即可展示 ReAct 控制流。
 """
 
 import json
@@ -167,7 +174,12 @@ class WebSearchAgent:
             print(format_trace_step(step))
         
     def _get_tools(self) -> List[Dict[str, Any]]:
-        """Fetch and cache Kimi's authoritative Formula declaration."""
+        """Fetch and cache Kimi's authoritative Formula declaration.
+
+        【中文说明】从 Moonshot 拉取 web_search 工具的官方 Formula 声明并缓存，
+        确保传给模型的 tool 定义以服务端为准；请求结果（含失败）记入
+        self.api_turns 作为「凭证级」证据。OpenRouter 兜底模式没有该工具，返回空。
+        """
         if getattr(self, "using_openrouter", False):
             return []
         if self._formula_tools is not None:
@@ -230,7 +242,12 @@ class WebSearchAgent:
         return tools
 
     def _execute_formula(self, name: str, raw_arguments: str) -> str:
-        """Execute one Kimi Formula Fiber exactly as the model requested."""
+        """Execute one Kimi Formula Fiber exactly as the model requested.
+
+        【中文说明】真正执行模型请求的 web_search：把模型给出的原始参数字符串
+        原样 POST 到 Moonshot Formula Fiber 端点（必须原样，不能重序列化），
+        成功时返回 context.output，失败时记录请求/错误到 api_turns 并抛出。
+        """
         if self.using_openrouter:
             raise RuntimeError("Kimi Formula tools are unavailable on OpenRouter")
 

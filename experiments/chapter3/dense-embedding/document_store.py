@@ -1,4 +1,8 @@
-"""In-memory document store for managing documents."""
+"""内存文档存储：管理 Document 对象（文本 + 元数据 + 向量）。
+
+为什么单独抽一层：ANN 索引只认"向量"，而业务侧需要按 doc_id 取回原文与
+元数据；本模块做两者的映射与增删查，不依赖任何具体嵌入模型，可独立单测。
+"""
 
 from typing import Dict, Optional, List
 from dataclasses import dataclass, field

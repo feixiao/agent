@@ -1,5 +1,9 @@
 """
-Log Sanitization Agent using Local Ollama LLM
+基于本地 LLM 的日志脱敏 Agent（实验 3-3 的 LLM 路径）。
+
+流程：对话文本 -> 结构化 prompt（JSON Schema 约束 pii_items 输出）-> 本地 Ollama
+小模型 -> 逐项回查"该敏感值确实出现在原文"（防模型幻觉造值）-> 替换为占位符。
+Ollama 不可用时可回退 OpenRouter（需 OPENROUTER_API_KEY，属外部 API，本地默认关闭）。
 """
 
 import os

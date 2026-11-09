@@ -1,4 +1,8 @@
-"""Configuration for the dense embedding service."""
+"""稠密向量服务（实验 3-4）配置。
+
+集中管理服务端参数（端口）、嵌入模型（默认 BAAI/bge-m3）与两种 ANN
+索引后端（HNSW 图索引 / ANNOY 树索引）的超参数，均可用环境变量覆盖。
+"""
 
 import os
 from enum import Enum

@@ -1,4 +1,9 @@
-"""Embedding service using BGE-M3 model."""
+"""稠密嵌入服务：加载 BGE-M3 模型，把文本编码为稠密向量。
+
+注意：本模块依赖 FlagEmbedding 库 + HuggingFace 模型权重（BAAI/bge-m3），
+本地环境两者都不可用（协议：embedding 端点不可用、禁止装依赖），
+因此该实验的向量环节记 BLOCKED，仅离线可验证 document_store 等纯 Python 部分。
+"""
 
 import time
 import numpy as np

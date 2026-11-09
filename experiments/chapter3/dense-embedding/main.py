@@ -1,4 +1,9 @@
-"""Main FastAPI application for vector similarity search service."""
+"""向量相似度搜索服务（实验 3-4）FastAPI 主程序。
+
+提供文档索引（/index）、搜索（/search）、HNSW 与 ANNOY 切换等 HTTP 接口；
+启动时需加载 BGE-M3 嵌入模型并安装 FlagEmbedding，本地环境不满足该依赖，
+服务整体不可启动（BLOCKED：缺 FlagEmbedding/fastapi 生态 + 无本地 embedding 端点）。
+"""
 
 import time
 import argparse

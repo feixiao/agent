@@ -1,5 +1,8 @@
 """
-Performance Metrics Module for Log Sanitization
+性能指标模块：记录每次脱敏的延迟、token 用量与检测条数，并落盘为 JSON 汇总。
+
+为什么单独抽出来：实验 3-3 的验收要求对比 regex / llm / hybrid 三条路径的
+"检测质量 × 延迟 × 成本"，指标在这里统一收集，campaign 再做统计。
 """
 
 import time

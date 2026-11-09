@@ -57,3 +57,4 @@ data/
 indexes/
 trajectory.json
 last_run.json
+experiments/chapter1/learning-from-experience/results/
