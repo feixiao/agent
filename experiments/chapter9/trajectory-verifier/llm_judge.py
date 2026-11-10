@@ -1,4 +1,10 @@
-"""Real OpenAI Responses API judge for Experiment 9-1."""
+"""实验 9-1 的真实 LLM 质量裁判（OpenAI 兼容 chat/completions）。
+
+只评两个代码层管不了的开放维度：expression_quality（表达是否自然）
+与 compliant_flexibility（政策受阻时找合规替代）。每条判定必须引用
+具体轮次证据；模型返回 null/缺字段时退化为 uncertain/0.5，绝不让
+单个维度把整条轨迹的评测炸掉。
+"""
 
 from __future__ import annotations
 

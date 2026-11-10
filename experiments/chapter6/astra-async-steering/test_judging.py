@@ -1,6 +1,8 @@
-"""Falsify real pilot traces to check that the acceptance criteria reject them.
+"""用「篡改后的真实 pilot 轨迹」来证伪验收准则，确认准则会拒绝不合格证据。
 
-These tests make no API calls and do not simulate evidence of model capability.
+例如：删掉 steer 后继、改错 call_id、重复投递工具结果、伪造 receipt、
+用旧预算、返回错误模型……都应被判 fail。
+全部测试不发起 API 调用，也不模拟模型能力证据。
 """
 
 import copy

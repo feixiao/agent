@@ -1,4 +1,8 @@
-"""Agentic RAG System with ReAct Pattern"""
+"""智能体化 RAG（实验 3-8 核心）：ReAct 循环 = 思考 -> 调检索工具 -> 观察 -> 再思考。
+
+与非智能体化（检索一次直接作答）的对比正是本实验的主题：复杂多跳问题上
+迭代检索能补齐首轮遗漏的证据，代价是更多 LLM 调用与延迟。轨迹全程留痕。
+"""
 
 import json
 import logging

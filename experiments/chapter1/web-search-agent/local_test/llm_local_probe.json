@@ -1,0 +1,27 @@
+{
+  "question": "什么是 Q-learning？",
+  "trace": [],
+  "answer": "搜索过程中出现错误: Formula declaration response has no tools",
+  "api_turns": [
+    {
+      "kind": "formula_tools",
+      "formula_uri": "moonshot/web-search:latest",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:1234/v1/formulas/moonshot/web-search:latest/tools"
+      },
+      "http_status": 200,
+      "elapsed_seconds": 0.002928,
+      "error": {
+        "class": "RuntimeError",
+        "message": "Formula declaration response has no tools",
+        "response": {
+          "error": "Unexpected endpoint or method. (GET /v1/formulas/moonshot/web-search:latest/tools)"
+        }
+      }
+    }
+  ],
+  "provider": "moonshot",
+  "model": "qwen3.8-27b-splash",
+  "base_url": "http://localhost:1234/v1"
+}

@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# 中文说明：以规范、无泄漏证据运行书中实验 8-8（Prompt 蒸馏）的完整战役脚本。
+# 阶段：prepare（构造无泄漏基准）→ 教师 API 采集（Moonshot kimi-k3，需付费 Key）
+# → 学生训练（SmolLM2-135M，Apple Silicon 可跑真实参数训练）→ 留出评估 → 打包验收。
+# 注意：教师采集与训练需要 MOONSHOT_API_KEY 与训练设备；本脚本是编排入口。
 """Run the manuscript's Experiment 8-8 with canonical, leakage-free evidence.
 
 The campaign deliberately uses a small student so that *real parameter training*

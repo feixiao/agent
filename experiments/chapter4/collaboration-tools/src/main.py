@@ -5,6 +5,14 @@ This MCP server provides tools for:
 - Human-in-the-loop assistance requests
 - IM and email notifications
 - Timer/scheduling capabilities
+
+【中文说明】协作工具 MCP 服务器（FastMCP，stdio 传输）：把 src/ 下各工具模块
+（browser_tools / notification_tools / hitl_tools / timer_tools / subagent_tools /
+intelligence_tools / excel_tools / chess_tools）注册为 MCP tool 对外暴露。
+注意：代码按 mcp SDK 1.x（mcp.server.fastmcp.FastMCP）编写；当前 venv 装的是
+mcp 2.x（FastMCP 已改名 MCPServer），直接启动会 ModuleNotFoundError，
+因此 quickstart.py / run_experiment_4_5.py 的 stdio 路径在本机 BLOCKED；
+不经过 MCP 的 main.py CLI 路径不受影响。
 """
 
 import asyncio

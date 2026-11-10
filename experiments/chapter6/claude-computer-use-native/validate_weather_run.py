@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
-"""Deterministically validate retained Experiment 6-7 evidence."""
+"""确定性校验留存下来的实验 6-7 证据（纯离线，不发任何模型请求）。
+
+门禁包括：钉住的源码 commit / Dockerfile 哈希、不可变镜像 id、
+模型身份一致（必须是 claude-sonnet-4-5-20250929）、动作序号连续且 ≤ 上限、
+tool_use id 唯一、全部 HTTP 200、收据/截图数量与哈希匹配、
+最终回答含温度+天气状况、无 CAPTCHA 交互、无凭证残留。
+输出 acceptance.json 与 manifest.json 到 run 目录。
+"""
 
 from __future__ import annotations
 

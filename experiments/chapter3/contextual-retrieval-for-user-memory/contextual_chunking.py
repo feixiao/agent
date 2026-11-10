@@ -1,8 +1,8 @@
-"""Contextual Chunking for User Memory Conversations
+"""面向对话记忆的上下文感知分块（实验 3-11，3-10 的思路用于用户记忆）。
 
-This module implements Anthropic's Contextual Retrieval approach specifically
-for conversation histories. Each conversation chunk gets contextualized with
-information about its position and meaning within the full conversation.
+对话切块比文档更"失语"：『好的，就订这个吧』脱离上下文后毫无信息量。
+本模块为每个对话块生成"情境锚定前缀"（来自哪通对话、第几轮、在讨论什么主题），
+前缀由 LLM 基于整通对话生成（本地可用 LM Studio，规模大时慢）。
 """
 
 import json

@@ -6,6 +6,11 @@ Implements a two-stage algorithm for matching tool requests to relevant tools:
 2. Tool-level routing: Rank tools within selected servers by semantic similarity
 
 This approach reduces search complexity while maintaining precision, inspired by MCP-Zero.
+
+【中文说明】两级语义路由（纯离线，sklearn TF-IDF + 余弦相似度，无需 embedding API）：
+先在 server（领域/平台）层过滤候选，再在选中 server 内对工具排序，
+把"在几百个工具里选"分解为"先选域、再选工具"，降低检索复杂度。
+route_request 处理结构化请求（server_desc/tool_desc），retrieve 按自由文本查 top-k。
 """
 
 from typing import List, Dict, Tuple
@@ -68,7 +73,11 @@ class SemanticRouter:
                       top_k_tools: int = None) -> List[ToolDefinition]:
         """
         Route a tool request to relevant tools using hierarchical semantic matching.
-        
+
+        【中文说明】两级路由：Stage 1 按 server 描述相似度选出 top_k 个候选 server，
+        Stage 2 在选中的 server 内按工具描述相似度打分，最终得分 =
+        0.3*server 分 + 0.7*工具 分，过滤低于阈值的后按总分排序返回。
+
         Args:
             tool_request: Natural language description of needed tool
             top_k_servers: Number of top servers to search (default from config)

@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Experiment 6-13: RGB domain-transfer benchmark on the local GPU.
+"""实验 6-13：本地 GPU 上的 RGB 域迁移基准（自包含、可复现）。
 
-The benchmark is intentionally self-contained.  It trains a small RGB policy
-on a source visual domain and evaluates it on a shifted target domain, with
-and without domain randomization.  It is a production-grade local proxy for
-the sim-to-real argument; SO-100 deployment remains a separately gated
-extension and is never implied by this run.
+刻意自包含：用程序渲染的 32×32 图像（物体 + 目标框，五类方向/抓取标签）
+训练一个小卷积策略，并在「漂移后的目标视觉域」上评估——对照四种
+域随机化强度（source_clean / background / appearance / full）与两个
+目标域（target_realistic / target_bright）。这是 sim-to-real 论证的
+「生产级本地代理」：域随机化应改善目标域精度。
+SO-100 真机部署仍是单独门禁化的扩展，本运行绝不暗示它。
 """
 
 from __future__ import annotations

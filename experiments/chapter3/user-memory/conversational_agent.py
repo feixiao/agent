@@ -1,6 +1,9 @@
 """
-Conversational Agent - Focuses purely on conversation without direct memory management
-Memory updates are handled by a separate background process
+对话 Agent（实验 3-1/3-2 前台）：只负责对话本身，不做任何记忆写操作。
+
+架构要点（"前台对话 / 后台记忆"分离）：每轮对话前按关键词从记忆库检索相关记忆
+注入 system prompt；对话内容只追加到会话历史，记忆的提取/更新全部交给
+background_memory_processor 在后台异步完成——避免记忆写放大拖慢对话响应。
 """
 
 import json

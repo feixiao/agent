@@ -1,4 +1,4 @@
-"""Data models for the User Memory Evaluation Framework."""
+"""评估框架的数据模型（Pydantic）：TestCase / 各维度评分 / EvaluationResult 等。"""
 
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel, Field

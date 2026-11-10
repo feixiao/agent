@@ -1,7 +1,11 @@
 """
-Demo: Weather checking with learning capability
+演示：带学习能力的天气查询（两阶段：学习 → 回放）。
 
-This demo shows how the agent learns to check weather and reuses the learned workflow.
+阶段一：Agent 从零探索「查北京天气」（多次多模态 LLM 调用）并捕获
+工作流；阶段二：查上海天气时应直接回放学到的工作流，对比耗时与
+LLM 调用节省。本地限制：make_llm() 无 CLI 覆盖参数、默认模型
+gpt-5.6-luna 受模型锁死规则约束，且需要公网天气站点 + Chromium，
+本地不能真实运行（记录 BLOCKED）。
 """
 
 import asyncio

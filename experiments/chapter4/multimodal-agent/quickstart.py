@@ -1,6 +1,9 @@
 """
 Quickstart script for testing multimodal agent
 Creates sample files and demonstrates capabilities
+
+【中文说明】快速上手：本地生成样例文件（文本/图像/PDF）并演示各提取模式。
+依赖 agent.py（google-genai），本机缺该包时 import 失败 → BLOCKED。
 """
 
 import asyncio

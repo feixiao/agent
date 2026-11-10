@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Run one pinned AndroidWorld task with the upstream HumanAgent and evaluator."""
+"""Run one pinned AndroidWorld task with the upstream HumanAgent and evaluator.
+
+【中文】7-2 人工基准的 AndroidWorld 执行入口：在固定的上游 android_world
+checkout + Android emulator 上，用官方 HumanAgent（操作员亲自动手）跑一道
+预选任务，保留首次终止结果并写 JSON。需要真实 Android 设备/模拟器、adb 与
+人工操作，本地无法完整运行（见报告 BLOCKED 说明）。
+"""
 
 from __future__ import annotations
 

@@ -1,6 +1,9 @@
 """
-Background Memory Processor - Analyzes conversation context and updates memories
-Runs separately from the main conversational agent
+后台记忆处理器（实验 3-1/3-2 后台）：独立线程分析会话上下文，决定记忆的增/改/删。
+
+生命周期：每 N 轮对话（conversation_interval）触发一次 -> 用 LLM 从新轮次里
+提取事实/偏好 -> 与现有记忆比对做冲突消解（更新而非重复追加）-> 写回 MemoryManager。
+为什么放后台：记忆处理是"可以晚点做"的任务，放进线程池后前台对话延迟不受影响。
 """
 
 import json

@@ -10,6 +10,11 @@
       其它     -> openai/gpt-5.6-luna
 
 默认模型 gpt-5.6-luna。
+
+本地测试注意：有 OPENAI_API_KEY 时走 ChatOpenAI，其 base_url 缺省会
+读取环境变量 OPENAI_BASE_URL（指向 LM Studio 即打本地服务）；但
+make_llm() 未传模型时固定请求 gpt-5.6-luna——受「模型锁死」规则
+约束，本地实验必须显式传 model="qwen3.8-27b-splash"。
 """
 
 import os

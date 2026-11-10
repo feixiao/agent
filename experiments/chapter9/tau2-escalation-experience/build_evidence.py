@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
-"""汇总三臂结果为可复核的 evidence.json。
+"""汇总三臂结果为可复核的 evidence.json（纯离线，不调用 LLM）。
 
 只记录实际跑出来的数字；样本量、未完成任务数、策略哈希一并写入，
 以便读者判断结论能外推到什么范围。
+
+读取路径：simulations 取 <repo>/experiments/chapter7/tau2-bench/data/simulations/
+（相对本文件解析），因此需要 chapter7 的 τ²-bench 数据在场；
+输出固定写回本目录 validation/evidence.json（注意：会在原目录覆盖既有
+证据，本地复跑建议先复制一份干净副本再执行）。
 """
 import json, hashlib, platform, subprocess, sys
 from pathlib import Path

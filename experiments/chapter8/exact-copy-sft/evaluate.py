@@ -1,3 +1,10 @@
+"""精确复述 SFT 评估脚本（实验 8-19）。
+
+加载 Qwen3-8B（+可选 LoRA adapter），对 eval/boundary 数据集做直接复述探针，
+核心指标是 byte-exact（预测与 source 逐字节一致）与首次差异字节位置；
+用于区分"模型复制错误"与"tokenizer/序列化层损坏"。
+结果写入 validation/eval_<label>_<split>.json。
+"""
 from __future__ import annotations
 import argparse, json
 from pathlib import Path

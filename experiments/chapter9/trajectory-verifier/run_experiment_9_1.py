@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
-"""Canonical real campaign for manuscript Experiment 9-1."""
+"""实验 9-1 规范真实战役：真实客服 Agent + 真实质量裁判。
+
+对 real_cases.json（8 条虚构场景，覆盖正常退款/假承诺/隐私泄漏/过度拒答）
+各跑一次真实 LLM 客服 Agent 收集轨迹 → 三层验证器逐条出七维报告 →
+汇总校准/门槛证据写入 validation/<run>/evidence.json（含 latest.json）。
+本地限制：EvidenceChatClient 的各 provider 端点写死为付费服务
+（openai 分支 base_url 显式指定，不读 OPENAI_BASE_URL），无法指向本地
+LM Studio，因此本入口的 LLM 部分在本地标记为 BLOCKED。
+"""
 
 from __future__ import annotations
 

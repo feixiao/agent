@@ -1,7 +1,7 @@
-"""Agentic RAG Agent for User Memory Evaluation
+"""用户记忆 Agentic RAG Agent（实验 3-9 核心）：ReAct 模式 + search_user_memory 工具。
 
-This agent uses RAG-indexed conversation memories to answer questions
-about user interactions, following the ReAct pattern.
+一次检索不完整时 Agent 会自行改写出更聚焦的子查询继续追查（如"第二辆车"），
+这正是"把对话历史当知识库 + 迭代检索"能解决多会话消歧的机制。
 """
 
 import json

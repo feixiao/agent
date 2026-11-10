@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
-"""Experiment 6-12: desktop manipulation planning with a local GPU backend.
+"""实验 6-12：本地 GPU 后端的桌面操作规划（闭环策略比较）。
 
-The local run keeps the RoboCrew-style tool contract and the XLeRobot adapter
-boundary, but executes against a deterministic tabletop simulator.  This
-makes planner, postcondition, retry and short-horizon world-model behavior
-fully reproducible without claiming that a real robot moved.
+本地运行保留 RoboCrew 式工具契约与 XLeRobot 适配器边界，但对接一个
+确定性的桌面模拟器（红杯->托盘、黄纸->垃圾盒），因此规划器、后置
+条件检查、失败重试与短程世界模型的行为完全可复现，且绝不声称
+真实机器人移动过。
+
+三种执行方式对照：open_loop（一次性序列）/ closed_loop（每步重观察）/
+predictive（世界模型打分候选动作）。协议：3 个随机种子 × 三档瞬时
+失败概率（0/0.25/0.5）× 每格 128 回合，共 3456 回合。
 """
 
 from __future__ import annotations

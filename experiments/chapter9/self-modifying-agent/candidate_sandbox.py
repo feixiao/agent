@@ -1,4 +1,11 @@
-"""Fail-closed Docker boundary for model-generated policy code."""
+"""模型生成策略代码的 fail-closed Docker 边界。
+
+在一次性容器里执行候选代码：无网络、只读根文件系统、丢弃所有
+capability、64MB 内存 / 0.5 CPU / 16 进程上限、临时 tmpfs、8 秒超时。
+镜像按 Dockerfile+runner 的内容哈希寻址；任何无法解析/超时/非零退出
+都抛 SandboxError——验证环节永远宁可失败也不放行。
+（本地无 Docker 时相关检查全部按不通过处理。）
+"""
 
 from __future__ import annotations
 

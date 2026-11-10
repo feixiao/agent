@@ -8,6 +8,12 @@ The runner deliberately separates three things:
 
 Paper numbers, historical rollout collections and dry-run commands never satisfy
 the completion gate.
+
+【中文】本文件是 7-13（OpenVLA × RoboTwin2）实验的主入口，刻意分离三件事：
+(1) 非破坏性的宿主/上游 preflight（检查 GPU/仓库/依赖，绝不假装就绪）；
+(2) 真实上游 val-only 双臂（IID/OOD）的生成与执行；
+(3) 严格分析逐 episode 证据（成功率/百分位/失败分类，拒绝不完整证据）。
+需要 GPU + 机器人仿真上游仓库，本地不满足 → 只能跑其离线测试（见报告）。
 """
 
 from __future__ import annotations

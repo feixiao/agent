@@ -1,5 +1,9 @@
 """
 Quick start script to test the perception tools MCP server.
+
+【中文说明】快速上手：不经过 MCP 服务器，直接把 src/ 的工具模块加进
+sys.path 后导入调用（search_web / read_webpage / read_file / grep_search 等），
+逐个演示并打印结果。依赖 bs4 等包；venv 缺失时 import 失败 → BLOCKED。
 """
 import asyncio
 import json

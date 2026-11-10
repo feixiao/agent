@@ -1,4 +1,12 @@
-"""Configuration management for the execution tools MCP server."""
+"""Configuration management for the execution tools MCP server.
+
+【中文说明】配置管理：从 .env 读取 PROVIDER（默认 kimi，CLI 的 --provider
+可覆盖）与各 provider 的 base_url/默认模型映射、WORKSPACE_DIR、审批/截断等
+开关。注意：get_llm_config 只支持 dashscope/qwen/bailian、siliconflow、
+doubao、kimi/moonshot、openrouter，**没有 openai 分支**，因此无法指向本地
+LM Studio——本地 LLM 审批/总结路径 BLOCKED，只能走离线 fail-safe（无 key 时
+审批拒绝）或纯本地工具。
+"""
 
 import os
 import sys

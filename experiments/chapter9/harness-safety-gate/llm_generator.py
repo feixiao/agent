@@ -50,6 +50,8 @@ def _client(provider: str) -> tuple[OpenAI, dict[str, Any]]:
     key = os.getenv("OPENAI_API_KEY")
     if not key:
         raise RuntimeError("OPENAI_API_KEY is required")
+    # openai 分支 base_url 为 None：SDK 自动读取环境变量 OPENAI_BASE_URL，
+    # 本地测试时把它指向 LM Studio（http://localhost:1234/v1）即可。
     return OpenAI(api_key=key), {
         "provider": provider, "endpoint": "https://api.openai.com/v1/chat/completions", "credential_env": "OPENAI_API_KEY"
     }

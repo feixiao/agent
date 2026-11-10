@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """
 Interactive demo to play the game manually or watch agents play.
+
+【中文说明】交互式试玩入口：可手动玩寻宝游戏，或观看 Q-learning / LLM
+智能体自动对局。纯本地运行（LLM 观看模式需要 Moonshot Key）。
 """
 
 import os

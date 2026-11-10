@@ -3,6 +3,11 @@
 The evaluator intentionally scores observable trajectory and outcome fields.  It
 never tries to infer hidden chain-of-thought.  The protocol in README.md explains
 how to add blinded human/LLM judging and paired statistics for live runs.
+
+中文说明：实验 10-1 两条路径（角色转换 / Skill 加载）的确定性评分器。
+只依据可观察的轨迹与产物字段打分（移交链顺序、真实检索 URL、工具使用、
+字数约束等），刻意不推断隐藏思维链；evaluate_task / evaluate_boundary
+分别对任务型与边界型样本产出可复核的得分。
 """
 
 from __future__ import annotations

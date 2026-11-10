@@ -1,5 +1,9 @@
 """
-Memory Manager module for handling different memory mechanisms
+记忆管理器（实验 3-2 核心）：同一接口下的四种记忆表示模式。
+
+notes / enhanced_notes / json_cards / advanced_json_cards 四种 MemoryMode 各自实现
+add/search，供 3-2 在同一套用例上对比"记忆结构复杂度 vs 召回质量/成本"的权衡。
+检索是关键词/子串匹配（离线，无向量依赖），JSON 文件持久化到 data/memories/。
 """
 
 import json

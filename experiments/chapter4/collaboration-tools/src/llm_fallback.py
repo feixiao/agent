@@ -11,6 +11,11 @@ credential resolution so that:
      with the model id mapped to provider/model form.
   3. When neither is set, callers can detect "offline" and fall back to their
      deterministic mock paths (no fabricated model output).
+
+【中文说明】LLM 凭据统一解析：resolve_llm() 返回 (api_key, base_url, model)。
+本地运行时 .env 的 OPENAI_BASE_URL 指向 LM Studio、OPENAI_MODEL 指向
+qwen3.8-27b-splash，所有 LLM 入口（子 Agent/智能工具/browser-use）都经此解析，
+无需改代码即可打到本地。
 """
 
 import os

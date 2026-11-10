@@ -1,6 +1,18 @@
 #!/usr/bin/env python3
 """
 Interactive demo for context compression strategies
+
+【本文件是干什么的】
+上下文压缩策略实验（书中实验 2-10）的交互式演示入口。围绕一个固定研究任务
+（"追踪 OpenAI 全部联合创始人的当前去向"），单独运行某一种压缩策略，
+实时观察 Research Agent 的执行、网页抓取与压缩过程（可流式输出）。
+
+压缩策略（-s 可选，顺序对应书中）：
+  no_compression / individual / combined / context_aware / citations / windowed
+
+依赖提示：agent.py 依赖 web_tools.py，后者 import 了 bs4(html) 与 html2text；
+若环境缺这两个包，本入口无法运行（可改用 compression_strategies.py 的
+ContextCompressor 直接验证压缩核心，或跑 pytest）。
 """
 
 import os
@@ -64,6 +76,8 @@ def select_strategy() -> CompressionStrategy:
 
 def run_demo(enable_streaming=True, strategy: CompressionStrategy = None):
     """Run the interactive demo
+    【做什么】校验配置 → 选择策略 → 创建 ResearchAgent 执行研究任务 →
+    打印最终答案与统计（工具调用数 / 上下文溢出次数 / token 用量 / 压缩比）。
 
     Args:
         enable_streaming: Whether to enable streaming output (default: True)
@@ -175,7 +189,11 @@ def run_demo(enable_streaming=True, strategy: CompressionStrategy = None):
 
 
 def main():
-    """Main entry point"""
+    """Main entry point
+
+    解析 -s/--model/--no-streaming 后进入"跑一轮再问是否换策略"的循环。
+    -m 通过运行时覆盖 Config.MODEL_NAME 生效（resolve_llm 在调用时重新解析）。
+    """
     # Parse command line arguments
     parser = argparse.ArgumentParser(
         prog="main.py",

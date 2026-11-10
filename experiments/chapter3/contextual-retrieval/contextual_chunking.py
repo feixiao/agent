@@ -1,9 +1,10 @@
-"""Contextual Chunking Module - Educational implementation of Anthropic's Contextual Retrieval
+"""上下文感知分块模块（实验 3-10，Anthropic Contextual Retrieval 教学实现）。
 
-This module demonstrates the key insight from Anthropic's research:
-- Traditional RAG destroys context by chunking documents
-- Contextual Retrieval prepends chunk-specific context before embedding
-- This preserves semantic meaning that would otherwise be lost
+核心洞察：传统 RAG 把文档切块后，脱离上下文的碎片语义大量丢失；
+本模块在索引时为每个分块用 LLM 生成"文档级背景前缀"（该块讲的是哪份文档的
+哪部分、涉及什么主题），存进 content 字段。前缀 + 原文一起进 BM25/向量索引，
+使"只提到缩写/代词"的块也能被字面与语义两路检索命中（官方报告失败率降 49–67%）。
+前缀生成需要 LLM（本地 LM Studio 可用但慢，最小规模可跑）。
 """
 
 import json

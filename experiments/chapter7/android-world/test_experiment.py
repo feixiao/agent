@@ -1,4 +1,8 @@
-"""Focused, offline checks for Experiment 7-12 evidence/reporting."""
+"""Focused, offline checks for Experiment 7-12 evidence/reporting.
+
+【中文】7-12 实验的离线测试集：不依赖模拟器，只验证证据脱敏、上下文截断、
+配对比较、范围声明门禁（full-suite 判定的防作弊规则）与 resume 一致性检查。
+"""
 
 from __future__ import annotations
 

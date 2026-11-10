@@ -106,6 +106,12 @@ def llm_judge(
 def _calibration_cases(
     rule: Dict[str, Any], golden_set: List[Dict[str, Any]]
 ) -> List[Dict[str, Any]]:
+    """挑出与这条规则来源相关的人工金标样本。
+
+    金标与提炼语料相互独立（不复用 before/after）：只取 label.source_ids
+    与规则 source_ids 有交集的样本；同一样本对同一规则给出冲突标签时直接报错，
+    保证校准集本身可信。
+    """
     sources = set(rule.get("source_ids", []))
     cases = []
     for item in golden_set:
@@ -151,6 +157,7 @@ def calibrate(
         })
     total = len(cases)
     agreement = agree / total if total else 0.0
+    # 激活门槛（模型外部代码控制）：必须有金标覆盖且一致率 >= 0.8，否则拒绝上线
     decision = "activate" if total and agreement >= threshold else "reject"
     return {
         "rule_id": rule["id"],

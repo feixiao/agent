@@ -1,4 +1,10 @@
-"""Credential-free real chat-completion capture for Experiment 9-1."""
+"""实验 9-1 的「无凭据」真实调用捕获客户端。
+
+每次 chat/completions 调用都把原始请求/响应（不含 key 值）、耗时、
+用量记入 api_turns，供证据落盘。注意：各 provider 的 base_url 在
+BACKENDS 中显式写死（含 api.openai.com），不随 OPENAI_BASE_URL 环境变量
+变化——因此它无法指向本地 LM Studio，本地只适合跑离线/启发式路径。
+"""
 
 from __future__ import annotations
 

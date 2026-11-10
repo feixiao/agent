@@ -1,7 +1,8 @@
-"""Contextual RAG Indexer with Advanced Memory Cards
+"""双层记忆索引器（实验 3-11 核心）：上下文化对话块（RAG 层）+ 高级 JSON 卡片（结构化层）。
 
-This module combines contextual chunking for conversation histories with
-advanced JSON cards for structured user memory.
+第一层：对话历史分块 -> 上下文前缀 -> 索引，回答"历史上聊过什么"（情境性记忆）；
+第二层：LLM 抽取的高级 JSON 卡片（事实/偏好，带冲突消解），常驻上下文，
+回答"用户是谁"（陈述性记忆）。两层互补构成『主动服务』的记忆底座。
 """
 
 import os

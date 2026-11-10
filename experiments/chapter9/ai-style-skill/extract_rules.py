@@ -19,6 +19,7 @@ DATA_DIR = ROOT / "data"
 
 
 def load_pairs(path: Path | None = None) -> List[Dict[str, Any]]:
+    """加载用户纠正的 before/after 反馈对（默认 data/feedback_pairs.json，共 26 条）。"""
     return json.loads((path or DATA_DIR / "feedback_pairs.json").read_text(encoding="utf-8"))
 
 
@@ -47,25 +48,35 @@ _LLM_EXTRACT_PROMPT = """你是写作规范的提炼助手。请比较本批用�
 
 
 def _strip_json_fence(content: str) -> str:
+    """去掉模型输出首尾的 ```json 代码围栏，便于 json.loads 解析。"""
     return re.sub(r"^```(?:json)?\s*|\s*```$", "", content.strip(), flags=re.I)
 
 
 def _validate_candidate(
     rule: Dict[str, Any], pair_by_id: Dict[str, Dict[str, Any]]
 ) -> Dict[str, Any] | None:
+    """机械校验一条模型候选：字段齐全、id 合法、证据必须真实来自输入。
+
+    关键防自洽闭环措施：bad_example 必须能在某条 source 反馈的 before 中找到、
+    good_example 必须在对应 after 中找到，否则整条候选作废（返回 None）。
+    """
+    # 必填字段缺一即拒绝
     required = (
         "id", "name", "definition", "bad_example", "good_example",
         "rewrite_hint", "source_ids",
     )
     if not all(rule.get(key) for key in required):
         return None
+    # id 必须是唯一、可引用的短横线命名（如 rule-no-empty-claim）
     if not re.fullmatch(r"rule-[a-z0-9]+(?:-[a-z0-9]+)*", str(rule["id"])):
         return None
 
+    # source_ids 去重且必须都指向真实存在的反馈对
     source_ids = list(dict.fromkeys(rule["source_ids"]))
     if not source_ids or any(source_id not in pair_by_id for source_id in source_ids):
         return None
 
+    # 正反例必须真的出现在被引用的反馈对里，防止模型编造证据
     bad_example = str(rule["bad_example"])
     good_example = str(rule["good_example"])
     supported = any(
@@ -76,6 +87,8 @@ def _validate_candidate(
     if not supported:
         return None
 
+    # 通过校验的候选统一固定 detector 为 llm：
+    # 是否命中由独立 LLM judge 语义判定，而不是任何预置正则/词表。
     return {
         "id": rule["id"],
         "name": str(rule["name"]),
@@ -137,6 +150,7 @@ def extract_with_llm(
 
 
 def write_candidates(candidates: List[Dict[str, Any]], path: Path | None = None) -> Path:
+    """把通过机械校验的候选规则落盘（data/candidate_rules.json），供事后审查。"""
     out = path or DATA_DIR / "candidate_rules.json"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(candidates, ensure_ascii=False, indent=2), encoding="utf-8")

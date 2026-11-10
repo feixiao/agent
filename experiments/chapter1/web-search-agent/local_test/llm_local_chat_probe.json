@@ -1,0 +1,90 @@
+{
+  "question": "什么是 Q-learning？用一两句话解释，不需要搜索。",
+  "note": "formula declaration simulated (本地 LM Studio 无 /formulas 端点); real chat completion via agent._chat against local LM Studio",
+  "provider": "local-lmstudio",
+  "model": "qwen3.8-27b-splash",
+  "base_url": "http://localhost:1234/v1",
+  "finish_reason": "stop",
+  "content": "**Q-learning** 是一种无模型（model-free）的强化学习算法，它通过不断试错来学习一个 Q 表（状态-动作价值函数），其中 Q(s, a) 表示在状态 s 下执行动作 a 后能获得的期望累积奖励。其核心更新规则为：Q(s, a) ← Q(s, a) + α [r + γ·maxₐ' Q(s', a') − Q(s, a)]，即根据实际收到的奖励与\"最优预期\"之间的差距来逐步修正价值估计，最终收敛到最优策略。",
+  "tool_calls": [],
+  "api_turns": [
+    {
+      "kind": "chat_completion",
+      "request": {
+        "model": "qwen3.8-27b-splash",
+        "messages": [
+          {
+            "role": "system",
+            "content": "你是 Kimi，一个智能搜索助手。\n\n请按照以下步骤处理：\n1. 分析用户问题，识别关键信息需求\n2. 使用 web_search 官方工具搜索相关信息\n3. 如果需要更多信息，可以多次调用搜索工具\n4. 综合所有信息，生成准确、全面的答案\n\n注意：\n- 搜索时使用精准的关键词\n- 优先获取最新、最权威的信息\n- 答案要结构清晰，有理有据\n"
+          },
+          {
+            "role": "user",
+            "content": "什么是 Q-learning？用一两句话解释，不需要搜索。"
+          }
+        ],
+        "temperature": 0.6,
+        "max_tokens": 32768,
+        "tools": [
+          {
+            "type": "function",
+            "function": {
+              "name": "web_search",
+              "description": "Search the web for information",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "query": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "query"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "response": {
+        "id": "chatcmpl-iq28e0jfybry9wksxthu",
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "logprobs": null,
+            "message": {
+              "content": "**Q-learning** 是一种无模型（model-free）的强化学习算法，它通过不断试错来学习一个 Q 表（状态-动作价值函数），其中 Q(s, a) 表示在状态 s 下执行动作 a 后能获得的期望累积奖励。其核心更新规则为：Q(s, a) ← Q(s, a) + α [r + γ·maxₐ' Q(s', a') − Q(s, a)]，即根据实际收到的奖励与\"最优预期\"之间的差距来逐步修正价值估计，最终收敛到最优策略。",
+              "refusal": null,
+              "role": "assistant",
+              "annotations": null,
+              "audio": null,
+              "function_call": null,
+              "tool_calls": [],
+              "reasoning_content": "用户问的是Q-learning的定义，要求用一两句话解释，并且明确说不需要搜索。这是一个强化学习的基础概念，我可以直接回答。\n"
+            }
+          }
+        ],
+        "created": 1794240107,
+        "model": "qwen3.8-27b-splash",
+        "object": "chat.completion",
+        "moderation": null,
+        "service_tier": null,
+        "system_fingerprint": "qwen3.8-27b-splash",
+        "usage": {
+          "completion_tokens": 156,
+          "prompt_tokens": 374,
+          "total_tokens": 530,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": null,
+            "audio_tokens": null,
+            "reasoning_tokens": 30,
+            "rejected_prediction_tokens": null
+          },
+          "prompt_tokens_details": null
+        },
+        "stats": {}
+      },
+      "elapsed_seconds": 65.498252
+    }
+  ]
+}

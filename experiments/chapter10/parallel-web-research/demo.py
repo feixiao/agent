@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
-"""Experiment 10-4: parallel real-browser faculty search."""
+"""Experiment 10-4: parallel real-browser faculty search.
+
+中文说明：实验 10-4 演示入口。N 个 WorkerAgent 各持一个隔离的
+Playwright 浏览器上下文，在消息总线上并行搜索真实网站中的目标教师：
+首个发现者获胜，协调者向全部 worker 广播 terminate，落败方需回 ack。
+默认可选再跑一遍串行基线以实测加速比；结束前审计浏览器上下文
+创建/关闭数、级联广播数与缺失 ack。
+"""
 
 from __future__ import annotations
 

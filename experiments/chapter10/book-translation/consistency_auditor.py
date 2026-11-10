@@ -2,6 +2,11 @@
 
 Audits domain terminology mapping, code block synchronization (matching book/ source),
 LaTeX formula syntax preservation, and link targets across translated Markdown files.
+
+中文说明：双语一致性审计模块。对「源文档 ↔ 译文」成对 Markdown 做四类确定性
+（非模型）检查：领域术语映射是否统一、代码块是否同步、LaTeX 公式是否保留、
+链接目标是否一致；每条问题产出 AuditFinding（类别/严重度/详情），
+模块级入口 audit_translation(source, target, lang) 返回汇总 AuditReport。
 """
 
 from dataclasses import dataclass, field
@@ -460,5 +465,9 @@ def audit_translation(
     target_file: Union[str, Path],
     lang: str = "zh",
 ) -> AuditReport:
-    """Standalone module-level entrypoint for auditing translation consistency."""
+    """Standalone module-level entrypoint for auditing translation consistency.
+
+    中文说明：模块级独立入口——对「源文档 ↔ 译文」成对 Markdown 执行
+    术语/代码块/公式/链接四类确定性审计，返回 AuditReport。
+    """
     return BilingualConsistencyAuditor().run_audit(source_file, target_file, lang)

@@ -56,6 +56,10 @@ def simulate_battles(true_skills: Dict[str, float],
         List of dicts with keys 'model_a', 'model_b', 'winner'
         (winner in {'model_a', 'model_b', 'tie'}), matching the Chatbot Arena
         schema consumed by the Elo / Bradley-Terry code.
+
+        【中文】按已知潜在实力随机生成两两对战：先抽两个不同模型，
+        以 tie_prob 概率记平局，否则按 Bradley-Terry 胜率抽样胜者
+        （强者常胜但允许爆冷），输出与 Chatbot Arena 同构的记录。
     """
     if len(true_skills) < 2:
         raise ValueError("Need at least 2 models to simulate battles")

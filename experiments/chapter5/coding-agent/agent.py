@@ -1,6 +1,16 @@
 """
 Comprehensive Coding Agent - Modular implementation with pure Python tools
 All tools implemented without command-line dependencies
+
+（核心模块）一个模块化的通用编码 Agent，三个组成部分：
+  - SystemState（system_state.py）：跟踪当前工作目录与 git 状态，注入系统提示词；
+  - ToolRegistry（tool_registry.py）：注册 read/write/list/search/bash 等纯 Python
+    实现的工具（刻意不依赖外部命令行工具，便于任意环境复现）；
+  - CodingAgent（本文件）：主循环，支持 anthropic / openai / openrouter 三种供应商，
+    以流式事件（text_delta / tool_call / tool_execution_complete / done ...）对外输出，
+    工具调用结果回灌消息历史后进入下一轮，直到模型不再调用工具或达到轮数上限。
+
+入口: python agent.py（需 ANTHROPIC_API_KEY）；最小示例见 hello_world.py。
 """
 
 import os
@@ -27,7 +37,11 @@ class CodingAgent:
     def __init__(self, api_key: str, model: str = "claude-sonnet-5", base_url: Optional[str] = None, provider: str = "anthropic"):
         """
         Initialize coding agent
-        
+
+        初始化：按供应商选择 SDK 客户端（anthropic 用官方 SDK；openai/openrouter
+        共用 OpenAI 兼容协议，可用 base_url 指向自建/本地端点，如 LM Studio），
+        并加载 tools.json 工具定义与 system-prompt.md 系统提示词。
+
         Args:
             api_key: API key for the provider
             model: Model identifier
@@ -61,19 +75,19 @@ class CodingAgent:
             raise ValueError(f"Unsupported provider: {provider}")
     
     def _load_tools(self) -> List[Dict[str, Any]]:
-        """Load tool definitions from tools.json"""
+        """Load tool definitions from tools.json（工具清单与执行实现分离注册）"""
         tools_file = Path(__file__).parent / "tools.json"
         with open(tools_file, 'r') as f:
             data = json.load(f)
         return data["tools"]
     
     def _load_system_prompt(self) -> str:
-        """Load system prompt from system-prompt.md"""
+        """Load system prompt from system-prompt.md（模板占位符 -> 真实环境信息）"""
         prompt_file = Path(__file__).parent / "system-prompt.md"
         with open(prompt_file, 'r') as f:
             content = f.read()
-        
-        # Inject current environment information
+
+        # 注入当前环境信息：让模型"看见"工作目录、分支、未提交改动、最近提交
         content = content.replace("${Working directory}", self.system_state.current_directory)
         content = content.replace("${current_branch}", self._get_git_branch())
         content = content.replace("${main_branch}", self._get_main_branch())
@@ -129,8 +143,12 @@ class CodingAgent:
             
         Yields:
             Streaming events with type and content
+
+        主循环：每轮 = 一次模型调用（流式）+ 执行模型请求的全部工具 + 结果回灌历史。
+        额外在每轮末尾追加一条 <system_hint> 用户消息，把 SystemState 的实时状态
+        （目录/分支等）提醒给模型，避免它"迷路"。
         """
-        # Add user message with timestamp
+        # 用户消息带时间戳，便于后续审计消息时序
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.messages.append({
             "role": "user",
@@ -302,9 +320,14 @@ class CodingAgent:
             raise e
     
     def _run_openai_iteration(self, messages_with_hint: List[Dict[str, Any]], iteration: int) -> Iterator[Dict[str, Any]]:
-        """Run one iteration with OpenAI/OpenRouter API"""
+        """Run one iteration with OpenAI/OpenRouter API（本地 LM Studio 也走这条通道）
+
+        流式块（chunk）处理要点：文本按 content 增量拼接；工具调用的
+        id/name/arguments 分散在多个 chunk 里，必须按 index 累积 arguments
+        字符串，等流结束后再整体 json.loads。
+        """
         try:
-            # Convert messages to OpenAI format
+            # 消息与工具定义统一转成 OpenAI 协议格式
             openai_messages = self._convert_to_openai_format(messages_with_hint)
             
             # Convert tools to OpenAI format
@@ -419,7 +442,11 @@ class CodingAgent:
             raise e
     
     def _convert_to_openai_format(self, messages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Convert Anthropic message format to OpenAI format"""
+        """Convert Anthropic message format to OpenAI format（内部历史 -> OpenAI 协议）
+
+        注意历史里混着 Anthropic 风格的 tool_result 列表（content 为 list）与
+        OpenAI 风格的 tool 消息，这里两种都能正确翻译，保证跨供应商混用时不出错。
+        """
         openai_messages = []
         
         # Add system message
@@ -487,7 +514,7 @@ class CodingAgent:
         return openai_tools
     
     def reset(self):
-        """Reset agent state"""
+        """Reset agent state（清空对话历史与系统状态，可重复复用同一实例）"""
         self.messages = []
         self.system_state = SystemState()
 

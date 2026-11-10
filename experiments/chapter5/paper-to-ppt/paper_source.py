@@ -4,6 +4,14 @@ The canonical campaign uses the published PDF, extracts its text directly, and
 renders three original paper figures from declared PDF page rectangles.  The
 resulting manifest makes it possible to prove that the images in the Slidev
 deck came from the source PDF rather than from programmatic stand-ins.
+
+（实验 5-4 真实论文准备模块，中文注释）
+  - 锁定《Attention Is All You Need》arXiv PDF 的 sha256，下载后强制校验；
+  - 用 PyMuPDF(fitz) 逐页抽取全文文本，以及按登记的「页码 + 裁剪矩形」
+    裁出 3 张【原始论文插图】（2.5 倍缩放渲染，纵向标签无损旋转 90°）；
+  - 输出溯源清单 manifest.json：记录 PDF 哈希、裁剪矩形、图注、每张图的
+    sha256 —— 从而证明 PPT 里的图来自原始 PDF，而非程序化仿制的替身图。
+依赖: fitz(PyMuPDF)、PIL。
 """
 
 from __future__ import annotations
@@ -60,6 +68,7 @@ VISUALS = [
 
 
 def sha256(path: Path) -> str:
+    """分块计算文件 sha256（大文件不整体读入内存）。"""
     digest = hashlib.sha256()
     with path.open("rb") as handle:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
@@ -68,12 +77,14 @@ def sha256(path: Path) -> str:
 
 
 def _download(url: str, destination: Path) -> None:
+    """下载 PDF 到目标路径（带标识 User-Agent）。"""
     request = urllib.request.Request(url, headers={"User-Agent": "ai-agent-book/5-4"})
     with urllib.request.urlopen(request, timeout=120) as response:
         destination.write_bytes(response.read())
 
 
 def prepare_real_paper(run_dir: str | Path, public_dir: str | Path) -> dict:
+    """下载/校验 PDF -> 抽取全文与 3 张原图 -> 写溯源清单，返回本运行所需的全部素材。"""
     run_dir = Path(run_dir)
     public_dir = Path(public_dir)
     source_dir = run_dir / "source"
@@ -85,6 +96,7 @@ def prepare_real_paper(run_dir: str | Path, public_dir: str | Path) -> dict:
     pdf_path = source_dir / "1706.03762.pdf"
     if not pdf_path.exists():
         _download(PAPER["pdf_url"], pdf_path)
+    # 强制版本锁定：PDF 哈希与登记值不一致直接报错，防止 arXiv 换版本污染基准
     observed_pdf_hash = sha256(pdf_path)
     if observed_pdf_hash != PAPER["pdf_sha256"]:
         raise ValueError(

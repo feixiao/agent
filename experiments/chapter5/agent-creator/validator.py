@@ -1,4 +1,15 @@
-"""Fixed structural and real-run validation for Experiment 5-13."""
+"""实验 5-13 的固定校验器：对「被生成的 Agent」做结构 / 编译 / 测试 / 真实运行多层验收。
+
+校验分层（越靠前越便宜）：
+  1. structural —— 必备文件齐全、main.py 含通用 CLI（--task/--model）等静态结构检查；
+  2. compile    —— 生成的 Python 文件能编译（AST 级）；
+  3. tests      —— 在子进程里跑生成 Agent 自带的 pytest 契约测试；
+  4. live       —— 用真实端点执行冻结协议里的 live 用例（basic_task / multi_turn_state），
+                    校验工具协议、历史保序、usage 汇总与业务判定；
+  5. semantic   —— 由评审模型对最终答复做语义打分（证据、判定、补救动作）。
+
+本模块被 creator.py 的「修复循环」反复调用：验证不通过时把 errors 回传给模型迭代修复。
+"""
 
 from __future__ import annotations
 
@@ -46,6 +57,8 @@ class ValidationReport:
 
     @property
     def ok(self) -> bool:
+        # 总闸：结构/编译/测试三道必过；live/协议/多轮/证据/usage/语义为「可选闸」，
+        # 只要没有明确失败（None 视为未执行而非失败）即算通过。
         optional_gates = (
             self.live_ok,
             self.protocol_ok,

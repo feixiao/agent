@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Analyze memory, reflection, diffusion, and action logs for Experiment 10-5."""
+"""Analyze memory, reflection, diffusion, and action logs for Experiment 10-5.
+
+中文说明：实验 10-5 的离线分析器（不调用任何 LLM）。对既有运行目录的
+记忆/反思/动作产物做确定性统计：各臂记忆与反思节点计数、关键事件
+（如情人节派对、气候工作坊）在群体中的「扩散」范围与时间、选举等事件
+感知，输出 deterministic_analysis.json 供验收与对照引用。
+"""
 
 from __future__ import annotations
 
@@ -49,6 +55,7 @@ def contains_terms(node: dict[str, Any], terms: Iterable[str]) -> bool:
 
 
 def diffusion(nodes: dict[str, list[dict[str, Any]]], terms: tuple[str, ...]) -> dict:
+    # 群体扩散统计：哪些 persona 的记忆/观察命中了关键词，以及各自最早命中时间。
     aware = {}
     mentions = {}
     for name, rows in nodes.items():

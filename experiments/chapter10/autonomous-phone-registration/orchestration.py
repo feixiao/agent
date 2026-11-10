@@ -1,4 +1,14 @@
-"""Phone and Computer Agents plus the autonomous tool dispatcher."""
+"""Phone and Computer Agents plus the autonomous tool dispatcher.
+
+中文说明：实验 10-3 的编排核心。PhoneAgent 负责逐项询问用户、用 LLM 把
+口语回答抽成字段值、做格式校验（失败最多重问 3 次）并把每个有效值立即
+发往 ComputerAgent（不等待对方填写完成，实现「问/填」并发的时间线重叠）；
+ComputerAgent 消费消息并把值填进真实 Playwright 页面，页面错误以
+fill_error 回传给 PhoneAgent。initiate_phone_call_agent 是「工具分发器」：
+只有当模型真的发出了对应工具调用时才创建两个 Agent；run_parallel 把两个
+Agent 作为独立 asyncio 任务并发运行，任一失败即取消对端并关闭传输。
+timing_evidence 从总线时间线重建「下一问先于上一填完成」的证据。
+"""
 
 from __future__ import annotations
 
@@ -139,7 +149,11 @@ class PhoneAgent:
         self.form_ready = asyncio.Event()
 
     async def _receive_computer_feedback(self):
-        """Independent inbound loop: Computer -> Phone is not a write-only channel."""
+        """Independent inbound loop: Computer -> Phone is not a write-only channel.
+
+        中文说明：独立的收件循环——Computer→Phone 不是单向写通道：
+        收集页面填写错误（fill_error）并缓存，收到 form_ready 后结束。
+        """
         while True:
             message = await self.bus.receive("phone_agent")
             if message.type == "fill_error":
@@ -164,6 +178,7 @@ class PhoneAgent:
                 await self.channel.close()
 
     async def _run_dialogue(self) -> None:
+        # 主对话循环：先起独立收件任务（接收电脑端反馈），再逐项询问。
         feedback_task = asyncio.create_task(
             self._receive_computer_feedback(), name="phone-inbound-computer-messages"
         )
@@ -304,6 +319,7 @@ class ComputerAgent:
         )
 
     async def run(self) -> Dict[str, object]:
+        # 主循环：先填已知值，再循环消费消息直到 call_failed/task_completed。
         for name, value in self.known_values.items():
             if name in self.fields:
                 try:

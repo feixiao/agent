@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Run Experiment 6-4 unchanged and bind local-model/audio/source provenance."""
+"""不改动地运行实验 6-4，并把本地模型 / 音频 / 源码的溯源信息绑定进 manifest。
+
+与 demo.py 的区别：本 runner 额外把 Qwen2-Audio 快照（含权重哈希）、
+Whisper 检查点哈希、音频文件哈希与运行时源码哈希写进 manifest.json，
+使「官方运行」证据可以被 test_official_experiment.py 机械复核。
+"""
 
 from __future__ import annotations
 

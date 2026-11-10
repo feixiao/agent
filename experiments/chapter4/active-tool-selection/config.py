@@ -1,4 +1,9 @@
-"""Configuration for Active Tool Selection Agent."""
+"""Configuration for Active Tool Selection Agent.
+
+【中文说明】配置模块：加载 .env 解析 provider（openai/dashscope/...）与默认模型；
+LLM_PROVIDER=openai 时读 OPENAI_BASE_URL/OPENAI_MODEL，指向本地 LM Studio
+（qwen3.8-27b-splash）即可运行；另含 agent 迭代上限与语义路由阈值等参数。
+"""
 import os
 from dotenv import load_dotenv
 

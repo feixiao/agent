@@ -27,6 +27,12 @@ _DEFAULT_MODELS = {
 
 
 def make_client(provider: str) -> Tuple[Any, Dict[str, Any]]:
+    """按 provider 构造 OpenAI 客户端并返回后端元数据（endpoint/凭据环境变量名）。
+
+    本地测试提示：openai 分支 base_url=None 时，SDK 会自动读取环境变量
+    OPENAI_BASE_URL，因此把 .env 里的 OPENAI_BASE_URL 指向 LM Studio
+    （http://localhost:1234/v1）即可把"openai"路径打到本地服务。
+    """
     # openai 包只在真实路径才需要，惰性导入保证离线路径零依赖。
     from openai import OpenAI
 
@@ -64,6 +70,8 @@ def chat(
     client, backend = make_client(provider)
     selected = model or default_model(provider)
     started = time.perf_counter()
+    # openai/openrouter 走 Responses API（JSON 输出 + reasoning effort）；
+    # 其余（ark）走 chat/completions + response_format 兜底。
     if provider in {"openai", "openrouter"}:
         request = {
             "model": selected,

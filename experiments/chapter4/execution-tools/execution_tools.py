@@ -1,4 +1,9 @@
-"""Generic execution tools: code interpreter and virtual terminal."""
+"""Generic execution tools: code interpreter and virtual terminal.
+
+【中文说明】通用执行工具：code_interpreter（多语言沙盒，subprocess 隔离执行，
+危险操作先经 LLM 审批、长输出截断后落盘并在上下文保留尾部片段）与
+virtual_terminal（shell 命令执行，危险命令模式匹配 + LLM 审批双重门）。
+"""
 
 import os
 import subprocess

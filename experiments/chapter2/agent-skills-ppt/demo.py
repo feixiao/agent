@@ -17,6 +17,13 @@ python-pptx 生成真实的 .pptx，并读回校验页数与每页标题。
 运行：
     export OPENAI_API_KEY=your-openai-api-key
     python demo.py
+
+本地运行提示：用 OpenAI 兼容端点（如 LM Studio）时导出
+    OPENAI_API_KEY=not-needed OPENAI_BASE_URL=http://localhost:1234/v1
+    python demo.py --model qwen3.8-27b-splash
+注意：客户端构造处写死了 timeout=60.0（见 run_agent）；本地 27B 推理若单轮
+生成超过 60 秒（如一次性写出 8-12 页大纲 payload 的轮次）会 APITimeoutError，
+此时 LLM 路径记 PARTIAL，可用 --offline 走确定性离线全流程。
 """
 
 import argparse
@@ -268,6 +275,7 @@ def chat_with_tools(client, model: str, messages: list, no_reasoning: bool):
 # ---------------------------------------------------------------------------
 def run_agent(paper_path: Path, model: str, out_path: Path,
               max_turns: int = 8) -> Path | None:
+    """LLM 路径主流程：构建薄目录 system prompt → agentic loop（最多 max_turns 轮）→ 校验生成的 pptx。"""
     # 有 OPENROUTER_API_KEY 时 gpt-5.x 优先走 OpenRouter，否则 OPENAI_API_KEY
     # 官方直连（gpt-* 模型名会被映射为 openai/…）。两者皆无则给出清晰错误。
     from agentbook.providers import resolve_backend

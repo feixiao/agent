@@ -1,4 +1,8 @@
-"""Deterministic tools over synthetic DHIS2-style aggregate reports."""
+"""Deterministic tools over synthetic DHIS2-style aggregate reports.
+
+【中文】合成 DHIS2 风格上报数据之上的确定性工具环境（CSV 后端）：测试阳性率、
+上报完整率、趋势比较、数据质量问题、缺药天数等公共卫生报表工具，供 Agent 调用。
+"""
 
 from __future__ import annotations
 

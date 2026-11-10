@@ -1,4 +1,10 @@
-"""Auditable self-modification and trusted release gates for Experiment 9-6."""
+"""实验 9-6 的可审计自修改与可信发布门（模型外代码）。
+
+诊断（跨轨迹聚合故障簇）→ 候选生成（确定性 / 真实 LLM / 反例）→
+发布门槛（Docker 沙箱内的行为检查 + AST 静态检查 + 稳定文件完整性）→
+发布清单（回滚永远钉在稳定版哈希上）。候选只写隔离目录，
+绝不在可信宿主进程里 import 模型生成的代码。
+"""
 
 from __future__ import annotations
 

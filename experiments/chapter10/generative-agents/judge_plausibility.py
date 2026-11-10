@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
-"""Run arm-blind Anthropic plausibility judgments for baseline vs ablation."""
+"""Run arm-blind Anthropic plausibility judgments for baseline vs ablation.
+
+中文说明：对已有模拟运行做「双臂盲评」：为每个 persona 从 baseline 与
+no_reflection 两臂各构建一条轨迹（画像 + 动作转移 + 新记忆），按 persona
+哈希决定哪臂标为 A/B（防位置偏置），再调用 Anthropic 付费 Messages API
+按四维度（时间连贯/人格一致/记忆延续/社交响应）独立打分并给出偏好；
+逐 persona 追加 JSONL 回执，最后汇总 plausibility_summary.json。
+注意：调用端点与凭据固定为 ANTHROPIC_API_KEY，无离线/mock 路径。
+"""
 
 from __future__ import annotations
 
@@ -219,6 +227,7 @@ def load_canonical_judgments(receipts_path: Path) -> list[dict]:
 
 
 def main() -> int:
+    # 主流程：种子节点计数 → 逐 persona 盲评（跳过已有回执）→ 汇总偏好与四维度均分。
     parser = argparse.ArgumentParser()
     parser.add_argument("output", type=Path)
     parser.add_argument("--model", default=MODEL)

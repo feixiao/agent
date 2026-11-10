@@ -1,4 +1,10 @@
-"""Vector index implementations using ANNOY and HNSW."""
+"""向量索引实现：ANNOY（树索引）与 HNSW（分层可导航小世界图）两种 ANN 后端。
+
+两者权衡正是实验 3-4 的主题：
+  - ANNOY：构建快、内存省、删除需整体重建；精度随 n_trees 提升
+  - HNSW：查询精度高且可调 ef_search；构建慢、内存大（M/ef 越大越贵）
+注意：本模块依赖 colorlog（经 logger.py），本地 venv 缺失该包，直接 import 会失败。
+"""
 
 from abc import ABC, abstractmethod
 from typing import List, Tuple, Dict, Optional

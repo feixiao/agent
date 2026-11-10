@@ -5,6 +5,11 @@ The manuscript compares 10,000 deterministic Q-learning episodes with Kimi K3's
 first attempt in the same treasure-hunt environment. A failed manuscript
 hypothesis is still a completed experiment; acceptance therefore verifies the
 protocol and evidence provenance separately from the observed outcome.
+
+【中文说明】实验 8-2（RL vs LLM 对比）的正式验收入口：固定 10,000 局
+Q-learning + 100 局评估 + 一局官方 Kimi K3 首次尝试，并把完整证据写入
+validation/。LLM 部分需要 Moonshot API Key（外部付费 API），本地无 Key 时
+无法完整验收；纯离线的 Q-learning 部分请用 experiment.py --mode qlearning。
 """
 
 from __future__ import annotations

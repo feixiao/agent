@@ -3,6 +3,9 @@
 
 提炼由 LLM 完成，不由人手写：本实验检验的是系统能否从自身失败中产生
 可用规则，而不是"人能否写出更好的提示词"。所有请求与回复原样保存。
+
+本地运行限制：端点硬编码为火山 ARK（付费 API），需 ARK_API_KEY 与
+--run 指向一次基线训练集运行结果；输入轨迹缺失/无 Key 时无法运行。
 """
 import argparse, hashlib, json, os, sys, time
 from pathlib import Path

@@ -1,0 +1,16 @@
+{
+  "test_doc_1": {
+    "doc_id": "test_doc_1",
+    "content": "故意杀人罪处死刑、无期徒刑或者十年以上有期徒刑。",
+    "metadata": {
+      "source": "test"
+    }
+  },
+  "criminal_law_test": {
+    "doc_id": "criminal_law_test",
+    "content": "盗窃罪的立案标准：\n                1. 数额较大：一般为1000元至3000元以上\n                2. 多次盗窃：2年内盗窃3次以上\n                3. 入户盗窃、携带凶器盗窃、扒窃不论数额",
+    "metadata": {
+      "type": "law"
+    }
+  }
+}

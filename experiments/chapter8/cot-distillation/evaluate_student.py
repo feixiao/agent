@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Baseline/student/teacher acceptance campaign for Experiment 8-9."""
+"""实验 8-9 的基座/学生/教师三臂验收评测。
+
+对同一批 24 道 AIME 题分别跑：基座模型（如 Qwen2.5-1.5B-Instruct）、
+train_student.py 产出的学生 checkpoint、以及教师轨迹里的已知答案，
+用规则验证器判对错，输出配对比较与统计显著性。需要 GPU 与模型下载。
+"""
 
 from __future__ import annotations
 

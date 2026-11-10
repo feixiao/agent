@@ -2,6 +2,18 @@
 KV Cache Demonstration Agent with ReAct Pattern
 Demonstrates the importance of KV cache through correct and incorrect implementations.
 Uses local file system tools to read and search through code files.
+
+【本文件是干什么的】
+KV Cache 实验的核心模块。包含三块：
+1) LocalFileTools —— 三个只读文件工具（read_file / find / grep），带路径越界防护，
+   让 Agent 有真实的"多轮工具调用"场景；
+2) KVCacheAgent —— ReAct 循环 + 六种上下文构造模式（KVCacheMode）：
+   正确做法只改变"追加"，五种反模式（动态系统提示 / 打乱工具顺序 / 动态用户资料 /
+   滑动窗口 / 纯文本历史）会破坏前缀稳定性，导致缓存失效；
+3) compare_implementations —— 依次运行 6 种模式并汇总指标，供 main.py 打印对比表。
+
+每次 API 调用都会记录 TTFT、prompt/completion tokens，以及模型上报的
+cached_tokens（若有），累积到 AgentMetrics。
 """
 
 import json
@@ -57,13 +69,17 @@ logger = logging.getLogger(__name__)
 
 
 class KVCacheMode(Enum):
-    """Different KV cache optimization modes"""
-    CORRECT = "correct"  # Correct implementation with stable context
-    DYNAMIC_SYSTEM = "dynamic_system"  # Changing system prompt with timestamp
-    SHUFFLED_TOOLS = "shuffled_tools"  # Shuffling tool order each request
-    DYNAMIC_PROFILE = "dynamic_profile"  # Changing user profile with credits
-    SLIDING_WINDOW = "sliding_window"  # Only keeping recent 6 messages
-    TEXT_FORMAT = "text_format"  # Formatting messages as plain text
+    """Different KV cache optimization modes
+
+    六种上下文构造策略：CORRECT 保持前缀稳定（缓存可复用）；其余五种是常见反模式，
+    每一种都在"前缀的某个位置"引入变化，使缓存的前缀匹配从该位置起失效。
+    """
+    CORRECT = "correct"  # Correct implementation with stable context  # 正确：全程稳定上下文
+    DYNAMIC_SYSTEM = "dynamic_system"  # Changing system prompt with timestamp  # 反模式：系统提示带时间戳，整段前缀每轮都变
+    SHUFFLED_TOOLS = "shuffled_tools"  # Shuffling tool order each request  # 反模式：工具顺序随机化
+    DYNAMIC_PROFILE = "dynamic_profile"  # Changing user profile with credits  # 反模式：每轮变化的用户资料
+    SLIDING_WINDOW = "sliding_window"  # Only keeping recent 6 messages  # 反模式：滑动窗口截断历史
+    TEXT_FORMAT = "text_format"  # Formatting messages as plain text  # 反模式：历史拍平成纯文本
 
 
 @dataclass
@@ -352,8 +368,13 @@ class LocalFileTools:
 class KVCacheAgent:
     """
     ReAct Agent with different KV cache optimization modes
+
+    【做什么】带本地文件工具的 ReAct Agent，按所选 KVCacheMode 构造每轮请求消息，
+    记录 TTFT / token / 缓存命中指标。
+    【为什么】缓存是否被复用只取决于"实际发出去的输入序列"是否前缀稳定，
+    与文字在人看来是否"意思相同"无关——五种反模式都在改变前缀的某个字节。
     """
-    
+
     def __init__(self, api_key: str, mode: KVCacheMode = KVCacheMode.CORRECT,
                  model: str = "kimi-k2.6", root_dir: str = ".",
                  verbose: bool = True):
@@ -470,7 +491,11 @@ class KVCacheAgent:
         logger.info(f"Agent initialized with mode: {mode.value}, model: {model}")
     
     def _get_system_prompt(self) -> str:
-        """Get system prompt based on mode"""
+        """Get system prompt based on mode
+
+        基础提示词在所有模式下相同；只有 DYNAMIC_SYSTEM 会在每轮附加当前时间戳——
+        时间戳位于消息序列最前端，因此整个请求前缀每轮都不同，缓存必然全部失效。
+        """
         base_prompt = """You are a helpful AI assistant with access to file system tools.
 You can read files, find files by pattern, and search for text within files.
 Use the ReAct pattern: Reason about what to do, then Act using tools, and Observe the results.
@@ -491,13 +516,17 @@ Always think step by step and use tools to gather information. When you have eno
         return base_prompt
     
     def _get_tools(self) -> List[Dict]:
-        """Get tool definitions based on mode"""
+        """Get tool definitions based on mode
+
+        SHUFFLED_TOOLS 模式下每轮随机打乱工具定义顺序：功能完全不变，
+        但 JSON 序列变了，前缀在 tools 处起就不匹配缓存。
+        """
         tools = self.tool_definitions.copy()
-        
+
         if self.mode == KVCacheMode.SHUFFLED_TOOLS:
             # Shuffle tool order (breaks KV cache)
             random.shuffle(tools)
-        
+
         return tools
     
     def _get_user_profile_message(self) -> Optional[Dict]:
@@ -511,7 +540,15 @@ Always think step by step and use tools to gather information. When you have eno
         return None
     
     def _format_messages(self, task: str) -> List[Dict]:
-        """Format messages based on mode - recreated each iteration for incorrect modes"""
+        """Format messages based on mode - recreated each iteration for incorrect modes
+
+        按模式组装完整消息列表：系统提示 →（可选）动态用户资料 → 历史 → 当前任务。
+        历史部分的分流逻辑是五种模式的关键差异：
+        - SLIDING_WINDOW：只保留最近 6 条（并把窗口起点回退到归属的 assistant 消息，
+          保证 tool 消息总是与其 tool_calls 配对，否则 API 会拒收）；
+        - TEXT_FORMAT：把全部历史拍平进一条 user 消息的纯文本（结构化格式被破坏）；
+        - 其余模式：直接带上完整结构化历史。
+        """
         messages = []
         
         # Add system prompt (changes each time for DYNAMIC_SYSTEM mode)
@@ -585,7 +622,11 @@ Always think step by step and use tools to gather information. When you have eno
         return messages
     
     def _execute_tool(self, tool_name: str, arguments: Dict[str, Any]) -> Any:
-        """Execute a tool and return the result"""
+        """Execute a tool and return the result
+
+        工具执行器：按函数签名过滤掉模型多给的参数；任何异常都转成
+        {"error": ..., "success": False} 结果回传（不抛异常），让 ReAct 循环能继续。
+        """
         tool_map = {
             "read_file": self.tools.read_file,
             "find": self.tools.find,
@@ -622,7 +663,9 @@ Always think step by step and use tools to gather information. When you have eno
     def execute_task(self, task: str, max_iterations: int = 50) -> Dict[str, Any]:
         """
         Execute a task using ReAct pattern with standard OpenAI tool calling
-        
+        【主循环】每轮：构造消息 → 调 API（记录 TTFT/token/缓存）→ 有工具调用则执行并
+        追加到历史；没有工具调用的纯文本回复视为最终答案，结束循环。
+
         Args:
             task: The task to execute
             max_iterations: Maximum number of iterations
@@ -835,6 +878,7 @@ def compare_implementations(api_key: str, task: str, root_dir: str = ".",
                             model: str = "kimi-k2.6") -> Dict[str, Any]:
     """
     Compare different KV cache implementations
+    【做什么】对全部 6 种模式各跑一次同一任务，返回 {模式: 指标} 字典（供 --compare 汇总）。
 
     Args:
         api_key: API key for Kimi

@@ -6,6 +6,14 @@ It creates small local documents/media as deterministic inputs, uses live public
 endpoints for network observations, confines mutation tools to a fresh fixture
 workspace, and stores credential-safe receipts.  Missing private credentials
 produce a blocked campaign; they can never satisfy acceptance.
+
+【中文说明】实验 4-2 的正式 campaign 执行器：经 MCP stdio 拉起 src/main.py
+感知工具服务器（mcp 2.x 的 Client API），对每个子能力（搜索/多模态理解/
+文件系统/公共数据源）建确定性本地输入 + 真实公共端点观察，变更类工具限定
+在全新的 fixture 工作区，回执脱敏存 validation/。
+本地现状：服务器依赖 bs4 等包（venv 缺失）→ stdio 启动即失败，
+且 credential_preflight 的 find_spec("google.oauth2.credentials") 在缺
+google-auth 时直接抛异常，故本机 BLOCKED(缺依赖: bs4/google-auth 等)。
 """
 
 from __future__ import annotations

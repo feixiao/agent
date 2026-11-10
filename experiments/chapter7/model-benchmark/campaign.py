@@ -6,6 +6,11 @@ every real request in SQLite so a 168-hour availability campaign or a large
 100-request workload matrix can be resumed without losing completed cells.
 There is deliberately no synthetic fallback in this runner; ``demo.py --mock``
 remains a separate educational check and can never populate this database.
+
+【中文】本文件是 7-10 实验的「完整 campaign 运行器」：负载矩阵（上下文/输出长度
+× 并发）、限流爬坡、Agent 成本与 168 小时可用性四大阶段，全部真实请求逐条落
+SQLite 可断点续跑；刻意没有合成回退。默认配置（campaign_config.json）指向
+OpenAI/Anthropic 等付费端点，本地不跑付费 API（见报告）。
 """
 
 from __future__ import annotations
@@ -267,6 +272,9 @@ CREATE TABLE IF NOT EXISTS campaign_metadata (
 
 
 class CampaignStore:
+    """【中文】SQLite 证据库：每个真实请求一行 observation（含 prompt/输出哈希、
+    token 用量、时延、错误分类），带线程锁与 schema 迁移，支持跨进程断点续跑。"""
+
     def __init__(self, path: Path):
         path.parent.mkdir(parents=True, exist_ok=True)
         self.path = path
@@ -904,8 +912,10 @@ def run_workloads(
     outputs = args.output_tokens or workload["output_tokens"]
     requests = args.requests if args.requests is not None else workload["requests_per_cell"]
     concurrency = args.concurrency or workload["concurrency"]
+    # 官方口径要求每格 ≥100 请求；--smoke 才允许小验证量（小结果仍如实标注范围）
     if not args.smoke and requests < 100:
         raise RuntimeError("Official workload requires at least 100 requests per cell; use --smoke for smaller runs")
+    # 主循环：对每个 provider × 上下文长度 × 输出长度 的网格逐格发压并落库
     for provider in providers:
         for context in contexts:
             for output in outputs:

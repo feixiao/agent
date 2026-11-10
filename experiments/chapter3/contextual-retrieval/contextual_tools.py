@@ -1,7 +1,8 @@
-"""Enhanced tools for contextual retrieval with BM25 and semantic search
+"""上下文感知检索工具（实验 3-10）：BM25 与向量两路检索的对照实现。
 
-Educational implementation showing how contextual chunks improve both
-BM25 (lexical) and embedding (semantic) retrieval.
+教学点：同一批"前缀+原文"分块，前缀里的主题词/文档名直接补强 BM25 的字面命中，
+同时让向量嵌入带上文档级语义——两路都受益，这就是 Contextual Retrieval
+"一次前缀、双路增益"的机制。BM25 路径纯离线；向量路径需 embedding 服务（本地不可用）。
 """
 
 import json

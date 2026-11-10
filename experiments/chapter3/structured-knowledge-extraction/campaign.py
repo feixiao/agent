@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Canonical official-CAIL2018 campaign for Experiment 3-12."""
+"""实验 3-12 官方 CAIL2018 标准 campaign：真实数据集上跑「因子发现 -> 抽取 -> 原型 -> 建议」
+全流程并落盘证据。依赖 LLM API 与官方数据（本地不可用，BLOCKED）；
+离线等价物见 demo.py 与单测（合成小样本）。
+"""
 
 from __future__ import annotations
 

@@ -1,8 +1,10 @@
 """
-Demo: Email sending with learning capability
+演示：带学习能力的邮件发送（两阶段：学习 → 回放）。
 
-This demo shows how the agent learns to send emails and reuses the learned workflow.
-Uses Ethereal Email (ethereal.email) as a test email service.
+目标站点是免费测试邮箱 ethereal.email（非付费 API，但需公网 + Chromium）。
+阶段一学习「发邮件」工作流（多模态 LLM 逐步探索）；阶段二用不同
+收件人/主题回放，对比耗时与 LLM 调用节省。CLI 提供 --model 可指定
+模型（本地可传 qwen3.8-27b-splash）、--headless、--max-steps、--quick。
 """
 
 import argparse

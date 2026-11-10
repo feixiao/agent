@@ -1,4 +1,13 @@
-"""Real speech synthesis and microphone-audio ASR for Phone Agent add-on."""
+"""Phone Agent 插件的真实语音合成与麦克风音频 ASR（全部本地执行）。
+
+  - SystemSpeechSynthesizer：用显式选择的本地引擎（macOS say / espeak）
+    合成真实语音，再经 ffmpeg 重采样为 8k/16k 单声道 PCM16 WAV，
+    每张回执含引擎二进制哈希、时长、网络=否、mock=否；
+  - WhisperASR：把 RTP 得到的精确 PCM 包成 WAV，交给「真实缓存的
+    OpenAI Whisper 检查点」做本地转写，回执含检查点哈希与分段耗时；
+  - make_synthetic_speech_fixture：生成「安全的合成浏览器麦克风」WAV
+    （前导/尾部静音 + 真实合成语音），供自动验收使用，不含隐私。
+"""
 
 from __future__ import annotations
 

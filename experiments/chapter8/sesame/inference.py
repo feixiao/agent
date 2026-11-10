@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Sesame CSM (1B) TTS - Inference Script
+"""Sesame CSM (1B) TTS 单条推理脚本（实验 8-6 Sesame 轨道）。
 
-This script loads a trained LoRA model and generates speech from text.
+加载基座 CSM 模型 + 训练得到的 LoRA 适配器，从文本生成语音；
+支持 <laughs>/<giggles>/<sighs> 等副语言事件标签，可加载参考数据集
+的说话人上下文（context）保持音色一致。
 """
 
 import argparse
@@ -16,6 +17,7 @@ from transformers import CsmForConditionalGeneration
 from peft import PeftModel
 
 
+# 中文注释：加载基座 CSM 模型与（可选）LoRA 适配器
 def load_model(base_model_name: str, lora_path: str = None, load_in_4bit: bool = False):
     """
     Load the base model and optionally apply LoRA adapters.
@@ -44,6 +46,7 @@ def load_model(base_model_name: str, lora_path: str = None, load_in_4bit: bool =
     return model, processor
 
 
+# 中文注释：从说话人数据集取一段参考音频作为音色上下文（推理时复现该说话人）
 def load_dataset_for_context(dataset_name: str = "maxbsoft/mrdragonfox-elise", split: str = "train"):
     """
     Load the dataset for voice context examples.
@@ -63,6 +66,7 @@ def load_dataset_for_context(dataset_name: str = "maxbsoft/mrdragonfox-elise", s
     return raw_ds
 
 
+# 中文注释：主推理 —— 文本(+情感标签) + 说话人上下文 → 音频词元 → 波形
 def generate_speech(
     model,
     processor,
@@ -146,6 +150,7 @@ def generate_speech(
     print(f"Audio saved to: {output_path}")
 
 
+# 中文注释：命令行入口：解析参数后对示例文本生成 WAV
 def main():
     parser = argparse.ArgumentParser(
         description="Generate speech using Sesame CSM TTS model"

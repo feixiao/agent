@@ -1,8 +1,8 @@
-"""Stateful synthetic customer-service sandbox used to collect real LLM trajectories.
+"""有状态的合成客服沙箱：跑真实 LLM 客服 Agent、收集真实轨迹。
 
-The customers and orders are fictional.  The Agent and quality Judge are real
-provider calls; order state, policy enforcement, and tool results are local
-environment truth and are therefore independently checkable.
+客户与订单均为虚构数据；Agent 与质量裁判是真实 provider 调用，而
+订单状态、策略执行、工具返回都是本地环境的「真值」——因此轨迹里的
+每个声明都能被验证器独立核对（这是「三层验证」能成立的根基）。
 """
 
 from __future__ import annotations

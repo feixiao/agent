@@ -1,7 +1,21 @@
 """
-Event-Triggered AI Agent with System Hints
-An agent that responds to events from various sources while maintaining
-all the system hint features from the original implementation.
+事件触发 AI Agent（带系统提示）—— 本实验核心模块
+=================================================
+
+一个能被「各种来源的事件」（定时器、文件变更、网页消息、邮件……）唤醒并处理的
+Agent。事件到达 -> 转成用户消息 -> 进入 ReAct 循环（LLM + 内置工具调用），
+直到产出 FINAL ANSWER 为止。
+
+同时保留了原版 conversational agent 的全部「系统提示」能力：时间戳、工具调用
+计数、TODO 列表、详细错误提示、系统状态块、轨迹落盘（trajectory.json）等。
+
+对外入口：
+  - EventTriggeredAgent.handle_event(event, max_iterations)：处理单个事件；
+  - server.py / client.py：HTTP 服务化（quickstart.py 一键启动）。
+
+注意：本模块的 provider 集合（dashscope/siliconflow/doubao/kimi/moonshot/
+openrouter）不含通用 openai；本地 LM Studio 需借 dashscope 分支的
+DASHSCOPE_BASE_URL 环境变量覆盖来指向（见章末本地测试报告）。
 """
 
 import json
@@ -35,9 +49,11 @@ except ImportError:
 
 
 def _reasoning_safe_temperature(model, requested=1.0):
-    """Reasoning models (Kimi K3, GPT-5, ...) only accept temperature=1.
-    Return 1 for those; otherwise the requested value so non-reasoning
-    providers (Doubao, DeepSeek, older Moonshot) are unchanged."""
+    """推理模型（Kimi K3、GPT-5 等）只接受 temperature=1。
+
+    对这类模型一律返回 1；其余模型返回调用方要求的值，
+    保证非推理类提供商（Doubao、DeepSeek、旧版 Moonshot）行为不变。
+    """
     m = str(model or "").lower().replace("/", "-")
     return 1 if ("kimi-k3" in m or "gpt-5" in m) else requested
 
@@ -56,13 +72,12 @@ _PROVIDER_KEY_ENV = {
 
 
 def resolve_provider_and_key(provider: Optional[str] = None):
-    """Resolve (provider, api_key) applying a universal OpenRouter fallback.
+    """解析 (provider, api_key)，并应用通用的 OpenRouter 兜底。
 
-    Preferred provider (default from LLM_PROVIDER, else 'kimi') is used as today
-    when its own key is present. Otherwise, if OPENROUTER_API_KEY is set, fall
-    back to the already-supported 'openrouter' provider so the agent still runs.
-    Returns (provider, None) when no usable key is found, leaving the caller to
-    emit its own error.
+    优先使用指定（或环境变量 LLM_PROVIDER、默认 'kimi'）的 provider，
+    前提是其对应环境变量里有 key；否则若配置了 OPENROUTER_API_KEY，
+    自动改走已支持的 'openrouter' 兜底通道，让 Agent 仍能运行。
+    找不到任何可用 key 时返回 (provider, None)，由调用方自行报错。
     """
     provider = (provider or os.getenv("LLM_PROVIDER", "kimi")).lower()
     provider = {"qwen": "dashscope", "bailian": "dashscope"}.get(provider, provider)
@@ -255,22 +270,26 @@ class MCPServerManager:
 
 class EventTriggeredAgent:
     """
-    Event-Triggered AI Agent with System Hints
-    Responds to events while maintaining all system hint capabilities
+    事件触发 AI Agent（带系统提示）
+
+    被外部事件唤醒后，通过 ReAct 循环（LLM + 工具调用）完成任务，
+    同时保留全部系统提示能力（时间戳/工具计数/TODO/错误提示/轨迹落盘）。
     """
     
     def __init__(self, api_key: str, provider: str = "kimi", 
                  model: Optional[str] = None, config: Optional[SystemHintConfig] = None,
                  verbose: bool = True):
         """
-        Initialize the event-triggered agent
-        
-        Args:
-            api_key: API key for the LLM provider
-            provider: LLM provider ('dashscope'/'qwen'/'bailian', 'siliconflow', 'doubao', 'kimi', 'moonshot', 'openrouter')
-            model: Optional model override
-            config: System hint configuration
-            verbose: If True, log full details
+        初始化事件触发 Agent
+
+        参数:
+            api_key: 该 LLM 提供商的 API key（本地测试时可任意占位）
+            provider: 提供商（'dashscope'/'qwen'/'bailian'、'siliconflow'、
+                      'doubao'、'kimi'、'moonshot'、'openrouter'）
+            model: 可选的模型名覆盖（dashscope 分支的 base_url 可用环境变量
+                   DASHSCOPE_BASE_URL 覆盖，便于指向本地 LM Studio 端点）
+            config: 系统提示配置（温度/最大 token/MCP 开关等）
+            verbose: True 时记录完整细节
         """
         self.provider = provider.lower()
         self.provider = {"qwen": "dashscope", "bailian": "dashscope"}.get(
@@ -1058,14 +1077,18 @@ Important: When you have completed all tasks, clearly state "FINAL ANSWER:" foll
     
     def handle_event(self, event: Event, max_iterations: int = 20) -> Dict[str, Any]:
         """
-        Handle an incoming event and generate a response
-        
-        Args:
-            event: The event to handle
-            max_iterations: Maximum number of tool call iterations
-            
-        Returns:
-            Response with agent's actions and final answer
+        处理一个到达的事件并生成回复
+
+        流程：事件 -> 转成用户消息（可选加时间戳前缀）-> 进入 ReAct 循环：
+        每轮把历史 + 系统提示发给 LLM；若返回纯文本则作为最终答案结束，
+        若返回工具调用则执行工具并把结果追加进历史，直到 max_iterations。
+
+        参数:
+            event: 要处理的事件（Event 对象）
+            max_iterations: 最大工具调用轮数
+
+        返回:
+            包含 success / iterations / tool_calls / final_answer 等字段的 dict
         """
         logger.info(f"\n{'='*80}")
         logger.info(f"📥 RECEIVED EVENT")

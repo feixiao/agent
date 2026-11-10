@@ -17,6 +17,11 @@
     - 通过 base_url 复用同一套 OpenAI 兼容协议，适配 Kimi / 豆包等国产 API。
     - 单点请求失败被捕获并记录，不影响同一 (provider, model) 的其它请求，
       也不影响其它 provider —— 这样一次运行就能测出"可用性"这一维度。
+
+    【中文补充】本文件是 7-10 实验的核心测量库：ProviderConfig 描述一个
+    OpenAI 兼容端点（可回退 OpenRouter），measure_once 用流式请求精确测 TTFT，
+    benchmark_provider/sweep_concurrency 做单档位对比与并发扫描，
+    synthetic_summary 提供离线自检的合成数据。demo.py 是它的 CLI。
 """
 
 from __future__ import annotations

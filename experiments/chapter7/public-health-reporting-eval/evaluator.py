@@ -1,4 +1,8 @@
-"""Objective structured scoring for public-health reporting agent traces."""
+"""Objective structured scoring for public-health reporting agent traces.
+
+【中文】客观评分器：把 Agent 轨迹与期望答案逐项核对（数值容差内的计算准确性、
+证据引用是否真实、是否出现无依据声明等），每任务满分 6 分。纯确定性、无 LLM。
+"""
 
 from __future__ import annotations
 

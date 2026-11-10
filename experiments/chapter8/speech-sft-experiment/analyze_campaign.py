@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Build the strict, hash-verified acceptance package for Experiment 8-6."""
+"""构建实验 8-6 严格的、经哈希校验的验收包。
+
+对运行目录内的 base/adapted 音频计算自动代理指标（MFCC 音色一致性、
+AudioSet 事件分类得分）、校验远程适配器 SHA-256，并把执行门禁与
+假设结论写入 analysis.json / failure_comparisons.json / REPORT.md。
+注意：会覆盖运行目录（validation/ 内）文件，需 CUDA（AudioSet AST 模型）。
+"""
 
 from __future__ import annotations
 
@@ -27,6 +33,7 @@ def sha256(path: Path) -> str:
     return h.hexdigest()
 
 
+# 中文注释：单条音频的自动代理指标 —— 时长/采样率/RMS + 归一化 MFCC 均值方差向量（音色代理，非主观质量）
 def audio_stats(path: Path):
     y, sr = sf.read(path, dtype="float32")
     if y.ndim > 1:
@@ -45,6 +52,7 @@ def audio_stats(path: Path):
     }
 
 
+# 中文注释：Orpheus 轨道 —— 对 base/adapted 各自 8 条音频算句间 MFCC 余弦一致性，找出最不一致句对
 def orpheus_analysis(root: Path, manifest):
     result = {}
     failures = []
@@ -92,6 +100,7 @@ def find_label(model, needle):
     return matches[0], labels[matches[0]]
 
 
+# 中文注释：Sesame 轨道 —— 用 AudioSet AST 分类器对比 tagged/neutral 的同文音频事件得分
 def sesame_analysis(root: Path, manifest):
     extractor = AutoFeatureExtractor.from_pretrained(AST_MODEL)
     model = AutoModelForAudioClassification.from_pretrained(AST_MODEL).cuda().eval()
@@ -156,6 +165,7 @@ def sesame_analysis(root: Path, manifest):
     return result, failures
 
 
+# 中文注释：从 HuggingFace 下载已发布适配器并核对 SHA-256 与 manifest 记录一致
 def verify_remote_adapter(manifest):
     expected = next(
         x for x in manifest["adapter_local_files"] if x["path"].endswith("adapter_model.safetensors")
@@ -178,6 +188,7 @@ def verify_remote_adapter(manifest):
     }
 
 
+# 中文注释：汇总执行门禁 + 假设结论，写出 analysis.json / failure_comparisons.json / REPORT.md
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--run", type=Path, required=True)

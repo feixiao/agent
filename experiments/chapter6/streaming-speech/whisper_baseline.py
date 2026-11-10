@@ -1,4 +1,10 @@
-"""VAD + Whisper comparison baseline for Experiment 6-4."""
+"""实验 6-4 的「传统 VAD + Whisper」对照基线。
+
+用本地 Whisper 检查点 + 基于能量的 600ms 静音判停 VAD，复现
+「说完再转写」的传统级联流程：记录语音起点/端点、VAD 决策时刻、
+分段数、转写文本与端到端响应延迟，作为 Qwen2-Audio 增量感知
+（growing-prefix）的对照臂。
+"""
 
 from __future__ import annotations
 

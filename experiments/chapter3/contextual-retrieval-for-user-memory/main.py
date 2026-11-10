@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""Main entry point for Contextual Retrieval + Advanced Memory Cards System
+"""双层用户记忆系统（实验 3-11）主入口：上下文感知 RAG + 高级 JSON 卡片。
 
-This demonstrates the dual-layer memory system combining:
-1. Contextual chunking for conversation history
-2. Advanced JSON cards for structured facts
+演示闭环：对话历史 -> 上下文化分块索引 + LLM 生成 JSON 卡片 -> 新会话提问时
+卡片常驻 + RAG 按需检索 -> LLM 评审。完全离线的量化对比见 contextual_compare.py。
 """
 
 import argparse

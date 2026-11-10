@@ -98,6 +98,11 @@ def run_matrix(
     temperature: float,
     base_url: str | None,
 ) -> tuple[list[list[float]], str]:
+    """逐个 攻击x防御 组合执行试验并统计成功率，返回 (矩阵, 实际使用的模型名)。
+
+    【做什么】对选中的每个组合重复 trials 次：构造带防御配置的 Agent，
+    喂入该攻击场景的用户消息，用攻击方的 judge 判定是否得逞，最后汇总成功率。
+    """
     client, resolved_model = make_client(model=model, base_url=base_url)
     print(f"使用模型：{resolved_model}，每个组合试验 {trials} 次\n")
 
@@ -276,6 +281,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    """命令行入口：解析参数 → （--list 离线列出后退出）→ 跑矩阵 → 打印/保存结果。"""
     parser = build_parser()
     args = parser.parse_args(argv)
 

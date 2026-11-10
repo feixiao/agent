@@ -1,4 +1,8 @@
-"""Configuration management for Collaboration Tools MCP Server."""
+"""Configuration management for Collaboration Tools MCP Server.
+
+【中文说明】配置管理：用 pydantic 模型从 .env 读取各渠道凭据（SMTP/Slack/Telegram/
+Discord/GitHub/浏览器/HITL 超时等），缺凭据时对应功能走"未配置"错误而非伪造成功。
+"""
 
 import os
 import sys

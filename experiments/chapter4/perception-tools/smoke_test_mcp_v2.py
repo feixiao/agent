@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Offline MCP v2 smoke test: start stdio, list tools, and call one tool."""
+"""Offline MCP v2 smoke test: start stdio, list tools, and call one tool.
+
+【中文说明】MCP v2 冒烟测试：断言 mcp SDK 为 2.x，经 stdio 拉起 src/main.py，
+list 工具并调用一个离线工具验证回包。要求服务器进程能 import 成功
+（src 依赖 bs4 等；venv 缺失时服务器崩溃 → "Connection closed"，BLOCKED）。
+"""
 
 from __future__ import annotations
 

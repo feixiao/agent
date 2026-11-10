@@ -1,10 +1,13 @@
-"""Fail-closed LLM planning and dialogue contracts for Phone Agent add-on.
+"""Phone Agent 浏览器外呼插件的「失败即关闭」LLM 规划与对话契约。
 
-The direct arm receives a fixed call plan.  The ReAct arm asks a real external
-OpenAI-compatible provider to observe an incomplete task, identify missing facts,
-and choose the browser-call action.  Both arms use the same external model for the
-post-ASR dialogue turn.  Provider errors are surfaced; this module has no local
-planner, parser, mock, or fallback path.
+两条臂：
+  - direct 臂：拿到一份固定通话计划（无 LLM，模板生成开场白）；
+  - ReAct 臂：调用真实的 OpenAI 兼容外部模型，观察不完整任务、
+    识别缺失事实并选择浏览器通话动作。
+两臂在 ASR 之后的对话轮都使用同一外部模型。
+供应商错误直接上抛：本模块没有任何本地规划器/解析器/mock/兜底路径。
+注意：LLM 请求固定 response_format=json_object 且 temperature=0，
+本地 LM Studio 端点若不支持 json_object 会直接 400（见本地测试报告）。
 """
 
 from __future__ import annotations

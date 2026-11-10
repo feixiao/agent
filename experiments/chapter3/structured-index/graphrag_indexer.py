@@ -1,6 +1,9 @@
 """
-GraphRAG (Graph-based Retrieval Augmented Generation) implementation.
-This creates a knowledge graph with entities, relationships, and community detection.
+GraphRAG（知识图谱检索增强）实现（实验 3-7 之一）。
+
+思路：用 LLM 从文档抽取实体-关系三元组建图 -> 社区检测（Leiden）->
+对每个社区用 LLM 生成"社区报告"。擅长回答扁平检索答不了的
+「A 通过什么与 B 相连」类关系性/多跳问题。依赖同 raptor_indexer，本地 BLOCKED。
 """
 
 import os

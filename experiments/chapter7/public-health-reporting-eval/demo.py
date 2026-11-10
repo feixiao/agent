@@ -1,4 +1,9 @@
-"""Run the deterministic reference agent or evaluate external structured predictions."""
+"""Run the deterministic reference agent or evaluate external structured predictions.
+
+【中文】本文件是「公共卫生报告 Agent 评估」的入口：默认跑内置的确定性参考
+Agent（逐任务执行显式工具计划），或 --predictions 评估外部 Agent 的结构化
+预测；再经客观评分器按任务给分（满分 6）。纯离线合成 DHIS2 数据，无 LLM。
+"""
 
 from __future__ import annotations
 

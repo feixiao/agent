@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
-"""Run the local MiniCPM-o 4.5 direct-vs-self-cascade campaign."""
+"""本地 MiniCPM-o 4.5「直接端到端 vs 自级联」对照实验（实验 6-5）。
+
+对每个语音用例跑两条臂：
+  direct：音频 -> MiniCPM-o 潜空间直接处理 -> 文本；
+  self_cascade：音频 -> 先转写 -> 再基于转写做文本推理（传统级联）。
+另加一条 speech 臂生成回复语音波形。全程本地推理、零外部 API，
+最后写证据 json（用例结果、聚合准确率/延迟、模型与主机溯源）。
+需要 NVIDIA CUDA GPU 与本地缓存的模型权重。
+"""
 
 from __future__ import annotations
 

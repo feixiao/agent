@@ -1,4 +1,10 @@
-"""Main entry point for the Mem0 agent with Kimi K3."""
+"""Mem0 用户记忆实验（实验 3-2 对照实现之一）主入口。
+
+用 mem0 开源框架实现"记忆抽取 + 检索"闭环：对话 -> mem0 抽取/更新记忆 ->
+检索记忆注入上下文 -> 回答。与 user-memory（自研四模式记忆）互为对照。
+注意：依赖 mem0ai 包与 LLM/embedding API，本地两者皆不可用（BLOCKED），
+可运行的仅离线单测（test_simple.py）。
+"""
 
 import asyncio
 import argparse

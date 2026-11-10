@@ -1,4 +1,9 @@
-"""A deterministic reference agent for the reporting evaluation environment."""
+"""A deterministic reference agent for the reporting evaluation environment.
+
+【中文】确定性参考 Agent：不做自由推理，只按任务里显式写好的 (工具, 参数)
+计划调用合成 DHIS2 环境并回传结构化轨迹（工具+参数+结果+有依据声明），
+用于给评估器提供可复现的对照基线。
+"""
 
 from __future__ import annotations
 

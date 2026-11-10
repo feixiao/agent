@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-"""Main entry point for Agentic RAG User Memory Evaluation System
+"""Agentic RAG 用户记忆评估（实验 3-9）主入口：交互式评估系统。
 
-This script provides an interactive interface for:
-1. Loading test cases from the user-memory-evaluation framework
-2. Chunking and indexing conversation histories
-3. Evaluating the RAG agent on selected test cases
+流程：加载 3-1 三层评测用例 -> 把用例的跨会话对话历史切块并索引（BM25 本地后端）
+-> Agent 用 search_user_memory 工具迭代检索记忆 -> 外部 LLM 评审打分。
+完全离线可跑的部分见 offline_demo.py（朴素 vs 智能体检索的证据召回对比）。
 """
 
 import argparse

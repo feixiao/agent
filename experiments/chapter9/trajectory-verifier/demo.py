@@ -1,4 +1,10 @@
-"""Run Experiment 9-1 without an API key."""
+"""实验 9-1 演示入口：无需 API Key 即可跑三层轨迹验证器。
+
+读取 sample_trajectories.json（4 条样例轨迹），逐条出七维报告，
+并打印标量基线 vs 多维诊断效用、以及与专家标注的校准报告。
+--judge heuristic（默认，离线）/ --judge llm（需真实 LLM，注意其
+EvidenceChatClient 端点固定为各付费 provider，不能指向本地服务）。
+"""
 
 from __future__ import annotations
 

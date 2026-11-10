@@ -1,7 +1,14 @@
 #!/usr/bin/env python3
 """
-Main entry point for User Memory System with Separated Architecture
-Conversational agent handles dialogue, background processor handles memory
+用户记忆系统（实验 3-1/3-2）主入口：分离架构——对话 Agent 管对话、后台处理器管记忆。
+
+三种运行模式：
+  interactive  交互式对话（默认），可随时退出触发后台记忆汇总
+  demo         跑内置演示会话（含"记住偏好 -> 更新偏好 -> 新会话召回"的完整闭环）
+  evaluation   对接同章 user-memory-evaluation 三层用例
+
+LLM 路由：--provider 支持 kimi/moonshot/dashscope/siliconflow/doubao/openrouter；
+本地可用 DASHSCOPE_BASE_URL 环境变量指向 OpenAI 兼容端点（如 LM Studio）做零成本运行。
 """
 
 import os

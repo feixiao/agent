@@ -1,6 +1,11 @@
 """
-RAPTOR (Recursive Abstractive Processing for Tree-Organized Retrieval) implementation.
-This creates a hierarchical tree structure with recursive summarization.
+RAPTOR（递归抽象树检索）实现（实验 3-7 之一）。
+
+思路：文档分块 -> 聚类 -> 用 LLM 给每簇生成上层摘要 -> 对摘要重复该过程，
+自底向上长出"细节 -> 主题摘要 -> 文档综述"的层次树。检索时先在树高层定位主题，
+再下钻细节，解决扁平分块"答不了概述类宏观问题"的短板。
+注意：聚类用 umap/嵌入、摘要用 LLM，重型依赖（umap、sentence-transformers）
+本地缺失，索引构建环节 BLOCKED，仅离线 demo / 单测可验证。
 """
 
 import os

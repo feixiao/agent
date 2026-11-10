@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Regenerate the small synthetic WAV fixtures used by Experiment 6-5."""
+"""重新生成实验 6-5 使用的小型合成 WAV 用例（espeak 离线 TTS）。
+
+四个用例：两道算术题（79/42 的期望答案）+ 同句快/慢语速各一条，
+覆盖「内容」与「韵律」两个维度。需要系统安装 espeak。
+"""
 
 from __future__ import annotations
 

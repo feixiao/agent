@@ -14,6 +14,12 @@ Two things are measured here deterministically:
 
 End-to-end accuracy/latency (whether the model actually *calls* the right tool)
 requires an API key and lives in demo_comparison.py.
+
+【中文说明】纯离线的工具选择基准：10 个带标注（任务 -> 正确工具）的任务，
+确定性度量两件事——① 检索 recall@k（正确工具是否被策略放进上下文）；
+② 上下文 schema token 成本。build_catalog 可用合成干扰工具把目录扩到 N 个，
+用于画"工具越多、全量注入越贵"的扩展性曲线。本文件无 __main__ 入口，
+由 demo_comparison.py 的 run_offline_benchmark 调用。
 """
 
 from typing import List, Dict

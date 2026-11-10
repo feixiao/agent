@@ -2,6 +2,10 @@
 """
 Quick demo showing the LLM learning process in detail.
 This script runs a simplified experiment to demonstrate how LLMs learn from experience.
+
+【中文说明】精简演示：跑一小局并逐步打印 LLM 的完整推理过程（经验记忆 →
+思考 → 选动作），直观展示 LLM 如何「把经验留在输入里」学习。
+需要 Moonshot API Key（或 OpenRouter 兜底）。
 """
 
 import os

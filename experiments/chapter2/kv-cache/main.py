@@ -1,6 +1,22 @@
 """
 Main script to demonstrate KV cache importance
 Runs the ReAct agent with different implementations and compares performance
+
+【本文件是干什么的】
+KV Cache 实验（书中实验 2-7）的主入口脚本。用带本地文件工具的 ReAct Agent，
+在六种上下文构造策略（1 种正确 + 5 种反模式）下执行同一任务，对比
+TTFT 延迟、缓存命中、token 用量，直观展示"看似无关的上下文改动如何
+使前缀缓存（KV Cache）失效"。
+
+三种运行方式：
+  --mode xxx   运行单个策略（如 correct / dynamic_system / ...）
+  --compare    一次跑完全部 6 个策略并打印横向对比表
+  --report     离线模式：读取已保存的 result_*.json 生成对比表（无需 API Key）
+
+本地运行提示：默认端点是 Moonshot/Kimi；若只想用本地 LM Studio，
+可用环境变量 KIMI_BASE_URL 覆盖端点，例如
+  KIMI_BASE_URL=http://localhost:1234/v1 python main.py --mode correct --model qwen3.8-27b-splash
+（注意：本地服务不上报 cached_tokens，缓存列会恒为 0，属预期现象。）
 """
 
 import os
@@ -48,7 +64,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 def _coerce_metrics(metrics: Any) -> Dict[str, Any]:
-    """Normalize a stored metrics value into a plain dict.
+    """把结果文件里存下的 metrics 统一转成普通 dict（兼容 dict 与遗留字符串两种格式）。
 
     Handles both formats found in result files:
       - dict: produced by --compare (asdict) and by the fixed --mode path
@@ -68,12 +84,13 @@ def _coerce_metrics(metrics: Any) -> Dict[str, Any]:
 
 
 def _avg_ttft(m: Dict[str, Any]) -> float:
-    """Average TTFT across iterations, falling back to first-iteration TTFT."""
+    """各轮 TTFT 的均值；没有逐轮数据时回退到首轮 TTFT。"""
     lst = m.get("ttft_per_iteration") or []
     return sum(lst) / len(lst) if lst else float(m.get("ttft", 0.0) or 0.0)
 
 
 def _hit_rate(m: Dict[str, Any]) -> float:
+    """缓存命中率（%）= 命中次数 / (命中 + 未命中)。"""
     total = (m.get("cache_hits", 0) or 0) + (m.get("cache_misses", 0) or 0)
     return (m.get("cache_hits", 0) or 0) / total * 100 if total else 0.0
 
@@ -183,7 +200,7 @@ def run_report(inputs: List[str] = None, cache_price_ratio: float = 0.1) -> None
 
 
 def create_summary_task() -> str:
-    """Create a task that requires reading multiple files"""
+    """默认的演示任务：让 Agent 阅读并总结多个项目目录（多轮工具调用，便于观察缓存效应）。"""
     return """Please analyze and summarize all the projects in the chapter1 and chapter2 directories.
 For each project:
 1. Find all Python files
@@ -198,6 +215,8 @@ def run_single_mode(api_key: str, mode: str, task: str = None, root_dir: str = D
                     model: str = DEFAULT_MODEL, output: str = None):
     """
     Run agent in a single mode
+    【做什么】按指定策略跑一次任务，打印性能/缓存/token 指标，并把明细存成 result_*.json。
+    为什么：单策略运行是"两轮演示"的最小单元——同一稳定任务下，策略决定缓存是否被复用。
 
     Args:
         api_key: API key for Kimi
@@ -320,6 +339,7 @@ def run_single_mode(api_key: str, mode: str, task: str = None, root_dir: str = D
 def select_mode_interactive():
     """
     Interactive mode selection menu
+    【做什么】交互式菜单，让用户选择要运行的策略（数字 1-7，0 退出）。
     
     Returns:
         Selected mode string or None for all modes
@@ -373,6 +393,7 @@ def run_comparison(api_key: str, task: str = None, root_dir: str = DEFAULT_ROOT_
                    cache_price_ratio: float = 0.1):
     """
     Run comparison across all modes
+    【做什么】依次在全部 6 种策略下运行同一任务，打印对比表与关键洞察，保存 comparison_*.json。
 
     Args:
         api_key: API key for Kimi

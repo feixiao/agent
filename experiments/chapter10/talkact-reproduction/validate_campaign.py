@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Validate the retained historical 10-3 campaign for current Experiment 10-3."""
+"""Validate the retained historical 10-3 campaign for current Experiment 10-3.
+
+中文说明：TalkAct 固定拓扑复现（10-3 基线臂）的独立验证器，纯离线：
+对既有 campaign 运行目录重算源码/协议/产物 hash，核对 4 任务 × 2 条件 ×
+2 种子共 16 局剧集齐全、事件类型分布、模型回执 usage、语音延迟统计与
+凭据扫描，输出一份 JSON 验收结论。不发起任何 LLM 调用。
+"""
 
 from __future__ import annotations
 
@@ -90,6 +96,7 @@ def main() -> int:
         in {"episode_error", "slow_task_error", "episode_crashed"}
     ]
 
+    # 验收门禁：从既有产物独立重算，全部通过才算验证成功。
     gates = {
         "source_commit": protocol.get("source_commit") == SOURCE_COMMIT,
         "exact_campaign_shape": actual_names == expected_names and len(episodes) == 16,

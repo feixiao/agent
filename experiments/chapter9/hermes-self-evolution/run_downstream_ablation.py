@@ -1,11 +1,15 @@
-"""Downstream Ablation Engine for Hermes Self-Evolution.
+"""Hermes 自进化的下游消融引擎（实验 9-8 的配套：自进化到底有没有用？）。
 
-Evaluates baseline vs. self-evolved agent code across synthetic and real task suites:
-- Pass rate uplift measurement
-- Execution latency change tracking
-- Code quality scoring (AST metrics, complexity, readability)
-- Regression rate analysis (tasks passed by baseline but failed by evolved agent)
-- Statistical ablation reporting with confidence intervals and z-scores
+在合成与真实任务套件上对比「基线 agent 代码」与「自进化后的 agent 代码」：
+- 通过率提升测量（pass rate uplift）
+- 执行延迟变化跟踪
+- 代码质量评分（AST 指标：复杂度、可读性、文档字符串）
+- 回归率分析（基线通过但进化版失败的任务）
+- 带置信区间与 z 值的统计消融报告
+
+可直接 `python run_downstream_ablation.py` 运行：默认基线/进化 agent
+都是确定性的 Python 函数（见 create_default_*_agent），**不需要 LLM、
+不需要 API Key**——本地即可完整跑通，用于验证消融统计框架本身。
 """
 
 from __future__ import annotations

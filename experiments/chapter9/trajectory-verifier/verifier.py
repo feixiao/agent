@@ -1,7 +1,12 @@
-"""Three-layer trajectory verifier used by Experiment 9-1.
+"""实验 9-1 的三层轨迹验证器（TrajectoryVerifier）。
 
-Environment and policy conclusions stay deterministic.  Only the two open-
-ended language dimensions are delegated to a quality Judge.
+七维报告分三层：
+1) 环境层（代码可查）：订单/操作等事实与本地环境真值核对，确定性判定；
+2) 策略层（代码可查）：隐私边界、规则遵守等，用确定性规则核查；
+3) 语言层（LLM 裁判）：只有表达质量与合规弹性两个开放维度交给
+   质量 Judge（默认启发式占位，可替换为真实 OpenAIQualityJudge）。
+任何维度失败都带具体证据；高分不能掩盖隐私/规则失败，高风险或低置信
+报告只进人工评审、不得直接作为自动学习信号。
 """
 
 from __future__ import annotations

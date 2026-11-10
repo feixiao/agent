@@ -1,7 +1,7 @@
-"""Contextual Agentic RAG System
+"""上下文感知 Agentic RAG 系统（实验 3-10 的 Agent 层）。
 
-This module extends the base AgenticRAG to use contextual retrieval,
-demonstrating the improved answer quality from better retrieval.
+在 agentic-rag 的 ReAct Agent 基础上把检索工具换成"带上下文前缀"的版本，
+用于对比：同样的问答，前缀化索引能否提升证据命中与回答质量。
 """
 
 import json

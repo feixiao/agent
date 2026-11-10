@@ -4,6 +4,15 @@ This is the core of the permission-embedded data objects prototype.
 It sits as middleware on top of PostgreSQL, intercepting every operation
 and running the full pipeline: permission checks, validators, object
 store mechanics, and reactions.
+
+（实验 5-12 核心存储模块，中文注释）作为 PostgreSQL 之上的「中间件」拦截
+所有数据操作，每笔操作依次穿过三层流水线：
+  Tier 1  权限检查 + 校验器（同步，可拦截操作：权限拒绝/状态机违规/引用非法）；
+  Tier 2  存储机制（同步内置：落库、引用完整性、级联删除策略）；
+  Tier 3  反应 reactions（异步入队：写成功后触发，可再生新操作，限最大深度）。
+权限评估细节见 _check_permission：内置租户隔离 + 类型级/实例级规则链
+（first-match-wins）+ 父层级向上追溯 + 默认 DENY 兜底。
+依赖: psycopg2（需可达的 PostgreSQL，连接串经 dsn 传入）。
 """
 
 from __future__ import annotations
@@ -28,17 +37,17 @@ logger = logging.getLogger(__name__)
 
 
 class PermissionDeniedError(Exception):
-    """Raised when an operation is denied by permission rules."""
+    """Raised when an operation is denied by permission rules.（权限链/租户隔离拒绝）"""
     pass
 
 
 class ValidationError(Exception):
-    """Raised when a validator rejects a proposed change."""
+    """Raised when a validator rejects a proposed change.（业务校验器拒绝，如状态机跳变）"""
     pass
 
 
 class ReferentialIntegrityError(Exception):
-    """Raised when referential integrity would be violated."""
+    """Raised when referential integrity would be violated.（引用完整性破坏，如父对象不存在）"""
     pass
 
 
@@ -48,6 +57,9 @@ class ObjectStore:
     Tier 1: Permission checks + read-only validators (synchronous, gates operation)
     Tier 2: Object store mechanics (synchronous, built-in, non-extensible)
     Tier 3: Reactions (asynchronous, queued, produces new operations)
+
+    中文：权限检查/校验器 -> 存储机制 -> 异步反应，详见模块 docstring；
+    读路径(get/select/query)只做权限过滤，写路径(create/update/delete)走完整流水线。
     """
 
     def __init__(self, dsn: str, max_reaction_depth: int = 3):
@@ -65,6 +77,7 @@ class ObjectStore:
         return psycopg2.connect(self.dsn)
 
     def _setup_db(self):
+        # 建表（幂等）：objects 主表（content/权限规则以 JSONB 内嵌）+ reaction_log 审计表
         with self._get_conn() as conn:
             with conn.cursor() as cur:
                 cur.execute("""
@@ -122,7 +135,10 @@ class ObjectStore:
     # ── Read Path ──────────────────────────────────────────────
 
     def get(self, object_id: str, accessor: AccessContext) -> Optional[DataObject]:
-        """Read a single object. Permission check only (no validators/reactions)."""
+        """Read a single object. Permission check only (no validators/reactions).
+
+        读单对象：不存在返回 None；存在但无 READ 权限则抛 PermissionDeniedError。
+        """
         obj = self._load_object(object_id)
         if obj is None:
             return None
@@ -193,10 +209,12 @@ class ObjectStore:
 
     def create(self, obj: DataObject, accessor: AccessContext,
                _reaction_depth: int = 0) -> DataObject:
-        """Create a new object. Full pipeline."""
+        """Create a new object. Full pipeline.（创建走完整三层流水线）"""
         obj_type = self._get_type(obj.type_name)
 
         # Tier 1: Permission check
+        # 有父对象：对【父对象】检查 INSERT 权限（子对象的创建权由父级规则授予）；
+        # 顶层对象：直接查类型级规则。
         if obj.parent_id:
             parent = self._load_object(obj.parent_id)
             if parent is None:
@@ -246,6 +264,7 @@ class ObjectStore:
             if parent:
                 self._check_permission(parent, accessor, PrivilegeType.UPDATE)
         # Also check self WRITE
+        # 把 is_owner 按本次访问者与对象属主的关系动态补齐后再查自身 WRITE 权限
         accessor_with_owner = AccessContext(
             user_id=accessor.user_id, role=accessor.role,
             org_id=accessor.org_id, groups=accessor.groups,
@@ -321,7 +340,15 @@ class ObjectStore:
 
     def _check_permission(self, obj: DataObject, accessor: AccessContext,
                           privilege: PrivilegeType):
-        """Evaluate permission filter chain. First match wins."""
+        """Evaluate permission filter chain. First match wins.
+
+        权限过滤器链（按顺序短路）：
+          1) 内置租户隔离：对象与访问者 org 不同即拒绝（system 角色豁免）；
+          2) 父层级追溯：父对象已放行则直接放行，父对象拒绝则拒绝；
+          3) 规则链：实例级规则优先于类型级；第一条命中的规则决定结果
+             （DENY 拒绝 / ACCEPT 放行 / PENDING 视同拒绝——挂起等审批）；
+          4) 兜底：类型默认策略（默认 DENY，拒绝优先）。
+        """
         now = time.time()
         obj_type = self._get_type(obj.type_name)
 

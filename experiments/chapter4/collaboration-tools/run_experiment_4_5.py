@@ -1,5 +1,15 @@
 #!/usr/bin/env python3
-"""Run Experiment 4-5 through the collaboration MCP stdio server."""
+"""Run Experiment 4-5 through the collaboration MCP stdio server.
+
+【中文说明】实验 4-5 的正式"论文契约"执行器：经 MCP stdio 拉起 src/main.py 服务器，
+列出工具目录（catalog.json + schema 哈希）、逐 case 调用各协作工具并保存回执
+（receipts/*.json，敏感凭据自动脱敏）、做门禁校验后写 summary/manifest 到
+validation/experiment_4_5/<campaign-id>/。
+注意：服务器子进程环境被强制 COLLAB_PROVIDER=moonshot + OPENAI_MODEL=kimi-k3
+（论文契约指定 Moonshot 付费 API）；--interactive-human 会阻塞等待 stdin 上的
+APPROVE/REJECT 真人决策，--real-notifications 要求三个通知渠道凭据齐全。
+本地无 Moonshot Key 时真实 LLM 门禁只能记 blocked。
+"""
 
 from __future__ import annotations
 

@@ -1,4 +1,9 @@
-"""Configuration for the exact GPT-5.6 Responses API companion."""
+"""Configuration for the exact GPT-5.6 Responses API companion.
+
+【中文说明】实验 1-3 的配置模块：从 .env / 环境变量读取三条后端（OpenAI /
+DashScope / OpenRouter）的 Key、base_url、模型与超时，并提供校验。
+本文件不含任何运行逻辑，仅做配置解析。
+"""
 
 import os
 from typing import Optional, Tuple

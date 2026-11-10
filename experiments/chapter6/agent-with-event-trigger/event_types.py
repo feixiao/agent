@@ -1,5 +1,12 @@
 """
-Event types for the event-triggered agent system
+事件触发 Agent 系统的事件类型定义
+================================
+
+定义「什么事件能唤醒 Agent」（EventType 枚举：网页消息、IM、邮件回复、
+GitHub PR、定时器、文件变更等）以及统一的事件数据结构 Event。
+
+Event.to_user_message() 把结构化事件转换成可直接喂给 LLM 的用户消息，
+是「外部世界 -> Agent」的接口。
 """
 
 from dataclasses import dataclass, field
@@ -9,8 +16,8 @@ from typing import Dict, Any, Optional
 
 
 class EventType(Enum):
-    """Types of events that can trigger agent actions"""
-    # External input events
+    """能够触发 Agent 动作的事件类型"""
+    # 外部输入事件
     WEB_MESSAGE = "web_message"
     IM_MESSAGE = "im_message"
     EMAIL_REPLY = "email_reply"

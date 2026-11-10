@@ -3,6 +3,10 @@ LLM-based Agent using In-Context Learning with the Kimi (Moonshot) API.
 This demonstrates how LLMs can generalize through reasoning without extensive training.
 Default model is Kimi K3 (matching 实验 7-2 in the book); override via the
 `model` argument or the MOONSHOT_MODEL environment variable.
+
+【中文说明】实验 7-2（LLM 上下文学习）的核心模块：把历局行动/奖励历史作为
+上下文喂给 LLM，让模型自己归纳游戏规则并决定下一步，与表格型 Q-learning
+的「更新参数」形成对照。需要 Moonshot API Key（或 OpenRouter 兜底）。
 """
 
 import os

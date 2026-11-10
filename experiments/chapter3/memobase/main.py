@@ -1,5 +1,9 @@
 """
-Main entry point for Memobase Agent with LOCOMO Benchmark
+Memobase 用户记忆实验（实验 3-2 另一对照实现）主入口。
+
+与 mem0 并列：用 Memobase 的"用户画像 + 记忆"思路（自研实现，不依赖外部框架包）
+在 LOCOMO 长对话基准上评估跨会话记忆效果。LLM 走 Kimi/可环境变量改路由；
+本地缺 LLM 路由时仅离线单测可运行（test_memory.py 等 7 个用例）。
 """
 
 import argparse

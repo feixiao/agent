@@ -1,4 +1,9 @@
-"""Main retrieval pipeline combining dense, sparse, and reranking."""
+"""混合检索流水线主体（实验 3-6 核心）：稠密 + 稀疏并发检索 → 融合 → 重排。
+
+RetrievalPipeline.search 是入口：并发调用 dense/sparse 两路服务（或进程内后端），
+调 fusion.fuse 合并候选池，再交给 Reranker 精排，并记录每阶段的排名轨迹
+（用于评估"每个阶段到底改变了什么"）。
+"""
 
 import asyncio
 import logging

@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-"""Run the Orpheus half of Experiment 8-6 on one local CUDA GPU.
+"""在单张本地 CUDA GPU 上运行实验 8-6 的 Orpheus 轨道。
 
-The campaign deliberately keeps a held-out split and emits base/adapted audio
-for identical prompts and seeds.  It is bounded for a workstation, but it is
-not a one-batch smoke test: the default run encodes 144 real utterances and
-performs 60 optimizer updates with effective batch size four.
+实验刻意保留留出集，并对相同 prompt 与种子分别生成 base/adapted 音频
+做对照。规模面向工作站：默认编码 144 条真实语音、执行 60 次优化器更新
+（有效 batch 4），不是一批冒烟测试。需要 CUDA 与 unsloth/snac。
 """
 
 from __future__ import annotations

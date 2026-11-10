@@ -1,5 +1,15 @@
 """
 Context Compression Strategies for the experiment
+
+【本文件是干什么的】
+上下文压缩实验的核心模块：ContextCompressor 实现书中实验 2-10 的五种压缩策略，
+把"网页搜索结果"压成更短的上下文片段（LLM 摘要），供 Agent 塞回对话历史：
+  1) no_compression          —— 不压缩（基线，长上下文会溢出）
+  2) individual 摘要          —— 每页各自摘要再拼接（不感知查询）
+  3) combined 摘要           —— 全部拼接后只摘要一次（不感知查询）
+  4) context_aware 摘要      —— 结合原始查询与当前对话上下文做"面向任务"的摘要
+  5) context_aware + citations —— 同 4，并要求摘要带引用来源（支持追问溯源）
+  （windowed 窗口策略在 agent.py 侧实现：只在逼近上下文上限时才压缩旧消息）
 """
 
 import json
@@ -60,12 +70,18 @@ class CompressedContent:
 
 
 class ContextCompressor:
-    """Handles different context compression strategies"""
-    
+    """Handles different context compression strategies
+
+    【做什么】按所选策略调用 LLM 生成摘要（或直通原文），返回 CompressedContent
+    （含原文长度 / 压缩后长度 / 内容 / 引用列表）。
+    【为什么】不同策略的取舍点：压缩"感知什么信息"——不感知查询的摘要省 token
+    但可能丢任务关键细节；感知查询的摘要更贴题；带引用的摘要可被追问溯源。
+    """
+
     def __init__(self, strategy: CompressionStrategy, api_key: str, enable_streaming: bool = True):
         """
         Initialize the context compressor
-        
+
         Args:
             strategy: Compression strategy to use
             api_key: API key for LLM
@@ -139,7 +155,8 @@ class ContextCompressor:
     ) -> CompressedContent:
         """
         Compress content for message history (used in windowed context strategy)
-        
+        窗口策略专用：把历史里某次工具的大段输出压成短摘要（保留引用），用于替换旧消息。
+
         Args:
             content: Content to compress
             tool_name: Name of the tool that generated the content
@@ -230,6 +247,7 @@ Provide a focused summary:"""
     def _no_compression(self, search_results: Dict[str, Any]) -> CompressedContent:
         """
         Strategy 1: No compression - return all original content
+        策略 1：不压缩，原文全部带回（对照基线）。
         """
         all_content = []
         total_length = 0
@@ -260,6 +278,7 @@ Full Content:
     def _non_context_aware_individual_summary(self, search_results: Dict[str, Any]) -> CompressedContent:
         """
         Strategy 2A: Non-context-aware summarization - Summarize each page individually then concatenate
+        策略 2A：每页独立摘要后拼接（摘要不感知查询/上下文，页数多时 LLM 调用也多）。
         """
         summaries = []
         total_original = 0
@@ -348,6 +367,7 @@ Summary: {result.get('snippet', 'No summary available')}
     def _non_context_aware_combined_summary(self, search_results: Dict[str, Any]) -> CompressedContent:
         """
         Strategy 2B: Non-context-aware summarization - Concatenate all pages then summarize once
+        策略 2B：全部页面拼接后一次性摘要（调用少，但摘要面向"整段内容"而非任务）。
         """
         # Combine all content first
         all_content = []
@@ -459,6 +479,7 @@ Provide a comprehensive summary:"""
     ) -> CompressedContent:
         """
         Strategy 3: Context-aware summarization considering the query
+        策略 3：把"原始查询 + 当前对话上下文"一起给摘要器，只保留与任务相关的内容。
         """
         # Combine all content with per-page limits
         all_content = []
@@ -564,6 +585,7 @@ Provide a query-focused summary:"""
     ) -> CompressedContent:
         """
         Strategy 4: Context-aware summarization with citations
+        策略 4：在策略 3 基础上要求摘要标注引用来源（URL），支持后续追问时按引用回查。
         """
         # Track sources with per-page limits
         sources = []

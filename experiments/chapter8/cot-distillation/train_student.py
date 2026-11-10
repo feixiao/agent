@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Train the Experiment 8-9 student on verified teacher CoT trajectories.
+"""在经验证的教师 CoT 轨迹上训练实验 8-9 的学生模型（SFT 参数更新阶段）。
 
-This is the parameter-update stage missing from the original collection-only
-companion.  It deliberately has no mock training mode: a successful run writes
-a real Hugging Face/PEFT checkpoint plus a provenance manifest.
+这是原"只采集"配套脚本所缺的参数更新环节。刻意不做 mock 训练模式：
+成功运行会写出真实的 Hugging Face/PEFT checkpoint 与出处清单（manifest）。
+需要 CUDA GPU；可用 `--preflight` 在不训练的前提下检查本机就绪性
+（依赖、GPU、训练数据哈希），`--preflight-output` 指定回执输出位置。
 """
 
 from __future__ import annotations
@@ -32,7 +33,12 @@ def sha256(path: Path) -> str:
 
 
 def load_verified_messages(path: Path) -> list[list[dict[str, str]]]:
-    """Load only complete user/assistant rows with a non-empty final answer."""
+    """Load only complete user/assistant rows with a non-empty final answer.
+
+    加载已验证的 SFT 数据：每行必须恰好是 [user, assistant] 两条消息、
+    内容非空、且 assistant 含 "Final Answer" 标记（即通过过规则验证器）。
+    任何不合格行都直接报错，避免脏数据进入训练。
+    """
     rows: list[list[dict[str, str]]] = []
     with path.open(encoding="utf-8") as handle:
         for line_number, line in enumerate(handle, 1):
@@ -83,7 +89,12 @@ def _chat_template_ids(encoded: Any) -> list[int]:
 
 
 def encode_messages(tokenizer: Any, messages: list[dict[str, str]], max_length: int) -> EncodedExample:
-    """Mask user/prompt tokens and supervise only the teacher assistant trajectory."""
+    """Mask user/prompt tokens and supervise only the teacher assistant trajectory.
+
+    中文注释：先编码"只含用户消息"得到提示长度，再编码完整对话；
+    提示部分（用户输入）的 labels 置 -100 屏蔽，只对教师 assistant 轨迹
+    计算损失。若截断把 assistant 全部吃掉则报错。
+    """
     prompt_ids = _chat_template_ids(
         tokenizer.apply_chat_template(messages[:1], tokenize=True, add_generation_prompt=True)
     )
@@ -236,6 +247,8 @@ def main() -> None:
             return {"input_ids": item.input_ids, "labels": item.labels}
 
     def collate(batch: list[dict[str, list[int]]]) -> dict[str, Any]:
+        # 中文注释：按批内最长序列右填充；填充位置的 labels 保持 -100，
+        # 使填充不参与损失，attention_mask 区分真实/填充 token。
         width = max(len(item["input_ids"]) for item in batch)
         ids, masks, labels = [], [], []
         for item in batch:

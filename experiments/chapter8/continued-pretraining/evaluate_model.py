@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Evaluation script for Korean Mistral continued-pretrained models
-Loads saved LoRA adapters and evaluates on Korean and English tasks
+韩语 Mistral 继续预训练模型的评估脚本（实验 8-5）。
+
+加载已保存的 LoRA 适配器（继续预训练后或指令微调后），在韩语与英语
+任务上生成回答并打分，用于对比三个阶段的韩语能力变化与英语保持度。
 """
 
 import os

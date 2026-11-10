@@ -153,8 +153,16 @@ class AttentionTracker(LogitsProcessor):
 class AttentionVisualizationAgent:
     """
     Agent that generates text using Qwen3 0.6B while tracking attention weights
+
+    【本文件是干什么的】注意力可视化实验的核心模块：用 transformers 加载本地
+    HuggingFace 因果语言模型（默认 Qwen/Qwen3-0.6B），生成文本的同时通过
+    logits processor / 逐层 hook 采集注意力权重，产出 GenerationResult
+    （逐 token 的注意力矩阵），供 visualization.py 画热力图/流图。
+
+    注意：from_pretrained 会下载模型权重（0.6B 约 1.2GB，超出 200MB 下载限制），
+    因此本地未实际加载运行；离线可验证部分为 pytest 测试。
     """
-    
+
     def __init__(
         self,
         model_name: str = "Qwen/Qwen3-0.6B",
@@ -164,7 +172,10 @@ class AttentionVisualizationAgent:
     ):
         """
         Initialize the agent with Qwen3 model
-        
+
+        【做什么】自动选择设备（cuda→mps→cpu）→ from_pretrained 加载 tokenizer 与模型
+        （attn_implementation="eager" 才能拿到注意力输出）→ 初始化注意力跟踪器。
+
         Args:
             model_name: Hugging Face model name
             device: Device to run on (cuda/mps/cpu)

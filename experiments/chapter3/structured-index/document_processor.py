@@ -1,6 +1,8 @@
 """
-Document processor for handling various file formats.
-Specializes in processing technical documentation like Intel manuals.
+文档处理器：把 PDF / HTML / Markdown / TXT 统一清洗成纯文本（实验 3-7 预处理层）。
+
+面向 Intel 手册这类技术文档：处理代码块、表格、多级标题。
+注意：依赖 pypdf/pdfplumber/loguru，其中 loguru 本地缺失，import 会失败。
 """
 
 import re

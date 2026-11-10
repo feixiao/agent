@@ -8,6 +8,14 @@ This MCP server provides comprehensive perception capabilities including:
 - Public data sources (weather, stocks, currency, Wikipedia, ArXiv, Wayback)
 - Optional metered X post search through Xquik
 - Private data sources (Google Calendar, Notion)
+
+【中文说明】感知工具 MCP 服务器（mcp 2.x 的 MCPServer API + stdio）：把
+search_tools / multimodal_tools / filesystem_tools / public_data_tools /
+document_processing_tools / private_data_tools 等模块的工具函数注册为 MCP 工具。
+注意：各工具模块依赖 bs4 / cv2 / wikipedia / yfinance / duckduckgo_search 等，
+当前 venv 缺失（requirements.txt 未装入）→ 服务器 import 即失败，
+stdio 客户端路径（smoke_test / run_experiment_4_2 / 4-1 精确实验）全部
+BLOCKED(缺依赖)。
 """
 import logging
 from typing import Literal

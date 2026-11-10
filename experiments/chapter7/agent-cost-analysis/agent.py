@@ -237,6 +237,7 @@ def run_scenario(client, kv_cache: bool, compress: bool, name: str = None,
     tracer = Tracer(client, name=name or f"kv={kv_cache},compress={compress}",
                     pricing=pricing)
     turns = []
+    # 主循环：8 轮客服退款剧本，每轮喂入预设工具返回并发起一次真实 LLM 调用
     for idx, (step, tool, result) in enumerate(TOOL_RESULTS):
         messages, tool_ctx = build_messages(
             idx, step, tool, result, turns, kv_cache, compress)

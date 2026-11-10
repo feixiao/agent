@@ -1,4 +1,17 @@
-"""Experiment 5-13: an Agent that creates and validates another Agent."""
+"""实验 5-13 核心模块：一个「创建并验收另一个 Agent」的 Agent。
+
+两条生成策略：
+  - scratch（从零）：模型先产出一份紧凑的「架构蓝图」（工具名/字段契约/CLI 约定），
+    再按文件组（domain_tools → tools.json → agent.py → main.py → 测试 → 文档）
+    分多次真实调用逐个生成文件；每步带断点 checkpoint，可 --resume 续跑；
+  - template（模板）：模型只生成一份领域特化 domain_spec.json，
+    Agent 主循环/工具协议/CLI/契约测试直接复用经过验证的 reference_agent，
+    避免让模型重写样板代码。
+
+所有模型调用都带完整留证（请求/响应/usage/耗时），并对响应做路径白名单等
+安全校验（禁止绝对路径、禁止 .. 逃逸）；生成后进入「验证→带报错反馈修复」
+循环（最多 3 轮），直到 validator 的结构/编译/测试闸通过。
+"""
 
 from __future__ import annotations
 

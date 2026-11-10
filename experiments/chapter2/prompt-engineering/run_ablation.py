@@ -5,6 +5,12 @@ Demonstrates the importance of prompt engineering by testing different variation
 1. Tone variations (Trump style, Casual style, Default style)
 2. Wiki rule randomization
 3. Tool description removal
+
+【本文件是干什么的】
+提示工程消融实验（书中实验 2-4）的主入口：在 Tau-Bench 框架上逐个降解
+系统提示词的工程要素（语气风格 / wiki 规则组织 / 工具描述），量化其对
+任务成功率的影响。--all 一键跑完整套件（基线 + 各单维度 + 全部叠加）并打印
+成功率对比表；不带消融标志则跑基线。本地最小规模见 run.py 模块 docstring。
 """
 
 import argparse
@@ -236,7 +242,11 @@ def parse_args():
 
 
 def run_with_ablation(args):
-    """Run tau-bench with ablation modifications"""
+    """Run tau-bench with ablation modifications
+
+    【做什么】按消融标志改写环境提示词（语气 / wiki 组织 / 工具描述）后复用
+    tau_bench 的执行流程跑选中的任务，结果按"消融名+模型"命名保存到 --log-dir。
+    """
     
     # Import the original run module
     from tau_bench.run import run, agent_factory, display_metrics

@@ -9,7 +9,12 @@ from config import Config
 
 
 class FileTools:
-    """File system tools with verification and safety checks."""
+    """File system tools with verification and safety checks.
+
+    【中文说明】文件工具：file_write（写入前语法/linter 校验）/ file_read /
+    file_edit（搜索-替换 + diff 预览 + 校验）/ file_list 等；所有路径经
+    _resolve_path 约束在 WORKSPACE_DIR 内（防目录穿越）。
+    """
     
     def __init__(self, llm_helper: LLMHelper):
         """Initialize file tools with LLM helper."""

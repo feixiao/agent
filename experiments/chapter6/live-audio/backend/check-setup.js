@@ -1,7 +1,10 @@
 #!/usr/bin/env node
 
 /**
- * check-setup.js — Headless environment verifier for the Live Voice Chat demo (实验 6-3).
+ * check-setup.js — 实时语音聊天演示（实验 6-3/6-4 级联链路）的无头环境预检。
+ *
+ * 检查 Node 版本、ffmpeg、Silero VAD 模型文件、config.js 可加载性，
+ * 并汇报 ASR/LLM/TTS 各提供商的 key 配置情况。退出码 0 表示后端可启动。
  *
  * Runs WITHOUT any API keys, microphone, or browser. It only checks that the
  * local prerequisites for the cascaded VAD -> ASR -> LLM -> TTS pipeline are in

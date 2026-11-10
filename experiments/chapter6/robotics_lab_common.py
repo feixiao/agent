@@ -1,8 +1,13 @@
-"""Small, deterministic helpers shared by the chapter 9 robotics labs.
+"""机器人实验共享的小工具（确定性辅助函数）—— 第 6 章各 lab 共用。
 
-The labs deliberately avoid pretending that a Mac MPS run is a CUDA/ManiSkill
-run.  They expose the accelerator used in the evidence and fail closed when a
-caller asks for an accelerator that is not available.
+提供：
+  - seed_everything：统一播种所有本地 RNG（random/np/torch）；
+  - select_device：优先 CUDA，其次 Apple MPS；调用方要求加速器但
+    本机没有时「失败即关闭」，绝不用 CPU 结果冒充 GPU 实验；
+  - device_info / sha256 / write_json / relative_or_absolute 等。
+
+各 lab 刻意避免把 Mac MPS 运行谎报成 CUDA/ManiSkill 运行：证据中
+始终如实记录所用加速器。
 """
 
 from __future__ import annotations

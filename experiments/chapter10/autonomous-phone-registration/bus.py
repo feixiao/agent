@@ -1,4 +1,10 @@
-"""Asynchronous, timestamped point-to-point bus for the two live Agents."""
+"""Asynchronous, timestamped point-to-point bus for the two live Agents.
+
+中文说明：实验 10-3 的两个 Agent（Phone/Computer）之间的异步点对点消息总线。
+每个收件人一个 asyncio 队列；每条消息带全局序号与单调时钟时间戳，
+全部消息落盘到 trace JSON（敏感字段脱敏为 <redacted>），
+从而让「问下一项」与「填写当前项」的并发性可以被事后用时间线证明。
+"""
 
 from __future__ import annotations
 
@@ -13,6 +19,8 @@ from models import AgentMessage
 
 
 class MessageBus:
+    """消息总线：send 投递到对方收件队列并打印脱敏日志，receive 按超时收取。"""
+
     def __init__(self, trace_path: Optional[str] = None):
         self.started = time.monotonic()
         self._sequence = 0

@@ -1,6 +1,18 @@
 """
 ReAct Tool-Calling Agent with Attention Visualization
 Implements a proper ReAct (Reasoning + Acting) loop with step-by-step visualization
+
+【本文件是干什么的】
+注意力可视化实验的主入口。ReActAttentionAgent 在 agent.py 的注意力跟踪 Agent
+之上实现标准 ReAct 循环（Thought → 工具调用 → Observation → Answer），
+每步生成都记录注意力权重，执行完把轨迹存成 JSON 供前端可视化。
+
+直接运行（python main.py）会执行 demonstrate_react_agent()：
+对天气/复利两个样例跑 ReAct 循环并保存轨迹与可视化。
+
+本地运行限制：依赖 agent.py 通过 transformers 加载 HuggingFace 模型
+Qwen/Qwen3-0.6B（权重约 1.2GB，超过 200MB 下载限制，本地缓存也没有）——
+因此 LLM 推理部分标记 BLOCKED，离线可验证部分为 pytest 测试套件。
 """
 
 import json
@@ -42,6 +54,10 @@ class ReActAttentionAgent(AttentionVisualizationAgent):
     """
     ReAct agent that implements proper Thought-Action-Observation loop
     with attention tracking at each step
+
+    【做什么】继承注意力跟踪 Agent，叠加 ReAct 循环：解析模型输出里的
+    <tool_call> 标签（Qwen3 文本格式的工具调用），执行工具并把 Observation
+    拼回提示，直到模型给出最终 Answer；每步都采集注意力数据。
     """
     
     def __init__(self, *args, **kwargs):
@@ -623,7 +639,11 @@ class ReActAttentionAgent(AttentionVisualizationAgent):
 
 
 def demonstrate_react_agent():
-    """Demonstrate the ReAct agent with various queries"""
+    """Demonstrate the ReAct agent with various queries
+
+    【做什么】对两个样例查询（温哥华天气 / 复利计算）各跑一次完整 ReAct 循环，
+    打印步骤统计与最终答案，保存轨迹 JSON 与注意力可视化产物。
+    """
     print("=" * 60)
     print("ReAct Tool-Calling Agent Demo with Attention Tracking")
     print("=" * 60)

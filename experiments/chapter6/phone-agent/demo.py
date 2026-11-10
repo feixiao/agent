@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Launch the ReAct arm of the local Phone Agent add-on browser call."""
+"""启动本地 Phone Agent 插件的 ReAct 浏览器通话（需要浏览器 + 麦克风）。
+"""
 
 from __future__ import annotations
 

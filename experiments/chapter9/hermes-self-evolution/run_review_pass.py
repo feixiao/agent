@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Continue the canonical Hermes session with independent review feedback."""
+"""把独立 Reviewer 的评审意见继续喂给规范 Hermes 会话（--continue 同一会话）。
+
+用于「Reviewer 退回 → 下一轮学习」循环：读取 review_task*.md 评审文件，
+用 `hermes chat --continue` 让原会话带着反馈继续修改。transcript 中若出现
+凭据形态的值会抛错，防止密钥泄漏进证据。本地限制：需要付费的
+OPENROUTER_API_KEY，缺 Key 时以退出码 2 结束。
+"""
 
 from __future__ import annotations
 

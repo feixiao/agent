@@ -1,5 +1,11 @@
 """
 Configuration for the coding agent
+
+（配置模块）集中读取环境变量并做供应商解析：
+  - 支持 anthropic / openai / openrouter 三种供应商（PROVIDER 环境变量切换）；
+  - resolve() 提供「OpenRouter 万能兜底」：直连供应商没配 key 但配了
+    OPENROUTER_API_KEY 时，自动改走 OpenRouter 并把模型 id 加上厂商前缀；
+  - validate() 对直连路径校验模型命名规则（claude-*/gpt-*/o1-*）。
 """
 
 import os
@@ -19,6 +25,7 @@ class Config:
     OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
     
     # Provider selection (anthropic, openai, or openrouter)
+    # 供应商选择：本地实验可设 PROVIDER=openai 并配 OPENAI_BASE_URL 指向本地端点
     PROVIDER = os.getenv("PROVIDER", "anthropic").lower()
     
     # Default model

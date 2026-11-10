@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Experiment 6-6: Fish Audio S1 + a 24-reference voice library."""
+"""实验 6-6：Fish Audio S1 + 24 条参考语音库的三组真实对照合成。
+
+生成三种配置各一条完整语音：
+  A 无控制标记（直接源音色）；B 单条零样本参考音；
+  C 解析控制标记并在 24 条真实参考语音中按维度选择。
+产出 mp3 + 证据 json（含 ffprobe 时长/大小、解析轨迹、各片段元数据）。
+"""
 
 from __future__ import annotations
 

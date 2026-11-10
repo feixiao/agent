@@ -7,6 +7,13 @@ Implements the 子 Agent 管理 primitives described in 实验 4-5:
     - cancel_subagent           cancel a running sub-agent
     - get_subagent_status       inspect a sub-agent (esp. async ones)
 
+【中文说明】子 Agent 管理工具：子 Agent 是基于同一 OpenAI SDK 的轻量 LLM Agent
+实例。核心是两种上下文传递策略（run_context_strategy_comparison 做同任务对比，
+每次回报实际传给子 Agent 的上下文文本与 token 数、是否泄漏隐私）：
+  - minimal       父 Agent 手动挑选必要信息切片（隐私最小，prep 开销为 0）
+  - llm_generated 让 LLM 按业务规则自动生成/压缩上下文（隐私由规则约束，
+                  但多一次 prep LLM 调用，且规则没写死的隐私仍可能泄漏）
+
 A "sub-agent" here is a lightweight LLM agent instance backed by the same
 OpenAI SDK the rest of the repo uses (see intelligence_tools.py / config.py).
 

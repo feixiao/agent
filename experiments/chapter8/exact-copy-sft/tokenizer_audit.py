@@ -1,4 +1,12 @@
-"""Audit byte-exact probes against several open tokenizer families."""
+"""跨 tokenizer 家族的字节精确复述审计（实验 8-19 配套）。
+
+对 data/eval.jsonl + data/boundary.jsonl 的探针字符串，在
+Qwen3-8B / Qwen2.5-0.5B-Instruct / Mistral-7B 三个 tokenizer 上做
+encode→decode 往返，统计 roundtrip 一致率与平均 token 数。
+目的：把"复制失败"中属于 tokenizer/序列化层的部分与模型能力区分开
+（例如 Qwen 系对部分 Unicode 字符往返不一致，不应记到模型头上）。
+结果写入 validation/tokenizer_audit.json。
+"""
 from __future__ import annotations
 
 import json
@@ -19,6 +27,7 @@ def rows(path: Path):
 
 
 def main():
+    # 中文注释：合并 eval + boundary 两份探针（训练后与边界集）逐个做往返测试
     probes = rows(ROOT / "data" / "eval.jsonl") + rows(ROOT / "data" / "boundary.jsonl")
     report = {"probe_count": len(probes), "tokenizers": {}}
     for model_id in MODELS:

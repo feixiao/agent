@@ -1,8 +1,5 @@
-"""Contextual RAG Agent with Advanced Memory Cards
-
-This agent combines:
-1. Advanced Memory Cards (structured facts) - always in context
-2. Contextual RAG for searching conversation history
+"""双层记忆 Agent（实验 3-11 前台）：高级 JSON 卡片常驻上下文（陈述性记忆）
++ 上下文化 RAG 按需检索对话历史（情境性记忆），支撑跨会话个性化与主动服务。
 """
 
 import json

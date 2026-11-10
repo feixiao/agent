@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
-"""Validate the local GPU desktop-planning evidence for Experiment 6-12."""
+"""校验实验 6-12 的本地 GPU 桌面规划证据（纯离线确定性检查）。
+
+关键门禁：设备必须是 mps/cuda、≥3 个规划种子、覆盖 0/0.25/0.5 三档失败、
+≥2000 回合、每个种子一份世界模型报告且测试 MSE 达标、
+闭环与预测式策略在高失败档必须 100% 恢复、开环基线必须暴露注入失败、
+固定种子可确定性重放、工具契约恰好五个工具、工件哈希匹配、
+且不得声称尝试过硬件执行。
+"""
 
 from __future__ import annotations
 

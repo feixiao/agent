@@ -1,4 +1,9 @@
-"""Run Experiment 9-9 with a reference or real LLM-backed agent."""
+"""实验 9-9 演示入口：跑「纵向持续进化」任务流，对比三臂/真实 LLM 臂。
+
+- 默认（--profile all）：evolving / append_only / static 三个确定性参考臂，
+  完全离线，无需 API Key，用于直观展示学习曲线与臂差异。
+- --profile llm --model <模型>：真实 LLM 跑单臂（每个任务一次模型调用）。
+"""
 
 from __future__ import annotations
 

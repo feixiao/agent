@@ -1,4 +1,10 @@
-"""Candidate manifest and release gate for prompt updates."""
+"""提示词更新的候选清单（manifest）与发布门槛（release gate）。
+
+候选必须携带：来源案例 id（学习信号）、作用域、改动理由、
+old→new 编辑列表与 diff。发布门槛由模型外代码裁决（对照正文的
+四条发布条件）：补丁非空、可审计（old→new 编辑齐全）、来源案例
+有记录、保留集不回归、边界集有改善——全过才 release_to_canary。
+"""
 
 from __future__ import annotations
 

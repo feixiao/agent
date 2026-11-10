@@ -1,4 +1,11 @@
-"""Evidence-grounded profile extraction with real configured LLM APIs."""
+"""Evidence-grounded profile extraction with real configured LLM APIs.
+
+中文说明：基于浏览器观测文本的证据型画像抽取。先做确定性的「目标姓名
+是否存在于渲染文本」门禁（防模型用参数化记忆编造画像），命中后把页面
+文本与指令交给真实配置的 LLM（ARK/Moonshot/OpenAI/OpenRouter 读环境变量
+回退，OpenAI 兼容端点可用本地服务），要求只依据页面文本返回 JSON 画像，
+并记录无凭据的 provider 回执（response ID/usage/延迟）。
+"""
 
 from __future__ import annotations
 

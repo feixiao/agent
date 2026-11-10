@@ -7,6 +7,11 @@ preparation cost, whether private data leaked, and each sub-agent's result).
 Run:
     export OPENAI_API_KEY=your-openai-api-key        # or OPENROUTER_API_KEY (default model: gpt-5.6-luna)
     python subagent_comparison.py
+
+【中文说明】实验 4-5 的"对比效果"最小脚本：对同一子任务分别用 minimal 与
+llm_generated 两种上下文传递策略各 spawn 一次子 Agent，打印交接上下文
+token 数、额外准备开销、隐私是否泄漏、两者结果差异。需要 LLM（.env 指向
+本地 LM Studio 即可；27B 单次调用慢时可设 OPENAI_TIMEOUT=600 防客户端超时）。
 """
 
 import asyncio

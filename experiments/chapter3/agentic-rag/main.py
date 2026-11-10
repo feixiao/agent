@@ -1,4 +1,8 @@
-"""Main entry point for Agentic RAG system"""
+"""智能体化 RAG（实验 3-8）主入口：司法问答上对比 agentic（多轮迭代检索）与 non-agentic（单次检索）。
+
+知识库后端 --kb-type：offline=内置 BM25（无服务无 API，可完全离线）/ local=检索流水线 / dify。
+LLM 用 OpenAI 兼容端点（本地可用 .env 的 OPENAI_BASE_URL 指向 LM Studio）。
+"""
 
 import os
 import json

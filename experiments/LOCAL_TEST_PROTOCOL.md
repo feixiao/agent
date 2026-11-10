@@ -15,6 +15,12 @@
   - 若需要显式 `--model`：用 `qwen3.8-27b-splash`。
   - 该模型是**推理模型**：temperature 必须为 1（多数实验代码已内置兼容处理，无需改动）。
   - 本地推理速度：每次 LLM 调用约 10~40 秒。
+- **【硬性规则：模型锁死】** 所有 LLM 请求只允许 `qwen3.8-27b-splash`。
+  绝不请求任何其他模型 id（embedding/视觉/gemma/kimi 等）——LM Studio 单槽位切换模型
+  会触发引擎重载，曾导致整个服务崩溃（2026-11-09 实际发生过一次）。
+  每运行一个 LLM 实验前先探测服务：
+  `curl -s --max-time 40 http://localhost:1234/v1/chat/completions -H "Content-Type: application/json" -d '{"model":"qwen3.8-27b-splash","messages":[{"role":"user","content":"hi"}],"max_tokens":5}'`
+  30 秒无返回→等 30 秒重试，最多 3 次；仍失败→该实验 LLM 部分记 `BLOCKED(LLM服务暂不可用)`，继续离线部分。
 - 本地 **embedding 端点不可用**（LM Studio 同时只加载一个模型，当前加载的是对话模型）。
   依赖向量检索的实验：优先用代码自带的离线/确定性/mock 检索路径（如 BM25、hash 向量）；
   若代码没有离线路径，则运行不依赖 embedding 的部分（如 BM25 稀疏检索、构建索引、评估脚本），

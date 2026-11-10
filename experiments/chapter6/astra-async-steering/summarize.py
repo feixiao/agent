@@ -1,4 +1,8 @@
-"""Recompute the experiment summary from verified wire evidence, without API calls."""
+"""从已验证的线上（wire）证据离线重算实验汇总，不发起任何 API 调用。
+
+先 replay(run_dir) 复核全部证据哈希与判定一致性，再按 arm 分组统计
+通过率、独立输出、自动后继、ACK 延迟与 token 用量，生成 summary。
+"""
 
 import argparse
 from collections import defaultdict

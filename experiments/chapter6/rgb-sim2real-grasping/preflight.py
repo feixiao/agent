@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Read-only, stage-aware preflight for Experiment 6-13."""
+"""实验 6-13 的只读、按阶段感知的预检（不接触硬件）。
+
+检查：上游 lerobot-sim2real 仓库 HEAD 与 8 个关键文件的 blob 哈希是否
+等于钉住值、torch/mani_skill 可导入性、nvidia-smi、以及（可选）真实相机
+帧/绿幕/检查点/串口/硬件授权/安全清单等。每个阶段（1-5）给出
+ready/blocked 与阻塞项列表；只报告，绝不执行硬件动作。
+"""
 
 from __future__ import annotations
 

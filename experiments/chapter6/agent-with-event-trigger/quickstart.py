@@ -1,6 +1,14 @@
 """
-Quick Start Script for Event-Triggered Agent
-Demonstrates the basic functionality in a simple way
+事件驱动 Agent 快速启动脚本（Quick Start）
+=========================================
+
+用最简单的方式演示本实验的基本功能：
+  1. 检查 LLM 提供商的 API Key 是否可用（server 侧有 OpenRouter 兜底逻辑）；
+  2. 若 8000 端口的服务器已在运行则直接提示可用；
+  3. 否则以子进程方式启动 server.py，轮询 /health 直到就绪；
+  4. 把服务器输出转发到当前终端，并提示后续如何用 client.py / curl 发事件。
+
+用法：python quickstart.py   （在 agent-with-event-trigger 目录下）
 """
 
 import os
@@ -10,7 +18,7 @@ import subprocess
 import signal
 from event_types import EventType
 
-# Check if API key is set (universal OpenRouter fallback applied by the server).
+# 检查是否配置了 API Key（server 端还有通用的 OpenRouter 兜底）。
 from agent import resolve_provider_and_key
 
 provider = os.getenv("LLM_PROVIDER", "kimi").lower()
@@ -34,7 +42,7 @@ print("🚀 EVENT-TRIGGERED AGENT QUICK START")
 print("="*80)
 print()
 
-# Check if server is already running
+# 检查服务器是否已经在运行
 import requests
 try:
     response = requests.get("http://localhost:8000/health", timeout=2)
@@ -49,7 +57,7 @@ except Exception:
 print("📦 Starting the event-triggered agent server...")
 print("\n⏳ This may take a moment to initialize...\n")
 
-# Start the server in a subprocess
+# 以子进程方式启动服务器
 try:
     server_process = subprocess.Popen(
         [sys.executable, "server.py"],

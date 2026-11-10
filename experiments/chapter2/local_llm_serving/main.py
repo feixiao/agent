@@ -4,6 +4,18 @@ Main Entry Point for Tool Calling Demo
 Automatically selects the best backend based on your platform:
 - Linux (including WSL2) with NVIDIA GPU: Uses vLLM
 - Native Windows, macOS, or Linux without CUDA: Uses Ollama
+
+【本文件是干什么的】
+本地模型服务（local LLM serving）实验的主入口：ToolCallingAgent 按平台自动选择
+后端——vLLM（Linux+NVIDIA GPU，官方要求 Linux）或 Ollama（macOS/Windows/无 CUDA），
+然后跑工具调用演示（天气查询、计算器等）或进入交互模式。
+
+可用参数：--mode single|interactive、--task、--backend vllm|ollama|auto、
+--info（打印系统环境检查）、--stream/--no-stream。
+
+本地运行限制（本次测试记录）：本脚本只支持 ollama / vllm 两种后端，
+没有指向任意 OpenAI 兼容端点（如 LM Studio）的参数；Ollama 服务未安装/未启动时
+LLM 部分无法运行。纯离线的 check_compatibility.py 与 main.py --info 可正常执行。
 """
 
 import os
@@ -24,8 +36,11 @@ class ToolCallingAgent:
     """
     Universal tool calling agent that works on all platforms
     Automatically selects vLLM (if supported and a GPU is available) or Ollama
+
+    【做什么】统一门面：内部持有 vLLM 或 Ollama 实现（self.agent），对外提供
+    chat / chat_stream 等一致接口，调用方不关心底层是哪种服务。
     """
-    
+
     def __init__(self, backend: Optional[str] = None):
         """
         Initialize with automatic backend detection
@@ -40,7 +55,11 @@ class ToolCallingAgent:
         self._initialize_backend()
     
     def _detect_best_backend(self) -> str:
-        """Detect the best backend for current platform"""
+        """Detect the best backend for current platform
+
+        判定规则：Linux 且 PyTorch 能看到 CUDA → vLLM；其余（macOS、原生 Windows、
+        无 CUDA 的 Linux）→ ollama。
+        """
         system = platform.system()
         
         # Official vLLM GPU execution requires Linux. WSL2 reports itself as
@@ -110,7 +129,11 @@ class ToolCallingAgent:
             self._init_ollama()
     
     def _init_ollama(self):
-        """Initialize Ollama backend"""
+        """Initialize Ollama backend
+
+        连接本地 Ollama（默认 http://localhost:11434）：检查服务与已装模型，
+        优先 qwen3:0.6b，缺失则回退到第一个可用模型；服务未启动/未安装时 sys.exit(1)。
+        """
         try:
             import ollama
             from ollama_native import OllamaNativeAgent

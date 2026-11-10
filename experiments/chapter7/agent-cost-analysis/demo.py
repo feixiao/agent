@@ -244,6 +244,7 @@ def build_parser():
 
 
 def main():
+    # 主流程：解析参数 -> 按 --offline/--live 采集 token 用量 -> 逐场景打印成本拆解 -> A/B 对比表。
     args = build_parser().parse_args()
 
     # 让 agent / tracer 使用选定模型

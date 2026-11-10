@@ -1,4 +1,10 @@
-"""Validate a retained open-model Computer Use run without another model call."""
+"""校验留存下来的开放模型 Computer Use 运行（不再发起任何模型调用）。
+
+检查项：manifest 完整性（哈希/大小/无多余文件）、开放模型身份
+（qwen3-vl-32b-instruct 且响应自报一致）、请求/响应/步骤数量一致且全 200、
+每步至多一个只读动作、步数内完成且自报成功、最终浏览器观察可接地最终答案、
+截图哈希匹配、凭证扫描无命中。结果写 acceptance.json / manifest。
+"""
 
 from __future__ import annotations
 

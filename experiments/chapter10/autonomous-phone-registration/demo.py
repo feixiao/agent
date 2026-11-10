@@ -1,5 +1,14 @@
 #!/usr/bin/env python3
-"""Experiment 10-3: autonomously spawn Phone Agent during real browser use."""
+"""Experiment 10-3: autonomously spawn Phone Agent during real browser use.
+
+中文说明：实验 10-3 演示入口。流程：
+1) 真实 Playwright 浏览器打开注册页并发现表单字段；
+2) 真实 LLM（tool_choice=auto）自主决定是否调用 initiate_phone_call_agent；
+3) 按所选传输（webrtc 本机通话/local 麦克风/twilio/scripted 脚本）建立语音通道，
+   并发运行 PhoneAgent 与 ComputerAgent（问/填并行，格式错误重问）；
+4) 汇总时间线证据与验收门禁，写脱敏 trace/decision/acceptance 报告。
+语音路径均要求 --confirm-consent；--scripted-json 为免音频的自动化补充验证。
+"""
 
 from __future__ import annotations
 

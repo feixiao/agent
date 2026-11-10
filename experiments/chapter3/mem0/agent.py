@@ -1,4 +1,8 @@
-"""Mem0-powered agent with Kimi K3 integration for LOCOMO benchmark."""
+"""基于 mem0 的记忆 Agent：封装 MemoryManager（mem0）+ LLM 对话，跑 LOCOMO 长对话基准。
+
+生命周期：每轮对话后调 mem0 抽取新记忆并做冲突更新（内部用 LLM 判断 ADD/UPDATE/DELETE），
+回答前用 mem0 检索相关记忆拼进 prompt。依赖 mem0ai 包（本地未安装，import 即失败）。
+"""
 
 import json
 import logging

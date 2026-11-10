@@ -1,8 +1,10 @@
-"""Resettable localhost mail UI used by the real Playwright Experiment 9-5.
+"""可重置的本地邮箱 UI（真实 Playwright 实验 9-5 的目标站点）。
 
-The server is deliberately small, but it is not a mocked browser: Chromium
-loads the page, JavaScript sends HTTP requests, and the final sent-list is
-rendered from server-side state.  All side effects remain inside this process.
+一个刻意做小、但不是 mock 浏览器的 HTTP 服务：Chromium 真实加载页面、
+JavaScript 真实发 HTTP 请求，发送列表从服务端状态渲染——所有副作用
+都留在本进程内，因此可以随意重置（/api/reset）并注入故障
+（如 drop_persistence：接口返回 ok 但实际不落库，用来暴露「假成功」）。
+纯离线、无 LLM、无外网依赖，可直接运行验证。
 """
 
 from __future__ import annotations

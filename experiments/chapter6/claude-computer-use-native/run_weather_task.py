@@ -1,9 +1,17 @@
 #!/usr/bin/env python3
-"""Run and retain the bounded Experiment 6-7 native Computer Use trajectory.
+"""运行并留存「有界的」实验 6-7 原生 Computer Use 轨迹。
 
-This harness calls the pinned Anthropic Computer Use Demo's ``sampling_loop``.
-It is intended to run inside that Demo's locally built container with a host
-evidence directory mounted at ``/evidence``.
+本 harness 调用钉住版本的 Anthropic Computer Use Demo 的 sampling_loop：
+让模型用原生 computer 工具在浏览器里完成「查旧金山天气」任务。
+
+安全与证据设计：
+  - 动作上限 25 步：超出即拒绝执行并抛 ActionLimitReached（轨迹记 refused_action）；
+  - 系统提示明确「只读评测」：不登录、不提交表单、不修改外部数据，
+    遇到 CAPTCHA 不触碰，改走 Open-Meteo 只读接口；
+  - 每个 API 请求/响应生成收据（api_receipts/），每张截图落盘并记 sha256；
+  - 最终 trajectory.json 记录终止原因、模型身份、用量与全部动作。
+
+预期运行环境：在钉住版本 Demo 的本地构建容器内，宿主证据目录挂载到 /evidence。
 """
 
 from __future__ import annotations

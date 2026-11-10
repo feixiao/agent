@@ -1,3 +1,7 @@
+"""【中文】7-13 实验的离线测试：不碰 GPU/机器人硬件，只验证 val-only 命令
+精确性、插桩边界、不完整证据拒收、preflight 诚实性、百分位报告与视频索引去重。
+
+(importlib 动态加载 experiment.py，避免其包级导入副作用。)"""
 import importlib.util
 import json
 import os

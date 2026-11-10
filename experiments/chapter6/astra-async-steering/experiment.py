@@ -1,7 +1,12 @@
-"""Experiment 6-3: real Responses WebSocket calls, with replayable evidence.
+"""实验 6-3（Astra 异步转向）：真实 Responses WebSocket 调用 + 可回放证据。
 
-Only the venue lookup is simulated. Models and transport are never mocked by
-this runner. Run `python experiment.py --help`; credentials stay in memory.
+只模拟「场地查询」这一个工具（业务数据是演示用的）；模型与传输层从不 mock。
+本 runner 通过 OpenAI Responses 的 WebSocket 协议跑五组对照（arms）：
+  sync / async / steer_reasoning / async_steer / unsupported_steer，
+把每一次线上事件（客户端发送 / 服务端推送 / 本地动作）逐条落盘到
+events.jsonl，再用 judge() 按严格验收准则重判，支持 --replay 离线复核。
+
+用法：python experiment.py --help （凭据只留在内存，绝不写入证据文件）
 """
 
 from __future__ import annotations

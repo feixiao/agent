@@ -133,6 +133,8 @@ def get_client() -> OpenAI:
     kwargs = {"api_key": api_key}
     if cfg["base_url"]:
         kwargs["base_url"] = cfg["base_url"]
+    # openai 分支 base_url 为 None 时，SDK 自动读取环境变量
+    # OPENAI_BASE_URL——本地测试指向 LM Studio 即打到本地服务。
     return OpenAI(**kwargs)
 
 

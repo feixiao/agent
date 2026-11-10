@@ -1,4 +1,12 @@
-"""Real API Coding Agent used by the Experiment 9-6 campaign."""
+"""实验 9-6 的真实 API Coding Agent 路径（OpenAI 兼容接口）。
+
+读取失败诊断 + 稳定版 retry_policy.py 源码，让模型生成候选模块；
+原始请求/响应、用量与哈希存进证据回执（不记录凭据值）。
+静态检查、沙箱回放、发布决定全部由模型外部代码完成。
+
+本地测试注意：openai 分支 base 为 None 时 SDK 自动读取环境变量
+OPENAI_BASE_URL，指向 LM Studio 即打到本地模型。
+"""
 
 from __future__ import annotations
 

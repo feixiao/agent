@@ -1,4 +1,9 @@
-"""Main script to run user memory evaluation tests."""
+"""用户记忆评估框架（实验 3-1）主入口：三层 60 用例评估不同记忆系统的召回质量。
+
+四种模式：interactive（菜单）/ demo / batch（评单系统）/ compare（跨系统对比表）。
+两种指标：llm-judge（LLM 评审，需 API，--evaluator openai 可路由本地）与
+keyword-recall（离线关键事实召回，完全无需 API——compare 默认走它）。
+"""
 
 import argparse
 import json

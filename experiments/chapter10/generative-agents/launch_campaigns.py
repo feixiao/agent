@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
-"""Launch or resume all Experiment 10-5 arms as detached local processes."""
+"""Launch or resume all Experiment 10-5 arms as detached local processes.
+
+中文说明：实验 10-5 的启动器。前置条件是共享历史种子已制备完成
+（输出目录下存在 seed_status.json）。对 baseline / custom_goal /
+no_reflection 三臂分别以脱离父进程（start_new_session）的方式拉起
+run_campaign.py 子进程，各自写日志；已完成的臂会跳过。本脚本自身
+不调用 LLM，只负责进程编排。
+"""
 
 from __future__ import annotations
 
@@ -24,6 +31,7 @@ def main() -> int:
     parser.add_argument("--chunk-steps", type=int, default=360)
     args = parser.parse_args()
     output = args.output.resolve()
+    # 硬前置：三臂共享同一份历史种子，未制备则拒绝启动。
     if not (output / "seed_status.json").exists():
         raise SystemExit("prepare the shared history seed before launching arms")
     logs = output / "logs"

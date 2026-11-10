@@ -1,4 +1,8 @@
-"""Calibration helpers for comparing the verifier with expert labels."""
+"""校准助手：把验证器判分与专家标注对齐。
+
+逐维度计算判对/判错、exact 标签一致率与按维度的 precision/recall，
+并生成 calibration 报告——用来回答「LLM 裁判到底校准得怎么样」。
+"""
 
 from __future__ import annotations
 

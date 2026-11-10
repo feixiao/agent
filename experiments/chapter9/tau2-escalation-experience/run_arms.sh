@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 # 在 τ²-bench telecom 迁移集（114 条，与提炼集不相交）上跑三个对照臂。
 # 通过替换 main_policy.md 切换策略；每次运行前后记录 sha256，结束后恢复原文件。
+#
+# 本地运行限制：TAU/EXP 两个路径硬编码为原作者机器（/Users/boj/...），
+# 且 agent/user 模型固定为火山 ARK 的付费端点——本机无法直接运行，
+# 需要把路径改到本地 τ²-bench 克隆、并配置 ARK_API_KEY 后才能跑。
 set -euo pipefail
 TAU=/Users/boj/book/ai-agent-book/chapter7/tau2-bench
 EXP=/Users/boj/book/ai-agent-book/chapter9/tau2-escalation-experience

@@ -3,6 +3,13 @@ Comparison Demo: Active vs Passive Tool Selection.
 
 Demonstrates the efficiency gains of active tool discovery compared to
 traditional passive tool injection approach.
+
+【中文说明】三策略对比主入口：
+  1) 离线确定性对比（--offline 只跑这部分）：10 个标注任务的检索召回率、
+     全量注入 vs top-k 检索的 schema token 成本、工具目录 35→400 的扩展性曲线。
+  2) 端到端对比（需 LLM，.env 指向本地 LM Studio）：对每条任务让
+     all-tools / retrieval / active 三种策略真实调用模型，比较准确率与延迟。
+--query 可只跑单条查询；--num-tools 用合成干扰工具把目录扩到 N 个。
 """
 
 import argparse

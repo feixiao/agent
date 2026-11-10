@@ -7,6 +7,14 @@
 
 每次真实 API 调用都产生一条 call record（模型名、请求参数、响应 ID、
 用量、时间戳、耗时），绝不记录密钥。
+
+【中文说明】本文件是核心模块：实现「改写 → 生图」工作流路线与两条原生路线，
+并负责 ROUTE_RUNNERS 编排（main.py 按它分发）。注意：
+- 生图依赖外部付费 API（通义万相 / Gemini / GPT-Image），或本地 ComfyUI
+  （IMAGE_PROVIDER=comfyui 开关，需本机起 ComfyUI 服务，默认 127.0.0.1:8188）；
+- 改写节点 LLM 有本地端点开关（见 rewrite_prompt）：未配置 KIMI_API_KEY 且
+  设置了 LLM_BASE_URL/OPENAI_BASE_URL 时自动走本地 LM Studio，无需付费 Key。
+全部四条路线均需在 main.py 的 Config.validate() 通过（需付费 Key）后才会执行。
 """
 
 import base64

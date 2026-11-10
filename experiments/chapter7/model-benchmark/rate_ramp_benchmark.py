@@ -3,6 +3,10 @@
 Simulates multi-concurrency load testing (1 to 50 req/s) against LLM endpoints,
 measuring 429 rate limit backoff curves, TTFT percentiles (p50, p95, p99),
 error rates, and compiling N=100 evidence packages.
+
+【中文】限流爬坡基准库：从低到高逐档加压（默认 1→50 req/s），测 429 限流
+退避曲线、TTFT 分位数与错误率，可组装 N=100 证据包。它是库不是 CLI：
+不传 request_fn 时用内置模拟请求（离线），可注入真实请求函数打真实端点。
 """
 
 from __future__ import annotations

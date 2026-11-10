@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Fail-closed validation for a retained Experiment 6-5 local run."""
+"""对留存的实验 6-5 本地运行做「失败即关闭」的确定性校验。
+
+校验：实验编号、精确模型 id + 钉住 revision、确实用了 CUDA、原生音频塔开启、
+未声称 thinking、4 个用例双臂齐全、语音波形落盘且哈希/采样率匹配、
+实现文件哈希与证据一致、零外部 API 调用。
+"""
 
 from __future__ import annotations
 

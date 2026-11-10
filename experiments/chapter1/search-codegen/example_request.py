@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """
 Example showing the exact OpenRouter GPT-5 request format matching the Go implementation
+
+【中文说明】示例脚本：构造与 Go 实现完全一致的 OpenRouter GPT-5 请求体，
+用于对照检查「请求里声明了哪些托管工具」。真实运行需 OPENROUTER_API_KEY；
+只调用 make_gpt5_openrouter_request() 组装请求体时不联网。
 """
 
 import json

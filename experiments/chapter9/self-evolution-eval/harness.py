@@ -1,4 +1,11 @@
-"""Model-external four-phase longitudinal evaluator for Experiment 9-9."""
+"""实验 9-9 的模型外四阶段纵向评测器。
+
+对同一任务流依次执行 learning（学习）→ transfer（迁移）→ change（规则
+变更/替换）→ retention（保持）四个阶段，计算各阶段正确率、恢复能力、
+负迁移率、安全 rubric 通过率、token 成本与存储成本。整个评测逻辑在
+模型外部：Agent 只负责 act()，阶段划分与判分由本模块控制，从而保证
+三臂（static/append_only/evolving）与真实 LLM 臂接受同一把尺子。
+"""
 
 from __future__ import annotations
 
@@ -21,7 +28,10 @@ def _rate(rows: Iterable[Dict[str, Any]], field: str) -> float:
 
 
 class LongitudinalEvaluator:
+    """驱动 Agent 走完一个任务流并按阶段聚合成实验报告。"""
+
     def run(self, agent, tasks: Iterable[Dict[str, Any]]) -> Dict[str, Any]:
+        """逐个执行任务（agent.act），按阶段统计正确率/迁移/替换/保持指标。"""
         records = []
         cumulative_correct = 0
         learning_seen = 0

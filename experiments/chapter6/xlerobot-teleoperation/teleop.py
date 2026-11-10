@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Experiment 6-10: local GPU expert-control upper-bound benchmark.
+"""实验 6-10：本地 GPU（local GPU）「专家控制」上界基准（可复现、不驱动真机）。
 
-This is the reproducible, non-actuating companion for the chapter.  It uses a
-small batched tabletop simulator to measure what a perfect teleoperator-like
-controller can do.  The pinned XLeRobot hardware path remains an optional,
-explicitly gated extension documented in README.md.
+用小型批量化桌面模拟器衡量「理想遥操作者式控制器」能做到的上界：
+随机撒 1~4 个物体与目标，末端执行器按 接近->搬运->转场 三阶段逐个
+搬运（20Hz、限速、容差判到），统计成功率、步数分布（均值/p95）与
+路径长度。协议：5 个种子 × 4 档物体数 × 每格 512 回合，并要求
+固定种子确定性重放。钉住版本的 XLeRobot 硬件路径仍是 README 中
+显式门禁化的可选扩展，本运行绝不声称驱动过机器人。
 """
 
 from __future__ import annotations

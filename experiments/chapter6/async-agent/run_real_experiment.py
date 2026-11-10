@@ -1,5 +1,16 @@
 #!/usr/bin/env python3
-"""Run all four Experiment 6-2 scenarios with real child processes."""
+"""用真实子进程跑完实验 6-2 的全部四个场景（无需 LLM，纯本地可复现）。
+
+四个场景：
+  1. 长任务异步执行 + 运行期间即时提问（占位符低延迟返回）；
+  2. 非紧急指令排队，任务完成时一次性批量处理（并产出日文 HTML 报告）；
+  3. 用户「取消」打断：终止 OS 进程、随后运行时恢复并接受新任务；
+  4. 三脚本竞速：先完成者查询其余进度，低于 50% 的取消，整合成报告。
+
+全部任务走 tasks.TaskManager 的真实子进程路径，并把每个场景的
+「收据」（pid/returncode/stdout 哈希/输入哈希）与验收门禁推导落盘到
+validation/experiment_6_2/<campaign>/ 下（summary + manifest）。
+"""
 
 from __future__ import annotations
 

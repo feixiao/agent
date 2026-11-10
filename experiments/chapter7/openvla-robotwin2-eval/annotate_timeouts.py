@@ -5,6 +5,10 @@ This helper only labels an episode when the upstream recorder says it failed at
 the configured action horizon and an exact failure-video match can be probed.
 It refuses early failures, missing videos, duplicate videos, and malformed MP4s
 instead of guessing a visual failure mechanism.
+
+【中文】超时标注助手：仅当上游录像器明确记录「在配置的动作时界处失败」且能
+逐帧核验失败视频时，才给 episode 打 timeout 标签；对提前失败/缺视频/重复
+视频/坏 MP4 一律拒绝猜测。纯离线（ffprobe 元数据），可在本地运行。
 """
 
 from __future__ import annotations

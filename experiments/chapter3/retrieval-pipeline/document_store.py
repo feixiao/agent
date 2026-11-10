@@ -1,4 +1,4 @@
-"""Document store for the retrieval pipeline."""
+"""检索流水线的内存文档存储：doc_id -> 文档/元数据/向量 的映射，纯 Python 无外部依赖。"""
 
 from typing import Dict, Any, List, Optional
 from datetime import datetime

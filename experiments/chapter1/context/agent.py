@@ -2,6 +2,15 @@
 Context-Aware AI Agent with Tool Calls
 An agent using Qwen model from SiliconFlow with document parsing, currency conversion, and calculator tools.
 Designed to demonstrate the importance of context through ablation studies.
+
+【中文说明】本文件是实验 1-1（上下文消融）的核心模块：
+- ContextMode：五种上下文模式（full / no_history / no_reasoning /
+  no_tool_calls / no_tool_results），消融时分别隐藏上下文的不同组成部分；
+- ToolRegistry：三个本地工具（PDF 解析、货币换算、安全计算器/代码解释器）；
+- ContextAwareAgent：ReAct 智能体主类。每轮把「历史消息 + 思考过程 +
+  工具调用 + 工具结果」按当前 ContextMode 组装后发给 LLM，并完整记录
+  轨迹与无凭证的 api_turns 请求/响应证据。provider 通过共享注册表
+  （agentbook/providers.py）解析，openai 可指向本地 LM Studio 端点。
 """
 
 import json
@@ -43,7 +52,12 @@ HIDDEN_RESULT_STYLES = {"marker": HIDDEN_RESULT_MARKER, "empty": HIDDEN_RESULT_E
 
 
 class ContextMode(Enum):
-    """Different context modes for ablation studies"""
+    """Different context modes for ablation studies.
+
+    【中文说明】实验 1-1 的五种消融模式：每次推理前，智能体按当前模式决定
+    把上下文的哪些组成部分（历史消息/思考/工具调用/工具结果）发给模型，
+    用以考察各部分对任务表现的影响。
+    """
     FULL = "full"  # Complete context with all components
     NO_HISTORY = "no_history"  # No historical tool calls
     NO_REASONING = "no_reasoning"  # No reasoning/thinking process
@@ -377,6 +391,10 @@ class ToolRegistry:
 class ContextAwareAgent:
     """
     AI Agent with configurable LLM providers and context modes for ablation studies
+
+    【中文说明】上下文消融智能体主类：构造时通过共享 provider 注册表解析
+    base_url/模型/key（openai 可指向本地 LM Studio），执行时按 ContextMode
+    组装每轮请求，并完整记录轨迹与 api_turns 证据。
     """
     
     def __init__(self, api_key: str, context_mode: ContextMode = ContextMode.FULL, 
@@ -718,6 +736,8 @@ Important: When you have gathered all necessary information and computed the fin
             Task execution result
 
         Result semantics:
+          【中文说明】ReAct 主循环：反复「组装上下文 → 调 LLM → 执行工具」，
+          直到模型给出纯文本终答或达到 max_iterations 安全上限。
           - ``completed`` means the loop received a non-empty terminal text
             response. It does not claim that the requested task was correct.
           - ``task_success`` is ``None`` here because correctness is

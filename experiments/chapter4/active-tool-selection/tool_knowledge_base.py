@@ -4,6 +4,12 @@ Tool Knowledge Base - Simulates MCP servers with various tools.
 This module defines a comprehensive knowledge base of tools organized by domains (servers),
 similar to the MCP (Model Context Protocol) ecosystem. Each server represents a platform
 or service domain with specific tools.
+
+【中文说明】模拟 MCP 生态的工具知识库：按领域（github/fs/web/comm/devops/db/analytics/cloud）
+组织成若干 ServerDefinition，每个 Server 含若干 ToolDefinition（name/description/parameters）。
+create_tool_knowledge_base() 返回完整目录（35 个真实工具）；
+calculate_total_tokens() 用 tiktoken 统计全部 schema 的上下文 token 成本，
+是"全量注入有多贵"的量化依据。
 """
 
 from typing import List, Dict, Any

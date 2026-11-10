@@ -1,4 +1,12 @@
-"""Native local MiniCPM-o 4.5 inference for Experiment 6-5."""
+"""实验 6-5 的原生本地 MiniCPM-o 4.5 推理客户端。
+
+封装官方 openbmb/MiniCPM-o-4_5 检查点（钉住 revision）：
+  - load()：bf16 + sdpa，只初始化音频塔（不建视觉塔），可选 TTS；
+    没有 CUDA 直接报错，避免把 MPS/CPU 跑成「本地精度实验」；
+  - infer_audio()：音频+指令 -> 文本（可选同时生成输出波形）；
+  - infer_text() / transcribe() / self_cascade()：纯文本推理与
+    「音频->转写->推理」两级级联（含分段延迟）。
+"""
 
 from __future__ import annotations
 

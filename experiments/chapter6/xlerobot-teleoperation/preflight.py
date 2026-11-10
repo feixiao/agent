@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Read-only preflight for the pinned Experiment 6-10 reproduction track."""
+"""钉住版实验 6-10（XLeRobot 遥操作）复现轨道的只读预检。
+
+逐项检查：上游仓库 HEAD 是否等于钉住的 commit、各示例文件 blob 哈希、
+Python 依赖（numpy/pygame/lerobot/joyconrobotics）、串口设备路径存在性、
+安全清单（标定/清空工作区/观察员/急停）操作员声明。
+只报告、只读，绝不接触硬件；任何缺失都会把 status 置为 blocked。
+"""
 
 from __future__ import annotations
 

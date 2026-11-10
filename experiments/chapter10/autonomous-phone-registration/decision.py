@@ -1,4 +1,12 @@
-"""LLM decision point that may autonomously call ``initiate_phone_call_agent``."""
+"""LLM decision point that may autonomously call ``initiate_phone_call_agent``.
+
+中文说明：实验 10-3 的「自主决策点」。把真实页面观察（URL/标题/表单字段清单）、
+已知上下文字段与一个可选工具 initiate_phone_call_agent 一起交给真实 LLM，
+由模型在 tool_choice=auto 下自主决定是否启动 Phone Agent——代码里刻意
+不存在「字段数 > N 就打电话」这类 Python 规则，模型决策即本实验的自主性边界。
+支持 ARK/Moonshot/OpenAI/OpenRouter 多端点回退（读环境变量），并可把
+不含凭据的原始请求/响应落盘作为证据。
+"""
 
 from __future__ import annotations
 
@@ -13,6 +21,7 @@ TOOL_NAME = "initiate_phone_call_agent"
 
 
 def _clients_and_models():
+    # 按环境变量组装候选 (客户端, 模型, 端点名) 列表；调用时任一端点失败即回退下一个。
     from openai import AsyncOpenAI
 
     model = os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
@@ -202,11 +211,14 @@ async def decide_orchestration(
                 json.dumps(receipt, ensure_ascii=False, indent=2),
                 encoding="utf-8",
             )
+    # 解析模型响应：只认名为 initiate_phone_call_agent 的工具调用。
     message = response.choices[0].message
     call = next((c for c in (message.tool_calls or []) if c.function.name == TOOL_NAME), None)
     purpose = ""
     requested: list[FieldSpec] = []
     if call:
+        # 把模型请求的字段按 name/label 映射回真实 FieldSpec，
+        # 并剔除上下文里已知的字段（known_values）——只收集真正缺失的。
         args = json.loads(call.function.arguments)
         purpose = str(args.get("purpose", ""))
         by_name = {f.name: f for f in fields}

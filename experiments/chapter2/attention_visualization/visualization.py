@@ -1,6 +1,10 @@
 """
 Attention Visualization Utilities
 Creates visual representations of attention patterns
+
+【本文件是干什么的】注意力可视化绘图工具：把采集到的注意力矩阵画成
+热力图（create_attention_heatmap）、注意力流图、以及文字摘要等格式，
+保存到 VIZ_OUTPUT_DIR。纯 matplotlib/seaborn，不依赖模型，可离线运行。
 """
 
 import matplotlib.pyplot as plt

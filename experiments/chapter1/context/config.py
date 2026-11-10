@@ -1,5 +1,10 @@
 """
 Configuration module for Context-Aware Agent
+
+【中文说明】配置模块：加载 .env（含 LLM_PROVIDER / OPENAI_BASE_URL 等），
+提供 provider 注册与解析（resolve_backend：解析 base_url、默认模型、API Key，
+主 Key 缺失时可走 OpenRouter 兜底），以及温度/迭代次数等运行参数。
+--provider openai + .env 的 OPENAI_BASE_URL 即可打到本地 LM Studio。
 """
 
 import os

@@ -1,4 +1,8 @@
-"""Main framework for User Memory Evaluation."""
+"""用户记忆评估框架主体（实验 3-1）：加载三层 YAML 用例、批量评测、生成对比报告。
+
+Layer1 基础召回 / Layer2 跨会话消歧 / Layer3 跨会话综合与主动服务，每层 20 例；
+框架负责用例装载、评测调度（LLM 评审或离线关键词召回）与 Markdown 报告。
+"""
 
 import os
 import yaml

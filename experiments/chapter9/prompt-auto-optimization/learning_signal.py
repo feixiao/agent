@@ -1,4 +1,11 @@
-"""Turn evaluated customer-service trajectories into a prompt-learning signal."""
+"""把已评测的客服轨迹转成「提示词学习信号」（三维诊断 + 来源案例）。
+
+从评测结果中聚合出三个诊断维度：
+- rule_compliance      规则遵守（该不该转接人工）
+- task_resolution      任务是否真正解决（而不只是没转接）
+- compliant_flexibility 合规弹性（政策受阻时找合规替代路径）
+并保留失败来源案例 id，让后续 Coding Agent 的每个改动都能追溯到具体证据。
+"""
 
 from __future__ import annotations
 

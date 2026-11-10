@@ -1,4 +1,10 @@
-"""Real university website inputs for Experiment 10-4."""
+"""Real university website inputs for Experiment 10-4.
+
+中文说明：实验 10-4 的网站输入（数据而非 mock）。DEFAULT_SITES 为 10 个
+真实斯坦福页面（目录页与人物页混合，模拟用户真实会给的输入）；
+load_sites 支持从 JSON 文件加载（--sites-json）并按 --agents 截断，
+每项为 Website(name, college, url)。
+"""
 
 from __future__ import annotations
 

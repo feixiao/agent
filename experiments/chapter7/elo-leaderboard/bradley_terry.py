@@ -1,6 +1,11 @@
 """
 Bradley-Terry Model Implementation
 Official Chatbot Arena leaderboard calculation method
+
+【中文】Bradley-Terry 评分实现（Chatbot Arena 官方排行榜算法）：
+用 sklearn 逻辑回归按「A 胜 B」标签拟合每对模型的对数实力差（MLE），
+可选 bootstrap 重采样估计 95% 置信区间，并可向指定锚定模型校准分数量级。
+本文件是 7-7 实验「从配对比较恢复排行榜」的统计核心。
 """
 import math
 

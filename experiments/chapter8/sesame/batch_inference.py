@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Sesame CSM (1B) TTS - Batch Inference Script
+"""Sesame CSM (1B) TTS 批量推理脚本（实验 8-6 Sesame 轨道）。
 
-This script loads a trained LoRA model and generates speech from multiple texts.
+加载基座 CSM 模型 + LoRA 适配器，从 JSON 输入文件（逐条 text +
+可选 output 路径）批量生成语音；缺 text 字段会报清晰错误，
+显式 null 的 output 回退默认文件名。
 """
 
 import argparse
@@ -19,6 +20,7 @@ from transformers import CsmForConditionalGeneration
 from peft import PeftModel
 
 
+# 中文注释：加载基座 CSM 模型与（可选）LoRA 适配器
 def load_model(base_model_name: str, lora_path: str = None, load_in_4bit: bool = False):
     """Load the base model and optionally apply LoRA adapters."""
     print(f"Loading base model: {base_model_name}")
@@ -37,6 +39,7 @@ def load_model(base_model_name: str, lora_path: str = None, load_in_4bit: bool =
     return model, processor
 
 
+# 中文注释：解析 JSON 输入（[{text, output?}, ...]），校验并规范化每条记录
 def load_texts_from_file(input_file: str) -> List[Dict]:
     """
     Load texts from a JSON file.
@@ -70,6 +73,7 @@ def load_texts_from_file(input_file: str) -> List[Dict]:
         ]
 
 
+# 中文注释：从说话人数据集取参考音频作为音色上下文
 def load_dataset_for_context(dataset_name: str = "maxbsoft/mrdragonfox-elise", split: str = "train"):
     """Load the dataset for voice context examples."""
     raw_ds = load_dataset(dataset_name, split=split)
@@ -78,6 +82,7 @@ def load_dataset_for_context(dataset_name: str = "maxbsoft/mrdragonfox-elise", s
     return raw_ds
 
 
+# 中文注释：批量推理主循环 —— 逐条生成并写 WAV，单条失败不中断整批
 def generate_speech_batch(
     model,
     processor,
@@ -163,6 +168,7 @@ def generate_speech_batch(
     print(f"\nGenerated {len(texts)} audio files in: {output_dir}")
 
 
+# 中文注释：命令行入口
 def main():
     parser = argparse.ArgumentParser(
         description="Batch generate speech using Sesame CSM TTS model"

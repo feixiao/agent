@@ -2,6 +2,11 @@
 Quick Start for Active Tool Selection.
 
 Run this script to see a basic demonstration of active tool discovery.
+
+【中文说明】快速上手脚本：打印工具知识库概况（server/工具数/全量注入 token 成本），
+然后对同一任务分别用 ActiveToolAgent（主动发现）与 PassiveToolAgent（全量注入）
+各执行一次，对比 token 用量与加载工具数。需要 LLM（.env 的 OPENAI_BASE_URL 指向
+本地 LM Studio 即可）。
 """
 
 from agent import ActiveToolAgent, PassiveToolAgent

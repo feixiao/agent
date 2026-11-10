@@ -1,4 +1,12 @@
-"""Qwen2-Audio growing-prefix inference for Experiment 6-4."""
+"""实验 6-4 的 Qwen2-Audio 增长前缀（growing-prefix）推理。
+
+Qwen2AudioRecognizer 封装 Qwen/Qwen2-Audio-7B-Instruct（或 mlx-community
+变体）：把「转写至今全部语音 + 检测非语言声学事件」的指令连同音频前缀
+送入模型，parse_response 宽容解析 JSON 输出并把事件别名归一到
+<|noise|>/<|silence|>/<|laughter|>/<|cough|> 形式，同时保留原始输出供审计。
+growing_prefix() 对每个 1 秒切点重新编码完整前缀（刻意非增量），
+产出逐前缀的延迟/转写/事件序列。
+"""
 
 from __future__ import annotations
 

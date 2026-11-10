@@ -1,5 +1,9 @@
 """
 Demo script showcasing different extraction techniques
+
+【中文说明】演示脚本：对样例文件依次跑三种提取技术并输出可对比的结果
+（--output 可存 transcript）。依赖 agent.py（google-genai），本机缺该
+包时 import 失败 → BLOCKED(缺依赖: google-genai)。
 """
 
 import argparse

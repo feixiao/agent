@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 """
-Orpheus TTS Inference Script
+Orpheus TTS 推理脚本（语音实验 8-6 的 Orpheus 轨道，独立推理入口）。
 
-This script provides a standalone inference interface for the Orpheus text-to-speech model.
-It supports both single-speaker and multi-speaker TTS generation.
+为 Orpheus 文本转语音模型提供独立推理接口，支持单说话人与多说话人 TTS 生成。
+流程：文字 + 情感标签（<laugh> 等）→ 语言模型生成 SNAC 音频词元 →
+SNAC 解码为 24kHz 波形 → 保存 WAV。支持加载 LoRA 适配器做训练前后对照。
 
-Usage:
+用法：
     python inference.py
 
-Or import as a module:
+或作为模块导入：
     from inference import OrpheusInference
     tts = OrpheusInference()
     audio_files = tts.generate(prompts=["Hello world"])
@@ -36,6 +37,7 @@ class OrpheusInference:
         tts.generate(prompts=["I missed you <laugh> so much!"])
     """
     
+    # 中文注释：加载语言模型（可叠 LoRA 适配器）与 SNAC 音频编解码器，并登记特殊词元 id
     def __init__(
         self,
         model_path: str = "unsloth/orpheus-3b-0.1-ft",
@@ -90,6 +92,7 @@ class OrpheusInference:
         
         print("Model ready for inference!")
     
+    # 中文注释：把文字编码为 SOH SOT <文字> EOT EOH 序列，多说话人模型可在前缀加说话人名
     def _prepare_inputs(
         self,
         prompts: List[str],
@@ -147,6 +150,7 @@ class OrpheusInference:
         
         return input_ids, attention_mask
     
+    # 中文注释：截取 start_of_speech..end_of_speech 之间的音频词元，交给 SNAC 解码成波形
     def _decode_audio(self, generated_ids: torch.Tensor) -> List[torch.Tensor]:
         """
         Decode generated token IDs into audio waveforms.
@@ -193,6 +197,7 @@ class OrpheusInference:
         
         return audio_samples
     
+    # 中文注释：把逐帧音频码本重排成 SNAC 期望的二维码本张量
     def _redistribute_codes(self, code_list: List[int]) -> torch.Tensor:
         """
         Redistribute flattened codes back into SNAC's 3-layer format.
@@ -257,6 +262,7 @@ class OrpheusInference:
         audio_hat = self.snac_model.decode(codes)
         return audio_hat
     
+    # 中文注释：主推理入口 —— 准备输入、采样生成、解码音频并写 WAV 文件
     def generate(
         self,
         prompts: List[str],
@@ -339,6 +345,8 @@ class OrpheusInference:
         
         return output_paths
 
+
+# 中文注释：命令行演示入口：默认加载模型后对几条内置示例文本（含情感标签）生成音频
 
 def main():
     """Main function for standalone execution."""

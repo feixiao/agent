@@ -1,6 +1,11 @@
 """
 vLLM Tool Calling Agent Implementation
 Demonstrates how to use vLLM with Qwen3 for tool calling
+
+【本文件是干什么的】
+vLLM 后端的工具调用 Agent：通过 OpenAI 兼容客户端连接 vLLM 服务
+（config 里的 OPENAI_API_BASE，默认 http://localhost:8000/v1），
+维护对话历史，解析模型返回的工具调用并并行执行，支持普通与流式两种对话。
 """
 
 import json

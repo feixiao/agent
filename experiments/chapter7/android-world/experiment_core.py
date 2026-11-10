@@ -2,6 +2,10 @@
 
 The runtime runner deliberately keeps AndroidWorld imports out of this module so
 the evidence checks and report generation can be tested without an emulator.
+
+【中文】本文件是 7-12 AndroidWorld 受控实验的「纯离线报告/统计核心」：
+聚合 episode 指标、配对比较、保守的候选提升决策（含成本护栏）、范围声明门禁
+与 Markdown 报告渲染。刻意不 import AndroidWorld，因此无模拟器也能测试与复用。
 """
 
 from __future__ import annotations
@@ -28,7 +32,11 @@ _SECRET_PATTERNS = (
 
 
 def redact_text(value: object, secrets: Iterable[str] = ()) -> str:
-  """Returns a printable error/message with likely credentials removed."""
+  """Returns a printable error/message with likely credentials removed.
+
+  【中文】把日志/报错文本中的凭据（显式密钥 + Bearer/api_key/sk- 等模式）替换为
+  [REDACTED]，保证写进证据与报告前不会泄漏密钥。
+  """
   text = str(value)
   for secret in secrets:
     if secret:
@@ -146,7 +154,11 @@ def choose_decision(
     maximum_latency_ratio: float = 1.5,
     maximum_token_ratio: float = 1.5,
 ) -> dict[str, Any]:
-  """Makes a conservative success/cost candidate decision from paired evidence."""
+  """Makes a conservative success/cost candidate decision from paired evidence.
+
+  【中文】从配对证据做「保守」的候选决策：样本量不足、出现配对回归、或
+  时延/token 比率超过护栏时都不予提升；只有通过全部护栏才允许进入全量复跑候选。
+  """
   pair_list = list(pairs)
   control = arm_summary.get("control")
   treatment = arm_summary.get("treatment")
@@ -332,7 +344,11 @@ def choose_efficiency_decision(
 
 
 def enforce_scope_claims(evidence: dict[str, Any]) -> None:
-  """Sets completion gates from direct episode evidence, never from counters."""
+  """Sets completion gates from direct episode evidence, never from counters.
+
+  【中文】范围声明门禁：只认逐条 episode 证据（116 任务 × 5 轮 + 环境匹配），
+  拒绝用「计数器」虚报全量完成，防止小样本被包装成完整基准结论。
+  """
   scope = evidence.setdefault("scope", {})
   distinct_tasks = len(set(scope.get("tasks", [])))
   configured_trials = int(scope.get("trials_per_task", 0))

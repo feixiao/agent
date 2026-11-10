@@ -1,9 +1,15 @@
-"""Real, bounded asynchronous terminal jobs for Experiment 6-2.
+"""实验 6-2 的「真实、有界」异步终端任务管理。
 
-Commands are parsed without a shell and resolved through an explicit allowlist
-to ``analysis_worker.py``. Each job is a real child process whose stdout drives
-progress. Cancellation terminates that OS process; completion returns metrics
-computed from a real input file rather than a fabricated result string.
+安全设计：
+  - 命令不经 shell 解析，且必须命中显式白名单（analyze_fast/mid/slow、
+    analyze_logs、re_run_summary），实际统一解析为 analysis_worker.py 子进程；
+  - 每个任务都是真实操作系统子进程（shell=False），stdout 里的 PROGRESS 行
+    驱动进度条；取消 = 终止该 OS 进程；
+  - 完成时返回由真实输入文件（book/chapter4.md）算出的指标，
+    而不是伪造的结果字符串——这是「真实子进程收据」的根基。
+
+TaskManager 提供 start / query / cancel / cancel_all / snapshot / restore，
+支撑 demo.py 与 run_real_experiment.py 的全部场景。
 """
 
 from __future__ import annotations
@@ -52,7 +58,11 @@ _COMMANDS = {
 
 
 def resolve_job(command: str) -> tuple[str, float]:
-    """Resolve a displayed terminal command to one safe executable profile."""
+    """把展示用终端命令解析成一个安全的可执行画像（白名单校验）。
+
+    只允许 `python <白名单脚本>.py` 两词形式；拒绝一切其它命令，
+    返回 (worker 任务名, 每逻辑秒进度百分比)。
+    """
     parts = shlex.split(command)
     if len(parts) != 2 or Path(parts[0]).name not in {"python", "python3", Path(sys.executable).name}:
         raise ValueError("only `python <approved-analysis-script>.py` commands are allowed")
@@ -94,7 +104,7 @@ class TaskState:
 
 
 class TaskManager:
-    """Start, observe, query, and terminate allowlisted real subprocesses."""
+    """启动、观察、查询并终止「白名单内」的真实子进程任务。"""
 
     def __init__(self, on_complete: Callable[[TaskState], Awaitable[None]],
                  log: Callable[[str, str], None]):

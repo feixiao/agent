@@ -3,6 +3,14 @@ Active Tool Discovery Agent.
 
 Implements an LLM agent that actively requests tools on-demand rather than
 having all tool schemas injected into the prompt. Inspired by MCP-Zero.
+
+【中文说明】本章三种工具选择策略的 Agent 实现（都经 config 读取 .env，
+OPENAI_BASE_URL 指向本地 LM Studio 即可跑通）：
+  - ActiveToolAgent    主动发现（MCP-Zero 式）：初始不注入任何工具 schema，
+                       模型发现能力缺口时显式"请求工具"，用语义路由（TF-IDF）
+                       检索并追加所需工具，上下文最小。
+  - RetrievalToolAgent 检索预筛选：一次性按任务语义检索 top-k 个工具后注入。
+  - PassiveToolAgent   被动全量注入（传统基线）：所有工具 schema 一次性进上下文。
 """
 
 from typing import List, Dict, Any, Optional
@@ -48,8 +56,12 @@ class ActiveToolAgent:
             'api_calls': 0,
             'tools_called': []  # Names of tools the model actually invoked
         }
-    
+
     def execute_task(self, task: str) -> Dict[str, Any]:
+        # 【中文说明】主动发现主循环：初始上下文只含指令，不带任何工具 schema；
+        # 每轮若模型判定"能力不足"则发起工具请求（_handle_tool_request 用
+        # SemanticRouter 检索并把 schema 追加进历史），最多 MAX_TOOL_REQUESTS 轮，
+        # 直到模型产出最终答复；返回加载工具列表与 token/请求数指标。
         """
         Execute a task with active tool discovery.
         

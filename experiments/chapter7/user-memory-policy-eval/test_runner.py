@@ -1,3 +1,5 @@
+"""【中文】runner.py 的离线测试：三种记忆编码（json/markdown/python）都保留
+作用域字段、JSON 解析兜底、确定性评分器的通过/失败判定、文件哈希。"""
 from __future__ import annotations
 
 import json

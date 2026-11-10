@@ -1,6 +1,15 @@
 """
 Multimodal Agent with Multiple Extraction Techniques
 Supports native multimodality, extract to text, and multimodal tools
+
+【中文说明】多模态 Agent 核心：对图像/PDF/音频支持三种提取范式——
+① native 原生多模态（图像直接进多模态模型）；② extract_to_text 先用本地
+工具（OCR/描述器/文本抽取）转成文本再交纯文本模型；③ 带工具模式（Agent
+自主决定是否调用视觉分析工具）。
+本机注意：顶部 `from google import genai` 需要 google-genai 包，当前 venv
+缺失该包 → 本文件（及 demo/main/quickstart/campaign 入口）import 即失败，
+BLOCKED(缺依赖: google-genai)；模型注册表硬编码 gemini/gpt-5/doubao，
+也无本地 qwen 路由。完全离线的 create_sample.py 不受影响。
 """
 
 import os

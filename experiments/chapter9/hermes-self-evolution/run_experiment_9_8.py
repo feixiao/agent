@@ -1,9 +1,16 @@
 #!/usr/bin/env python3
-"""Clone a pinned Hermes snapshot and let Hermes audit/update its own code.
+"""克隆固定 commit 的 Hermes 快照，让 Hermes 审计并更新它自己的代码（实验 9-8 主入口）。
 
-The runner keeps credentials outside retained evidence. Normal working state is
-written beneath ignored ``worktree/`` and ``.hermes-home/`` directories; the
-curated manifest and patch are written to ``validation/<run-id>/``.
+流程：git clone 外部仓库 → checkout 钉死的基线 commit → uv sync 安装依赖
+→ 以 HERMES_YOLO_MODE 运行 `hermes chat`（自带 terminal/skills 工具集）读题
+→ 收集 transcript、git diff（含 untracked 新文件）与自进化报告。
+
+本地运行注意：默认模型 openai/gpt-5.6-luna 且 provider 固定 openrouter，
+需要付费的 OPENROUTER_API_KEY——在只允许本地 qwen3.8-27b-splash 的环境下
+无法运行，缺 Key 时脚本会直接以退出码 2 结束（离线可验证该守卫）。
+
+凭据只从环境变量读取，绝不写入证据；日常工作状态放在被 git 忽略的
+worktree/ 与 .hermes-home/ 下；最终 manifest、patch 与报告写入 validation/<run-id>/。
 """
 
 from __future__ import annotations

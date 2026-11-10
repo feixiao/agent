@@ -1,33 +1,28 @@
 """
-SFT training-data quality auditor (chapter 8 CoT distillation).
+SFT 训练数据质量审计器（第 8 章 CoT 蒸馏配套模块）。
 
-Every chapter 8 SFT experiment (8-8, 8-9, 8-17, 8-18, 8-19) consumes JSONL
-training data: one JSON object per line, each carrying a ``messages`` array of
-``{"role", "content"}`` pairs. ``generate_data.py`` synthesizes that data and
-``analyze_data.py`` reports coarse statistics, but neither flags the quality
-issues that corrupt a fine-tune *before* training starts. This module fills
-that gap.
+本章所有 SFT 实验（8-8、8-9、8-17、8-18、8-19）都要消费 JSONL 训练数据：
+每行一个 JSON 对象，内含 ``messages`` 数组（``{"role", "content"}`` 键值对）。
+``generate_data.py`` 负责合成数据，``analyze_data.py`` 只报告粗略统计，
+两者都不会在训练开始前指出会毁掉微调的数据质量问题。本模块补上这一空缺。
 
-:class:`SFTDataQualityAuditor` walks a dataset (a file or an in-memory list of
-parsed lines) and produces an :class:`AuditReport` of :class:`QualityIssue`
-records covering six concerns:
+:class:`SFTDataQualityAuditor` 遍历数据集（文件或已解析的行列表），产出由
+:class:`QualityIssue` 记录组成的 :class:`AuditReport`，覆盖六类关注点：
 
-1. **Format consistency** — every line has a ``messages`` list whose entries
-   carry ``role`` and non-empty ``content`` and whose roles alternate
-   ``user``/``assistant``.
-2. **Token-length distribution** — per-example approximate token count (word
-   count) with outliers flagged below ``min_length`` or above ``max_length``.
-3. **Duplicate detection** — exact duplicate examples and near-duplicates
-   (same user message, different assistant response = potential label noise).
-4. **Label noise** — assistant responses containing placeholder markers
-   (``TODO``, ``FIXME``, ``[insert``, ``[TBD``) or self-contradictory
-   affirm/deny pairs.
-5. **Boundary coverage** — the dataset should span diverse input lengths, not
-   cluster around a single bucket.
-6. **Tokenizer compatibility** — characters that tokenize inconsistently
-   across tokenizers (curly quotes, zero-width spaces, BOM markers).
+1. **格式一致性** — 每行必须有 ``messages`` 列表，元素带 ``role`` 和非空
+   ``content``，且角色按 user/assistant 交替。
+2. **token 长度分布** — 逐样本近似 token 数（按词数估计），低于
+   ``min_length`` 或高于 ``max_length`` 的离群样本会被标记。
+3. **重复检测** — 完全重复的样本，以及近似重复（user 相同而 assistant
+   不同 = 潜在标签噪声）。
+4. **标签噪声** — assistant 回复中出现占位符（``TODO``、``FIXME``、
+   ``[insert``、``[TBD``）或自相矛盾的是/否对。
+5. **边界覆盖** — 数据集的输入长度应分散在多个区间，而不是挤在一档。
+6. **tokenizer 兼容性** — 在不同 tokenizer 下分词行为不一致的字符
+   （弯引号、零宽空格、BOM 标记）。
 
-The auditor is fully offline: it never loads a model or touches the network.
+审计器完全离线：不加载模型、不联网。用法：
+    python sft_data_auditor.py <sft数据.jsonl>
 """
 from __future__ import annotations
 
@@ -125,7 +120,11 @@ class SFTDataQualityAuditor:
     # Public entry points
     # ------------------------------------------------------------------ #
     def audit_file(self, path: str | Path) -> AuditReport:
-        """Read a JSONL file and audit every non-blank line."""
+        """Read a JSONL file and audit every non-blank line.
+
+        读取 JSONL 文件（跳过空行），逐行解析后交给 audit_lines 审计。
+        这是命令行入口使用的便捷方法。
+        """
         p = Path(path)
         lines: list[dict[str, Any]] = []
         with p.open(encoding="utf-8") as f:
@@ -137,7 +136,11 @@ class SFTDataQualityAuditor:
         return self.audit_lines(lines)
 
     def audit_lines(self, lines: list[dict[str, Any]]) -> AuditReport:
-        """Audit an in-memory list of parsed JSONL examples."""
+        """Audit an in-memory list of parsed JSONL examples.
+
+        审计主流程：对每个样本依次跑格式/长度/标签噪声/tokenizer 兼容性检查，
+        再做全局重复检测和边界覆盖检查，最后汇总成 AuditReport（含质量分）。
+        """
         examples: list[dict[str, Any]] = list(lines)
         total = len(examples)
 
@@ -190,6 +193,7 @@ class SFTDataQualityAuditor:
     # ------------------------------------------------------------------ #
     # Individual checks
     # ------------------------------------------------------------------ #
+    # 中文注释：逐消息检查格式 —— role 是否合法、content 是否非空、角色是否 user/assistant 交替
     def check_format(self, example: dict[str, Any]) -> list[QualityIssue]:
         """Validate the structural shape of one example.
 
@@ -318,6 +322,7 @@ class SFTDataQualityAuditor:
 
         return issues
 
+    # 中文注释：按词数近似估算 token 长度，标记过短（无信息量）或过长（训练时可能被截断）的离群样本
     def check_length(self, example: dict[str, Any], line_number: int) -> list[QualityIssue]:
         """Flag examples whose approximate token count is an outlier."""
         issues: list[QualityIssue] = []
@@ -354,6 +359,7 @@ class SFTDataQualityAuditor:
             )
         return issues
 
+    # 中文注释：全局去重 —— 完全重复的样本只保留首条；user 相同但 assistant 不同视为疑似标签噪声
     def find_duplicates(self, examples: list[dict[str, Any]]) -> list[QualityIssue]:
         """Detect exact duplicates and near-duplicates (same user, different assistant)."""
         issues: list[QualityIssue] = []
@@ -423,6 +429,7 @@ class SFTDataQualityAuditor:
 
         return issues
 
+    # 中文注释：检测 assistant 回复中的占位符（TODO/FIXME/[insert/[TBD）与自相矛盾的是/否对
     def check_label_noise(self, example: dict[str, Any], line_number: int) -> list[QualityIssue]:
         """Flag placeholder text and self-contradictory assistant responses."""
         issues: list[QualityIssue] = []
@@ -502,6 +509,7 @@ class SFTDataQualityAuditor:
     # ------------------------------------------------------------------ #
     # Boundary coverage (internal)
     # ------------------------------------------------------------------ #
+    # 中文注释：边界覆盖 —— 输入长度应分散在多个区间；若全部挤在同一档则警告
     def _find_boundary_gaps(self, token_counts: list[int]) -> list[QualityIssue]:
         """Flag when examples cluster into too few length buckets."""
         issues: list[QualityIssue] = []
@@ -604,6 +612,7 @@ class SFTDataQualityAuditor:
         return None
 
     @staticmethod
+    # 中文注释：汇总长度分布的均值/中位数/最大最小（空分布返回全 0）
     def _length_stats(token_counts: list[int]) -> dict[str, float]:
         valid = [c for c in token_counts if c > 0]
         if not valid:
@@ -617,6 +626,7 @@ class SFTDataQualityAuditor:
         }
 
     @staticmethod
+    # 中文注释：把问题记录折算成 0~1 质量分（格式错误权重最高），供报告排序与门禁使用
     def _quality_score(total: int, issues: list[QualityIssue]) -> float:
         """Compute a 0.0–1.0 quality score.
 

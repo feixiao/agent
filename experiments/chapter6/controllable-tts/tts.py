@@ -1,4 +1,12 @@
-"""Fish Audio S1 zero-shot cloning execution layer."""
+"""Fish Audio S1 零样本克隆的执行层（实验 6-6）。
+
+把 markup 解析出的每个片段真正合成为音频：
+  - 语音片段：按 (情绪,语速,风格) 从 24 条真实参考语音里选出对应参考音，
+    用 Fish S1 零样本克隆合成；强调片段前置 S1 原生 (emphasis) 标记；
+  - 静音片段：用 ffmpeg 生成指定毫秒的静音；
+  - 最后按片段顺序用 ffmpeg concat 拼成整段 mp3。
+需要 FISH_API_KEY（外部付费 TTS，本地测试不可用）。
+"""
 
 from __future__ import annotations
 

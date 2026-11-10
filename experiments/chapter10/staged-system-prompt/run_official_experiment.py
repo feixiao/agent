@@ -1,4 +1,11 @@
-"""Run and package the strict real-provider staged system-prompt add-on campaign."""
+"""Run and package the strict real-provider staged system-prompt add-on campaign.
+
+中文说明：阶段化系统提示词的正式「真实 provider」活动入口。按冻结的
+experiment_protocol.json（任务/后端/限额/故障注入/验收口径）运行一次
+三阶段完整流程，用 RecordingClient 把每次 provider 原始请求/响应回执
+（脱敏）落盘，并按协议定价计算 token 成本，最终打包 runs/<run-id>/。
+后端写死 Moonshot（需 MOONSHOT_API_KEY），本地无该付费端点时直接退出。
+"""
 
 from __future__ import annotations
 

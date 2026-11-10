@@ -1,6 +1,9 @@
 """
-Memobase Agent Implementation with Kimi K3 Model
-Advanced memory management for LOCOMO benchmark
+Memobase 风格记忆 Agent 实现（自研，无外部框架依赖）。
+
+结构：用户画像（profile，按主题聚合）+ 记忆条目（带 centroid 抽象）+
+"简单文本匹配"检索占位（生产用向量，见 TODO）。纯 Python 可离线导入与单测；
+记忆更新/画像维护的 LLM 调用在本地无路由时不可用（BLOCKED）。
 """
 
 import json

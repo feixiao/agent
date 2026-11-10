@@ -1,5 +1,12 @@
 """
 Main entry point for Context-Aware Agent
+
+【中文说明】实验 1-1（上下文消融）的入口脚本，提供三种运行模式：
+  --mode single      单任务执行（--task 指定任务，--context-mode 选择上下文模式）
+  --mode ablation    消融实验（--ablation-modes 选模式、--cases 控制规模，
+                     本地全量 5 模式太慢，建议缩小 cases 或只跑 1~2 个模式）
+  --mode interactive 交互式（默认）
+--provider openai 会读取 .env 的 OPENAI_BASE_URL，可指向本地 LM Studio。
 """
 
 import os
@@ -596,6 +603,9 @@ def run_single_task(api_key: str, task: str, context_mode: str = "full", provide
         provider: LLM provider to use
         model: Optional model override
         output: Optional path for the JSON result (default task_result_{mode}.json)
+
+    【中文说明】单任务模式：创建指定上下文模式的 ContextAwareAgent，执行一次
+    ReAct 任务，打印结果并把完整轨迹 + api_turns 证据存为 JSON。
     """
     # Parse context mode
     mode_map = {
@@ -824,6 +834,10 @@ def run_ablation_study(api_key: str, provider: str = "siliconflow", model: str =
             the original single multinational-budget task; >1 runs a multi-case
             comparison across the sample tasks.
         output: Optional path for the raw JSON results (default ablation_results.json)
+
+    【中文说明】消融模式：对每种上下文模式各跑 num_cases 个任务，汇总胜率/
+    迭代数/工具调用数并画学习对比图。本地全量 5 模式 × 多案例非常慢，
+    建议用 --ablation-modes 缩到 1~2 个模式、--cases 1 跑。
     """
     # Parse context modes if provided
     mode_map = {

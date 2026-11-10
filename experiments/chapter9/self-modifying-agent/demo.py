@@ -1,4 +1,11 @@
-"""Run the complete offline self-modification release flow."""
+"""实验 9-6 完整流程演示：诊断 → 候选 → 验证 → 发布决定。
+
+默认 --generator deterministic（纯离线，候选由确定性生成器产出）；
+--generator llm 则调用真实 API 的 Coding Agent 生成候选。
+验证（--generator llm 路径需 Docker 沙箱；确定性路径同样走沙箱检查，
+无 Docker 时相关检查按不通过处理）。候选与发布清单只写 output/，
+绝不改动 stable/ 下的稳定代码。
+"""
 
 from __future__ import annotations
 

@@ -4,6 +4,11 @@
 This companion runner imports the adjacent, unmodified AndroidWorld checkout.
 It supports a paired control/treatment experiment and a subsequent candidate
 rerun. It never substitutes mock episodes or manuscript example numbers.
+
+【中文】本文件是 7-12 实验的主入口（受控 A/B 运行器）：在真实 AndroidWorld
+emulator 上跑「对照组 vs 处理组」配对实验与候选复跑，逐 episode 保存证据
+（状态/奖励/时延/token 用量）、做失败归因与成本护栏判定。需要真实 Android
+设备/模拟器与外部 android_world checkout，本地无法完整运行（见报告）。
 """
 
 from __future__ import annotations

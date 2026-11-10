@@ -2,6 +2,17 @@
 System-Hint Enhanced AI Agent
 An agent that demonstrates advanced trajectory management with system hints,
 including timestamps, tool call tracking, TODO lists, and detailed error messages.
+
+【本文件是干什么的】
+System-Hint 实验的核心模块。SystemHintAgent 在标准 ReAct 循环之上叠加五类
+"状态栏"（system hint）技术，把上下文中的隐式状态显式化后追加到每轮请求末尾：
+  1) 时间戳跟踪    —— 给工具结果/消息加 [时间] 前缀，让模型感知时序；
+  2) 工具调用计数器 —— 标注 "Tool call #N for 'xxx'"，触发"到达上限即停止"的模式识别；
+  3) TODO 列表管理  —— rewrite_todo_list / update_todo_status 工具 + 每轮复述列表；
+  4) 详细错误信息   —— 把裸异常升级为"错误 + 参数 + 修复建议"的诊断文本；
+  5) 系统状态感知   —— 注入当前时间、目录、操作系统、Shell、Python 版本。
+
+每轮轨迹会写入 trajectory.json，供离线检视"模型实际看到了什么"。
 """
 
 import codecs
@@ -84,9 +95,14 @@ class SystemHintConfig:
 class SystemHintAgent:
     """
     AI Agent with enhanced system hints for better trajectory management
+
+    【做什么】按 SystemHintConfig 开关组合启用五类状态栏；执行 ReAct 循环，
+    每轮把自动生成的状态栏消息追加到上下文末尾再发给模型，并把完整轨迹存盘。
+    【为什么】模型对"紧邻待生成位置"的显式状态最敏感；追加（而非改写历史）
+    还能保持 KV Cache 前缀稳定。
     """
-    
-    def __init__(self, api_key: str, provider: str = "kimi", 
+
+    def __init__(self, api_key: str, provider: str = "kimi",
                  model: Optional[str] = None, config: Optional[SystemHintConfig] = None,
                  verbose: bool = True):
         """
@@ -188,7 +204,11 @@ Important: When you have completed all tasks, clearly state "FINAL ANSWER:" foll
         ]
     
     def _get_system_state(self) -> str:
-        """Get current system state information"""
+        """Get current system state information
+
+        状态栏技术⑤：采集当前时间 / 目录 / 操作系统 / Shell / Python 版本，
+        让模型能做出平台相关决策（如 macOS 用 brew、Linux 用 apt）。
+        """
         if not self.config.enable_system_state:
             return ""
         
@@ -224,6 +244,7 @@ Important: When you have completed all tasks, clearly state "FINAL ANSWER:" foll
             self.simulated_time += timedelta(hours=hours, minutes=minutes, seconds=seconds)
     
     def _save_trajectory(self, iteration: int, final_answer: Optional[str] = None):
+        """把当前完整上下文（含框架注入的状态栏消息）+ 指标快照写入 trajectory 文件。"""
         """Save current trajectory to JSON file for debugging"""
         if not self.config.save_trajectory:
             return
@@ -299,7 +320,11 @@ Important: When you have completed all tasks, clearly state "FINAL ANSWER:" foll
         return "\n".join(lines)
     
     def _get_system_hint(self) -> Optional[str]:
-        """Get system hint content with current state"""
+        """Get system hint content with current state
+
+        把"系统状态 + TODO 列表"拼成一段状态栏文本（每轮作为一条 user 消息追加到
+        上下文末尾）。两类都被关闭时返回 None，即不注入。
+        """
         if not any([self.config.enable_system_state, self.config.enable_todo_list]):
             return None
         
@@ -508,6 +533,8 @@ Important: When you have completed all tasks, clearly state "FINAL ANSWER:" foll
                 return {"error": str(e)}, str(e), duration_ms
     
     def _get_detailed_error(self, exception: Exception, tool_name: str, arguments: Dict[str, Any]) -> str:
+        """状态栏技术④：把裸异常升级为"异常类型 + 工具参数 + 修复建议"的结构化诊断，
+        引导 Agent 从盲目重试转向分析性排错。"""
         """Get detailed error information for debugging"""
         error_parts = [
             f"Tool '{tool_name}' failed with {type(exception).__name__}: {str(exception)}",
@@ -825,7 +852,10 @@ Important: When you have completed all tasks, clearly state "FINAL ANSWER:" foll
     def execute_task(self, task: str, max_iterations: int = 20) -> Dict[str, Any]:
         """
         Execute a task using available tools with system hints
-        
+        【主循环】每轮：按开关注入状态栏（时间戳/工具计数/TODO/详细错误/系统状态）
+        → 调模型 → 有工具调用则执行（失败时按"详细错误"开关升级为诊断文本）→
+        无工具调用的回复视为最终答案。每轮开始把轨迹写入 trajectory 文件。
+
         Args:
             task: The task to execute
             max_iterations: Maximum number of tool calls

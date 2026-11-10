@@ -1,6 +1,10 @@
 """Quick start demo for Collaboration Tools MCP Server.
 
 This script demonstrates how to use the MCP server as a client.
+
+【中文说明】以 MCP stdio 客户端方式连接协作工具服务器（不启 Docker，直接
+python -m src.main 拉起 stdio server），依次演示子 Agent、HITL、通知等
+工具的标准 MCP 调用流程（list_tools / call_tool / 解析返回）。
 """
 
 import asyncio

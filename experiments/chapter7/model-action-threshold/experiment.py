@@ -5,6 +5,12 @@ The experiment holds the coding harness, prompt, tools, task repositories, and
 sampling order fixed while swapping only the model identifier.  It measures
 how much evidence a model gathers before its first edit and whether acting
 earlier or later leads to a correct, low-rework solution.
+
+【中文】本文件是 7-8「模型行动阈值」实验的主入口：把编码 harness、提示词、
+工具集、任务仓库与采样顺序全部固定，只更换模型 id，测量模型首次编辑前收集
+了多少证据（pre-edit 文件数/工具调用数），以及早动手/晚动手谁更正确、返工更少。
+本地可用 --base-url 指向 LM Studio 以 qwen3.8-27b-splash 最小规模运行
+（1 模型 × 1 任务 × 1 次试验，见报告）。
 """
 
 from __future__ import annotations
@@ -380,6 +386,9 @@ def run_cell(
     policy: str,
     max_turns: int,
 ) -> dict[str, Any]:
+    """【中文】运行一个「模型×任务×试验」单元：把任务仓库复制到临时目录，
+    快照基线并先跑一次基线测试，然后进入 agent 回合循环（模型 -> 工具执行 ->
+    观察），记录 pre-edit 指标与轨迹；结束后 harness 独立跑测试命令判定通过与否。"""
     started_wall = utc_now()
     started = time.monotonic()
     trace = TraceState(started=started)

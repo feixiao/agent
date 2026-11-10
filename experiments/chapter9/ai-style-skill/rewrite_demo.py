@@ -1,4 +1,9 @@
-"""把 active 规则连同原文交给 LLM 改写，返回 before/after 与证据回执。"""
+"""把 active 规则连同原文交给 LLM 改写，返回 before/after 与证据回执。
+
+这是「去 AI 味」管道的最后一环：只把通过独立金标校准的 active 规则
+（不含任何预置换写模式）交给模型，按规则改写一段刻意集齐八类 AI 味的
+演示文案，并把原始 API 请求/响应留作证据回执。
+"""
 
 from __future__ import annotations
 
@@ -57,6 +62,7 @@ def rewrite_with_llm(
 
 
 def _load_active_rules() -> List[Dict[str, Any]]:
+    """从 skill/rules.json 读取当前已激活（active）的规则；文件不存在时提示先运行完整管道。"""
     import json as _json
     from pathlib import Path
 
@@ -67,6 +73,7 @@ def _load_active_rules() -> List[Dict[str, Any]]:
 
 
 def main() -> int:
+    """独立运行改写演示：读取 active 规则 → 改写演示文案 → 打印 before/after。"""
     import argparse
 
     parser = argparse.ArgumentParser(description=__doc__)

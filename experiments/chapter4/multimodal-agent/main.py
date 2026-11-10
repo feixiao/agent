@@ -1,6 +1,11 @@
 """
 Main entry point for Multimodal Agent
 Demonstrates different extraction modes and model capabilities
+
+【中文说明】主入口：--mode native|extract_to_text 选提取范式，--model 选
+（注册表内的）模型，--file/--query 指定单个文件与问题，--interactive 交互模式。
+依赖 agent.py（需 google-genai 包）；本机缺该包时 import 失败 → BLOCKED。
+完全离线的样例生成见 create_sample.py。
 """
 
 import asyncio

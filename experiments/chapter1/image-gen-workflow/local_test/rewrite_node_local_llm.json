@@ -1,0 +1,45 @@
+{
+  "requirement": "帮我画一盆放在窗台上的绿植，早晨的阳光刚好照进来",
+  "rewrite": {
+    "prompt": "masterpiece, best quality, highly detailed, a lush potted green plant on a wooden windowsill, terracotta pot, morning sunlight streaming through a large window, warm golden light, soft rays illuminating the leaves, dappled light and shadow, dust particles floating in the light beam, shallow depth of field, cozy interior, peaceful serene atmosphere, photorealistic, 8k, natural lighting, vibrant green foliage, gentle bokeh background",
+    "negative_prompt": "lowres, bad anatomy, blurry, watermark, text, deformed, ugly, overexposed, underexposed, dark, harsh lighting, artificial, cartoon, anime, illustration, extra leaves, dead plant, broken pot, cluttered",
+    "style_notes": "将口语描述拆解为写实摄影 tag，补充了陶土花盆、光中浮尘、散景虚化等细节来强化晨光氛围，构图锁定窗台特写，整体偏温暖宁静的生活感。"
+  },
+  "call_record": {
+    "call_id": "161b9c6b7b64",
+    "provider": "local",
+    "model": "qwen3.8-27b-splash",
+    "endpoint": "http://localhost:1234/v1/chat/completions",
+    "started_at": "2026-11-09T16:11:19.917550+00:00",
+    "finished_at": "2026-11-09T16:15:09.286314+00:00",
+    "latency_ms": 229369.3,
+    "status": "ok",
+    "request": {
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是 Stable Diffusion 风格的文生图提示词专家。用户会给你一句口语化的中文需求，\n你需要把它改写成经典文生图模型（如 Stable Diffusion / FLUX）能消化的提示词。\n\n要求：\n1. prompt 字段：逗号分隔的英文 tag，先主体后细节，包含质量词\n   （如 masterpiece, best quality, highly detailed），必要时包含画风、构图、光线、情绪词。\n2. negative_prompt 字段：逗号分隔的英文负面提示词（如 lowres, bad anatomy, blurry, watermark, text 等）。\n3. style_notes 字段：一句中文，说明你这次改写做了哪些关键增补/取舍。\n4. 只输出一个 JSON 对象，不要输出任何其他文字。格式：\n{\"prompt\": \"...\", \"negative_prompt\": \"...\", \"style_notes\": \"...\"}\n"
+        },
+        {
+          "role": "user",
+          "content": "帮我画一盆放在窗台上的绿植，早晨的阳光刚好照进来"
+        }
+      ]
+    },
+    "response_id": "chatcmpl-05eb3ki25t9rmxsnz8e1zn",
+    "usage": {
+      "completion_tokens": 534,
+      "prompt_tokens": 211,
+      "total_tokens": 745,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": null,
+        "audio_tokens": null,
+        "reasoning_tokens": 328,
+        "rejected_prediction_tokens": null
+      },
+      "prompt_tokens_details": null
+    },
+    "error": null,
+    "raw_output": "{\"prompt\": \"masterpiece, best quality, highly detailed, a lush potted green plant on a wooden windowsill, terracotta pot, morning sunlight streaming through a large window, warm golden light, soft rays illuminating the leaves, dappled light and shadow, dust particles floating in the light beam, shallow depth of field, cozy interior, peaceful serene atmosphere, photorealistic, 8k, natural lighting, vibrant green foliage, gentle bokeh background\", \"negative_prompt\": \"lowres, bad anatomy, blurry, watermark, text, deformed, ugly, overexposed, underexposed, dark, harsh lighting, artificial, cartoon, anime, illustration, extra leaves, dead plant, broken pot, cluttered\", \"style_notes\": \"将口语描述拆解为写实摄影 tag，补充了陶土花盆、光中浮尘、散景虚化等细节来强化晨光氛围，构图锁定窗台特写，整体偏温暖宁静的生活感。\"}"
+  }
+}

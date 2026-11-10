@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
-"""Run repeated seeded real-model arms for Experiment 9-9."""
+"""实验 9-9 验收入口：真实模型三臂 × 多 seed 的重复纵向战役。
+
+对 static/append_only/evolving 三臂各跑多个固定 seed，用真实 LLM 执行
+14 个任务的四阶段任务流，输出迁移、规则替换、保持、负迁移与成对统计
+（均值/标准差/t 分布 95% 置信区间），证据写入 validation/<run>/。
+本地限制：需按 .env 配置 provider 的 API Key（付费外部服务）；
+单 arm 单次约 14 次 LLM 调用。
+"""
 
 from __future__ import annotations
 

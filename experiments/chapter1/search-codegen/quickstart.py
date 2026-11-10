@@ -2,6 +2,10 @@
 """
 Quick Start Demo for GPT-5 Native Tools Agent
 Demonstrates basic usage of web_search and code_interpreter tools
+
+【中文说明】快速上手演示：分别展示 web_search / code_interpreter 两个托管
+工具的调用与输出。依赖 OpenRouter 的 Key（外部付费 API），本地无 Key 时
+无法联网运行；离线查看请求体请用 main.py --dry-run。
 """
 
 import os

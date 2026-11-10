@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Create normal, long-pause and background-noise variants from one WAV."""
+"""从一条源 WAV 生成 normal / 长停顿 / 背景噪声 三个实验场景（ffmpeg 离线处理）。"""
 
 import argparse
 import subprocess

@@ -1,4 +1,10 @@
-"""Reranker module using BGE-Reranker-v2 model."""
+"""神经重排序模块：用 BGE-Reranker-v2（FlagEmbedding 交叉编码器）对融合后的候选精排。
+
+作用：BM25/向量各自打分的量纲不可比、精度有限；交叉编码器把 (query, 文档)
+成对输入，直接建模相关性，能纠正初排里的"看着像但答非所问"。
+注意：依赖 FlagEmbedding + 模型权重，本地未安装该库（BLOCKED），
+离线可用 evaluate.py --no-rerank 跳过本阶段。
+"""
 
 import torch
 from typing import List, Tuple, Dict, Any, Optional

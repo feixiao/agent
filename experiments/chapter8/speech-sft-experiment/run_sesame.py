@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Run the Sesame CSM paralinguistic-tag half of Experiment 8-6."""
+"""运行实验 8-6 的 Sesame CSM 副语言标签轨道（<laughs>/<giggles>/<sighs> 控制）。
+
+对分层抽样的语音子集做 LoRA 微调，固定种子生成 base/adapted 音频对照，
+并计算留出集损失。需要 CUDA 与 unsloth/snac。
+"""
 
 from __future__ import annotations
 

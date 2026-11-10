@@ -1,4 +1,11 @@
-"""MCP server for execution tools."""
+"""MCP server for execution tools.
+
+【中文说明】执行工具 MCP 服务器（mcp 1.x 低层 API：Server + stdio）：把
+file_tools / execution_tools / extended_tools / external_tools 的工具注册为
+MCP 工具对外暴露。注意：代码按 mcp SDK 1.x 编写（@server.list_tools 等装饰器）；本机 venv
+装的是 mcp 2.x（API 已改名），直接 import 本文件会 AttributeError，
+故 stdio 服务器路径在本机 BLOCKED；不经过 MCP 的 cli.py 路径不受影响。
+"""
 
 import asyncio
 import json

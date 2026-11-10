@@ -4,6 +4,12 @@
 Unlike the old response-file comparison, this module builds memory from every
 test case, invokes real embedding/reranking/chat APIs, runs the answering agent,
 and judges its answer.  All operational metrics come from the actual trajectory.
+
+【中文】本文件是 7-4 / 7-11「用户记忆系统评估」的核心：为每个用例构建记忆库，
+调用真实 embedding / reranker / chat 端点（YAML 配置，全部为付费外部 API），
+跑答题 Agent 并让评审模型按四维 Rubric 打分，指标全部取自真实轨迹。
+另含 7-11 全矩阵（60 用例 × 4 嵌入 × 3 reranker × 2 主模型）的执行配置与
+指纹校验。本地无 embedding 服务且端点需付费 key → 只能跑离线测试（见报告）。
 """
 
 from __future__ import annotations

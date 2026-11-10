@@ -1,6 +1,13 @@
 """
 Configuration for Multimodal Agent
 Supports multiple providers and extraction modes
+
+【中文说明】配置：provider 枚举 + 模型注册表（gemini-3.5-flash / gpt-5 /
+gpt-5.6-luna / doubao-1.6，均为付费/视觉模型），openai_client_args 经
+agentbook.providers.resolve_backend 统一解析端点（.env 的 OPENAI_BASE_URL
+可指向本地 LM Studio，但注册表模型名不变）。注意：注册表没有本地 qwen
+条目，且 gpt-5.6-luna 会按名发到 base_url——本地未加载该模型，
+故 LLM 路径在本机 BLOCKED(视觉/付费模型不可用)。
 """
 import os
 from typing import Optional, Dict, Any

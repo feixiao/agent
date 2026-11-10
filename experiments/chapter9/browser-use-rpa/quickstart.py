@@ -1,8 +1,11 @@
 """
-Quick start script for the Learning Agent.
+Learning Agent 快速上手脚本（交互式菜单）。
 
-This script provides a simple example of how to use the learning agent
-for common tasks.
+提供三个示例任务：Google 搜索、天气查询、自定义任务，外加查看
+工作流知识库统计（选项 4，纯离线）。菜单可键入选项运行；
+LLM 任务需要 llm_factory 能构造出可用模型（本地可用
+--model 之外的环境变量控制；注意默认模型 gpt-5.6-luna 受模型锁死
+规则约束，本地不能真实跑 LLM 任务）。
 """
 
 import asyncio

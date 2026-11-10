@@ -1,7 +1,8 @@
-"""Hybrid Structured Retriever for RAPTOR Hierarchical Trees and GraphRAG Knowledge Graphs.
+"""RAPTOR 层次树 + GraphRAG 知识图谱的混合结构化检索器（实验 3-7 检索层）。
 
-Merges RAPTOR tree summary nodes and GraphRAG entity-relation summaries into a unified retrieval index.
-Performs Reciprocal Rank Fusion (RRF) scoring and evidence citation tracking across hierarchical and graph chunks.
+把树摘要节点与图谱实体-关系摘要合并进统一索引，用 RRF 融合两路排名，
+并保留证据引用链（哪个结论来自哪层节点/哪个社区）。纯 Python + networkx，
+不依赖向量模型，可离线单测。
 """
 
 from __future__ import annotations

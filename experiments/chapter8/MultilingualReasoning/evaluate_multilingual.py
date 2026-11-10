@@ -1,8 +1,9 @@
-"""Multilingual Reasoning Evaluator for AI Agent Book (Chapter 7).
+"""多语言推理评估器（实验 8-7 配套，纯离线逻辑，不加载模型）。
 
-Evaluates LLM reasoning models across multiple languages (English, Spanish,
-French, Chinese, Japanese) measuring CoT language fidelity, task accuracy,
-token usage, and cross-lingual transfer efficiency.
+跨多种语言（英语、西班牙语、法语、中文、日语等）评估 LLM 推理模型，
+测量四个维度：CoT 语言保真度（思维链是否真的用目标语言写）、
+任务准确率、token 用量、跨语言迁移效率。通过脚本传入模型生成函数
+（generate_fn）即可对接任意推理后端。
 """
 
 from __future__ import annotations
@@ -171,6 +172,7 @@ class MultilingualReasoningEvaluator:
         else:
             self.target_languages = [normalize_language(lang) for lang in target_languages]
 
+    # 中文注释：按脚本/文字特征估计思维链是否真用目标语言书写（CJK/假名/拉丁词/特殊字符），0~1 分
     def evaluate_cot_fidelity(self, cot_text: str, target_language: str) -> float:
         """Calculate language fidelity score (0.0 - 1.0) for Chain-of-Thought text."""
         if not cot_text or not cot_text.strip():
@@ -233,6 +235,7 @@ class MultilingualReasoningEvaluator:
             return min(1.0, max(0.0, score))
         return 0.5
 
+    # 中文注释：任务正确性 —— 预测与参考答案归一化后一致记 1.0，否则 0.0
     def evaluate_accuracy(self, predicted_answer: str, reference_answer: str) -> float:
         """Determine task accuracy (1.0 for match, 0.0 for mismatch)."""
         pred = str(predicted_answer if predicted_answer is not None else "").strip().lower()
@@ -394,6 +397,7 @@ class MultilingualReasoningEvaluator:
 
         raise ValueError(f"Model object {type(model)} is not callable and lacks generate/predict methods.")
 
+    # 中文注释：单样本评估主入口 —— 调模型、解析输出、汇总保真度/准确率/token/延迟
     def evaluate_sample(self, model: Any, sample: dict[str, Any]) -> dict[str, Any]:
         """Evaluate a single dataset sample."""
         lang_raw = None
@@ -433,6 +437,7 @@ class MultilingualReasoningEvaluator:
             "token_usage": token_usage,
         }
 
+    # 中文注释：跨语言迁移效率 —— 以英语为基准，比较各非英语语言的相对表现
     def compute_transfer_efficiency(self, by_language_metrics: dict[str, dict[str, Any]]) -> dict[str, float]:
         """Calculate cross-lingual transfer efficiency relative to English.
 
@@ -458,6 +463,7 @@ class MultilingualReasoningEvaluator:
 
         return efficiencies
 
+    # 中文注释：对整个数据集评估并返回分层汇总报告
     def evaluate(self, model: Any, dataset: Sequence[dict[str, Any]]) -> dict[str, Any]:
         """Evaluate model on dataset and compile comprehensive report."""
         def _empty_report() -> dict[str, Any]:

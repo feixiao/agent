@@ -1,6 +1,13 @@
 """
 Ollama Native Tool Calling Implementation
 Uses Ollama's standard tool calling API (requires compatible models)
+
+【本文件是干什么的】
+Ollama 后端的两种工具调用实现：
+- OllamaNativeAgent：用 ollama 官方 Python 包的 /api/chat 原生工具调用；
+- OllamaOpenAICompatible：走 Ollama 的 OpenAI 兼容端点（/v1）。
+注意：两者都只能连 Ollama 服务（默认 http://localhost:11434），
+无法直接指向 LM Studio 等其他 OpenAI 兼容服务。
 """
 
 import json
@@ -15,7 +22,11 @@ logger = logging.getLogger(__name__)
 
 
 class OllamaNativeAgent:
-    """Agent using Ollama's native tool calling support"""
+    """Agent using Ollama's native tool calling support
+
+    基于 ollama 官方客户端；遇到需要思考（think）的模型调用会做降级重试
+    （_chat_with_tool_calls 相关逻辑），工具执行走线程池并行。
+    """
     
     def __init__(self, model: str = "qwen3:0.6b"):
         """

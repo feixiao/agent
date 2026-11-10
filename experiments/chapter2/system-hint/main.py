@@ -1,6 +1,17 @@
 """
 Main entry point for System-Hint Enhanced Agent
 Supports command-line tasks and interactive mode
+
+【本文件是干什么的】
+System-Hint（Agent 状态栏）实验（书中实验 2-9）的主入口。提供四种模式：
+  --mode preview       离线预览五种状态栏技术（无需 API Key，推荐先跑）
+  --mode single        用真实模型执行单个任务（需要 LLM）
+  --mode interactive   交互模式
+  --mode demo/basic|loop|comparison   内置演示（综合 / 循环防护 / 启用禁用对比）
+
+状态栏 = Agent 框架把上下文中的"隐式状态"（时间、工具调用次数、TODO 进度、
+错误详情、系统环境）提炼成显式文本，追加到上下文最末尾（紧邻即将生成的新 token），
+从而改变 Agent 行为。--no-* 参数可分别关闭五类技术观察差异。
 """
 
 import os
@@ -92,7 +103,12 @@ def get_sample_task() -> str:
 
 def execute_single_task(task: str, config: SystemHintConfig = None, verbose: bool = False,
                         provider: str = "kimi", model: str = None):
-    """Execute a single task with the agent"""
+    """Execute a single task with the agent
+
+    【做什么】从环境变量取 API Key，构造带完整状态栏的 Agent 并执行任务（上限 30 轮）。
+    本地运行提示：可用 KIMI_BASE_URL 把端点指向 LM Studio，例如
+    KIMI_BASE_URL=http://localhost:1234/v1 python main.py --mode single --model qwen3.8-27b-splash --task "..."
+    """
     api_key = os.getenv("KIMI_API_KEY") or os.getenv("MOONSHOT_API_KEY") or os.getenv("OPENROUTER_API_KEY")
     if not api_key:
         print("❌ Error: Please set KIMI_API_KEY environment variable")
@@ -462,7 +478,11 @@ def preview_status_bar(config: SystemHintConfig):
 
 
 def main():
-    """Main function with command-line argument support"""
+    """Main function with command-line argument support
+
+    解析 --mode / --task / --demo / --provider / --model 与五类状态栏开关，
+    然后分发到 preview / single / interactive / demo 四种执行路径。
+    """
     parser = argparse.ArgumentParser(
         description=(
             "System-Hint Enhanced AI Agent（对应书中实验 2-9 “Agent 状态栏”）\n"

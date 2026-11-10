@@ -1,5 +1,14 @@
 #!/usr/bin/env python3
-"""Run a fresh, read-only Hermes acceptance review of the candidate patch."""
+"""对候选补丁做一次全新的、只读的 Hermes 验收评审（实验 9-8 评审入口）。
+
+评审者以独立 HERMES_HOME 运行（与被评审的运行互不共享记忆），工具集只有
+terminal（只读检查）。评审前后各取一次 git status，若被评审的 checkout
+被改动则直接抛错——评审者必须只读。
+
+终止裁决按输出中的 VERDICT 行解析：ACCEPT→退出 0，REJECT→退出 3，
+无法解析→退出 4。本地限制：provider 固定 openrouter（付费 API），
+需要 OPENROUTER_API_KEY，缺 Key 时以退出码 2 结束。
+"""
 
 from __future__ import annotations
 

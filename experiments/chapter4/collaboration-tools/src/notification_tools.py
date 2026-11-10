@@ -1,4 +1,9 @@
-"""Notification tools for email and instant messaging."""
+"""Notification tools for email and instant messaging.
+
+【中文说明】多渠道通知工具：email（SMTP）/ slack（webhook）/ telegram（bot API）
+/ discord（webhook）。各渠道凭据未配置（.env 缺对应 Key/URL）时返回
+success=False 及明确错误（如 "Slack webhook URL not configured"），不伪造发送成功。
+"""
 
 import asyncio
 import json

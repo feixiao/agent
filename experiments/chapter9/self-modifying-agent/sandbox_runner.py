@@ -1,4 +1,10 @@
-"""Container entrypoint. Never import this module in the trusted host process."""
+"""沙箱容器入口（在 Docker 容器内运行）；绝不要在可信宿主进程中 import 本模块。
+
+从 stdin 读 JSON 请求（action=validate|metrics），在隔离环境里 exec
+候选源码并跑 7 项行为检查（公共 API 兼容、故障回放、非重试熔断、
+临时故障恢复、旧任务回归、灰度就绪、回滚就绪）或行为指标，
+stdout 输出单行 JSON 结果；任何异常都按「检查不通过」处理（fail-closed）。
+"""
 
 from __future__ import annotations
 

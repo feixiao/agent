@@ -6,6 +6,12 @@ same two questions through native vision, local text extraction followed by a
 text-only model, and an agent that decides whether to invoke a vision tool.
 Every provider call is checkpointed immediately and later copied into the
 immutable campaign receipts.
+
+【中文说明】实验 4-3 的正式 campaign 执行器：把 PNG 图表与含该图表的 PDF
+页面分别交给原生视觉 / 本地文本提取+纯文本模型 / 带视觉工具的 Agent 回答
+相同问题，逐次 provider 调用落 checkpoint（validation/checkpoints）再汇总
+为不可变回执。依赖 agent.py（google-genai）+ 视觉模型；且会写入
+validation/ 目录，本地 BLOCKED(缺依赖: google-genai + 视觉模型未加载)。
 """
 
 from __future__ import annotations

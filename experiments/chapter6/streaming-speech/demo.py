@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
-"""Run Qwen2-Audio growing-prefix perception against VAD + Whisper."""
+"""实验 6-4：Qwen2-Audio「增长前缀」增量感知 对照 VAD + Whisper 传统级联。
+
+对 normal / 长停顿 / 背景噪声 三条音频各跑两臂：
+  - Qwen2-Audio：每 1 秒重新编码 [0:t] 全前缀（并非真流式），记录增量延迟、
+    转写与声学事件（<|silence|>/<|noise|> 等）；
+  - Whisper 基线：本地模型 + 600ms 判停，记录分段、转写与端点后响应延迟。
+归一化（NFKC+繁转简+去标点）后计算 CER，并逐条核对书中结果论断；
+两个模型均本地运行，零付费外部请求。
+"""
 
 from __future__ import annotations
 

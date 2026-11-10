@@ -1,4 +1,9 @@
-"""LLM-based evaluator for agent responses."""
+"""LLM 评审器（实验 3-1 的 llm-judge 指标）：四维 Rubric 打分 + 幻觉一票否决。
+
+对 (用例, 系统回答) 让 LLM 按 precision/recall/reasoning/proactivity 四维打分，
+出现编造事实即 veto（奖励清零）。--evaluator openai 时读取 .env 的
+OPENAI_* 配置，可指向本地 LM Studio；kimi 需外部 Key（本地不可用）。
+"""
 
 import json
 from typing import Dict, Any, Optional

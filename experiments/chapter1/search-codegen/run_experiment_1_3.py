@@ -9,6 +9,12 @@ is NOT gated on the official OpenAI account: any provider whose Responses API
 genuinely closes the search/code loop server-side (currently Alibaba Model
 Studio DashScope ``qwen3.7-plus``) is an eligible acceptance backend. The
 OpenRouter route stays a diagnostic and is never accepted.
+
+【中文说明】本文件是实验 1-3 的验收脚本：对选定的 Responses API 后端
+（openai/dashscope/openrouter）跑两个任务（东盟首都距离 / 比特币指标，
+后者要求先澄清再搜+算），用 output_types / 引用 / 澄清顺序等验收标准判定
+web_search 与 code_interpreter 是否真实由服务端执行，并把凭证级原始
+证据写入 validation/。真实运行需外部 API Key，本地无 Key 时无法跑通。
 """
 
 from __future__ import annotations

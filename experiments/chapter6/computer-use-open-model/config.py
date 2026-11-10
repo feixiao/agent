@@ -1,4 +1,9 @@
-"""Configuration for the provider-neutral Computer Use companion."""
+"""提供商无关的 Computer Use 伴生实验（6-8）配置解析。
+
+通过可移植的 OPEN_MODEL_* 环境变量描述「OpenAI 兼容的视觉模型端点」，
+不绑定任何一家 API 厂商；OPENROUTER_API_KEY 作为文档化参考路线的便捷入口。
+本地 vLLM/SGLang 服务可设 OPEN_MODEL_API_KEY=local 直接对接。
+"""
 
 from __future__ import annotations
 
@@ -41,11 +46,11 @@ def _nonempty(values: Mapping[str, str], name: str) -> str | None:
 
 
 def resolve_endpoint(values: Mapping[str, str] | None = None) -> ModelEndpoint:
-    """Resolve an open-model endpoint without coupling it to one API vendor.
+    """解析开放模型端点，不与某一家 API 厂商耦合。
 
-    ``OPEN_MODEL_*`` is the portable interface. ``OPENROUTER_API_KEY`` is
-    accepted as a convenience because the documented reference route uses it.
-    A local vLLM/SGLang server can set ``OPEN_MODEL_API_KEY=local``.
+    ``OPEN_MODEL_*`` 是可移植接口；``OPENROUTER_API_KEY`` 因为文档化的
+    参考路线（Qwen3-VL 32B 走 OpenRouter）而接受。本地 vLLM/SGLang
+    服务可设 ``OPEN_MODEL_API_KEY=local``。
     """
 
     source = process_environ if values is None else values

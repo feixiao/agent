@@ -11,6 +11,11 @@
 模型：OpenAI SDK，默认 gpt-5.6-luna，function calling。
 可通过 LLM_PROVIDER=openai|moonshot|ark 切换（三者均为 OpenAI 兼容接口）；
 若对应 Key 缺失但设置了 OPENROUTER_API_KEY，则自动改走 OpenRouter 兜底。
+
+本地测试注意：openai 分支 base_url 为 None 时 SDK 自动读取环境变量
+OPENAI_BASE_URL，指向 LM Studio（http://localhost:1234/v1）并用
+LLM_MODEL 指定本地模型即可打本地服务；在线路径还需要真实联网
+（web_search/read_webpage 抓取公网）。
 """
 
 import json

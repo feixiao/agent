@@ -1,8 +1,5 @@
-"""Contextual Memory Evaluator with Dual Memory System
-
-This evaluator tests the combined system of:
-1. Contextual RAG for conversation chunks
-2. Advanced JSON cards for structured facts
+"""双层记忆系统评估器（实验 3-11）：分别测试上下文化 RAG 与高级 JSON 卡片两层
+各自的召回/问答表现，以及两层的消融对比（单层 vs 双层）。LLM 评审部分需 API。
 """
 
 import os

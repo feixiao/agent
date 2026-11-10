@@ -1,4 +1,8 @@
-"""Main entry point for Agentic RAG system"""
+"""上下文感知检索（实验 3-10）主入口：agentic-rag 的同构入口，检索走带前缀索引。
+
+离线的量化对比见 compare_retrieval.py（plain vs contextual 的 BM25 recall）；
+前缀生成见 contextual_chunking.py（需 LLM，本地 LM Studio 可用）。
+"""
 
 import os
 import json

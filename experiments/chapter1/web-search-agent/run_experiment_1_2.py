@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Run Experiment 1-2 through Kimi K3's official Formula web-search tool."""
+"""Run Experiment 1-2 through Kimi K3's official Formula web-search tool.
+
+【中文说明】实验 1-2 的正式验收入口：用 Kimi K3 官方 Formula web_search 跑
+真实搜索并留证（validation/）。需要 Moonshot API Key（外部付费 API），
+本地无 Key 时无法运行；离线路径请用 main.py --provider offline-demo。
+"""
 
 from __future__ import annotations
 

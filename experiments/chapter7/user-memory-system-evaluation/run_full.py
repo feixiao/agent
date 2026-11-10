@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Restart-safe bounded-parallel runner for the full 60-case experiments."""
+"""Restart-safe bounded-parallel runner for the full 60-case experiments.
+
+【中文】本文件是全量 60 用例实验的断点续跑并行运行器：按用例粒度把
+experiment.py 作为子进程调度（有界并发），用 valid_checkpoint 严格校验
+既有结果文件（实验号/请求 id/记录数/Rubric 完整性/配置指纹）后才跳过重跑，
+避免半截结果被误当完成证据。
+"""
 
 from __future__ import annotations
 
@@ -40,6 +46,8 @@ def valid_checkpoint(
     expected_cells: Optional[Set[Cell]] = None,
     expected_config_fingerprint: Optional[str] = None,
 ) -> bool:
+    """【中文】判定一个用例的结果文件是否「可信任的完成态」：ok 记录必须带完整
+    Rubric 四维度与幻觉判定；error 记录在 7-11 中只有当该格不在必跑集合才算合法。"""
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):

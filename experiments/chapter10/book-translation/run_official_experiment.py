@@ -6,6 +6,12 @@ acceptance campaign: it translates Chapters 1 and 2 of the English edition of
 this book (more than 240 KB, with real figures and fenced code), compares the
 four-role Manager workflow with one accumulating Agent conversation, and saves
 quality, wall-clock, context, token, and provenance evidence.
+
+中文说明：实验 10-2 的正式验收活动入口。对真实书籍章节按「Markdown 安全单元」
+切分后双臂对照：四角色 Manager 工作流 vs 单 Agent 累积对话；翻译模型由
+--provider（mistral/ark/openai/openrouter，读环境变量）选择，质量裁判
+（judge）则硬性要求 ARK 或 MISTRAL 的付费 Key（make_judge）。全流程带
+检查点（checkpoint 指纹化，可断点续跑）、裁判回执与溯源 hash 落盘。
 """
 
 from __future__ import annotations
@@ -238,6 +244,7 @@ def _parse_json(text: str) -> dict[str, Any]:
 
 
 def make_judge() -> tuple[OpenAI, str, str]:
+    # 质量裁判端点：硬性要求 ARK 或 MISTRAL 付费 Key（本地无该服务时整条裁判链不可用）。
     if os.getenv("ARK_API_KEY"):
         return (
             OpenAI(api_key=os.environ["ARK_API_KEY"], base_url="https://ark.cn-beijing.volces.com/api/v3"),
@@ -503,6 +510,8 @@ def load_checkpoint(path: Path, fingerprint: str) -> Any | None:
 
 
 def main() -> int:
+    # 主流程：选 provider/模型 → 双臂翻译（带检查点）→ 重组译文 → 确定性保真/一致
+    # 性统计 → 付费裁判盲评 → 汇总 evidence.json（含全程 token/延迟/成本/溯源 hash）。
     parser = argparse.ArgumentParser(description="Official full-scope Experiment 10-2 campaign")
     parser.add_argument("--source", action="append", help="Markdown chapter; repeat (default: book-en ch1/ch2)")
     parser.add_argument("--provider", choices=("mistral", "ark", "openai", "openrouter"), default="mistral")

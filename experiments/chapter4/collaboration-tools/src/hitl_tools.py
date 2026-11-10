@@ -1,4 +1,11 @@
-"""Human-in-the-loop (HITL) tools for requesting admin assistance."""
+"""Human-in-the-loop (HITL) tools for requesting admin assistance.
+
+【中文说明】人类协作（HITL）工具：request_admin_approval（审批）与
+request_admin_input（自由文本输入）。请求进入内存中的 pending 队列并等待
+应答方（管理员模拟者）调用 resolve_* 应答；支持 timeout_seconds 超时与
+urgent 加急、超时后的保守默认值（on_timeout: approve/deny/default），
+演示里用 asyncio 后台协程模拟管理员应答与超时两种场景。
+"""
 
 import asyncio
 import json

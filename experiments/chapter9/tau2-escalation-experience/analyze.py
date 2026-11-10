@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-"""对照三个策略臂在 τ²-bench telecom 迁移集上的结果。
+"""对照三个策略臂在 τ²-bench telecom 迁移集上的结果（纯离线统计）。
 
 除通过率外，还统计三项与提炼规则直接相关的行为指标：
 转人工率、误调用用户侧工具的次数、空参数调用次数。
+注意：SIM 硬编码为原作者机器的路径（/Users/boj/...），本机不存在该
+目录时各臂 stats 返回 None、表格为空——需要改指到本地 simulations 目录。
 """
 import json, sys
 from pathlib import Path

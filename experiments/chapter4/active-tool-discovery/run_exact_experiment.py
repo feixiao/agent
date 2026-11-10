@@ -14,6 +14,13 @@ task constants (AAPL, transformer, openai/openai-python) and resolves dependent
 arguments (the three arXiv IDs and visualization code) after the model selects
 the correct capability.  This keeps external execution safe and repeatable
 without substituting a mock result for a tool call.
+
+【中文说明】实验 4-1 的"论文契约"执行器：经 stdio 从 perception-tools MCP 服务器获取
+126 个完整工具 schema，对照组全量注入、实验组走主动发现（discover_tools 元工具 +
+本地嵌入检索追加 schema），对话模型固定为本地 Ollama qwen3:4b，选中工具通过 MCP
+真实执行（免费外网 API），产出压缩回执 + 哈希存 validation/。
+本地运行前置条件：Ollama 已安装并加载 qwen3:4b（默认 http://127.0.0.1:11434），
+perception-tools 依赖齐全。--resume 支持续跑已中断的 campaign（先校验已有回执）。
 """
 
 from __future__ import annotations
@@ -164,6 +171,8 @@ def extract_json(text: str) -> Any:
 
 
 async def ollama_chat(messages: list[dict[str, str]], *, timeout: float = 900.0) -> dict[str, Any]:
+    # 【中文说明】对话入口：POST 本地 Ollama /api/chat（qwen3:4b，temperature=0、131K 上下文），
+    # 超时 900 秒，keep_alive 30 分钟防止推理中模型被卸载；解析出含合法 JSON 的内容。
     request = {
         "model": MODEL,
         "messages": messages,
@@ -629,7 +638,13 @@ def append_history(messages: list[dict[str, str]], history: list[dict[str, Any]]
 async def run_agent_task(session: ClientSession, schemas: list[dict[str, Any]],
                          index: LocalEmbeddingIndex, strategy: str,
                          task: dict[str, Any], task_dir: Path) -> dict[str, Any]:
-    """One genuine multi-turn loop; only initial schema exposure differs by group."""
+    """One genuine multi-turn loop; only initial schema exposure differs by group.
+
+    【中文说明】单任务多轮循环：control 组 system 里全量注入 126 个 schema；
+    discovery 组只注入 2 个基础工具 + discover_tools 元工具（调用时用本地嵌入
+    索引检索 top-5 并把完整 schema 追加进对话）。工具调用经 MCP 真实执行，
+    逐轮写入轨迹并保存 receipt.json 回执。
+    """
     by_name = {schema["name"]: schema for schema in schemas}
     all_schema_text = render_schemas(schemas)
     if strategy == "control":
@@ -791,6 +806,8 @@ async def run_agent_task(session: ClientSession, schemas: list[dict[str, Any]],
 async def run_group(session: ClientSession, schemas: list[dict[str, Any]],
                     index: LocalEmbeddingIndex, strategy: str,
                     campaign_dir: Path, *, resume: bool = False) -> list[dict[str, Any]]:
+    # 【中文说明】跑一整组（control 或 discovery）的全部任务：逐任务建目录存回执，
+    # --resume 时跳过已有 receipt.json 的任务；返回该组所有任务记录。
     records = []
     for task in TASKS:
         task_dir = campaign_dir / strategy / task["id"]
@@ -1058,6 +1075,9 @@ def build_manifest(campaign_dir: Path) -> dict[str, Any]:
 
 
 async def run(campaign_id: str | None = None, *, resume: bool = False) -> Path:
+    # 【中文说明】campaign 主流程：校验 protocol 契约、拉取 MCP schema 目录并断言
+    # 对照组超 50K token、依次跑两组任务、做门禁校验后写 summary/manifest 到
+    # validation/experiment_4_1/<campaign_id>/，返回 campaign 目录。
     protocol = json.loads(PROTOCOL_PATH.read_text(encoding="utf-8"))
     campaign_id = campaign_id or datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     campaign_dir = VALIDATION_ROOT / campaign_id

@@ -1,9 +1,9 @@
-"""Shared evidence helpers for the Chapter 3 experiment campaigns.
+"""第 3 章各实验 campaign 的共享证据工具。
 
-The helpers deliberately never read or serialize credential values.  Provider
-keys are supplied directly to SDK clients by each campaign; receipts contain
-only the provider name, endpoint, model, request payload, raw response, usage,
-and latency needed to reproduce/audit the experiment.
+提供运行 ID 生成、SHA256 校验、JSON 序列化、ChatRecorder（记录每次 LLM 调用的
+无凭证回执）与 write_campaign_evidence（落盘 evidence/manifest/latest 三件套）。
+刻意不序列化任何密钥值：回执只含 provider 名/端点/模型/请求体/响应/用量/延迟，
+用于复现与审计。
 """
 
 from __future__ import annotations

@@ -223,6 +223,9 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def run_game(args):
+    # 运行主体：解析模式（真人语音 / LLM 模拟器 / 离线 / 在线全 AI）→
+    # 建 TTS/ASR 通道（如需）→ 创建玩家与法官 → 跑完整昼夜循环 →
+    # 打印信息隔离审计 + 自动校验 + 策略审计，并落盘验收报告。
     if args.model:
         os.environ["OPENAI_MODEL"] = args.model
         import werewolf.agent as agent_module

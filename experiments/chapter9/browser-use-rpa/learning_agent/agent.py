@@ -1,8 +1,12 @@
 """
-Learning Agent that extends browser-use with experience-based learning.
+带经验学习的 Agent：在 browser-use 之上做「工作流学习 + 无 LLM 回放」。
 
-This agent wraps the browser-use Agent to capture successful workflows
-and replay them efficiently without LLM calls.
+这个 Agent 做四件事：
+1. 尝试把任务匹配到已学习的（validated）工作流，命中即直接回放，零 LLM 调用；
+2. 未命中则回落到 browser-use 的 LLM 探索模式完成任务；
+3. 把成功执行捕获为工作流（含参数模板化与状态谓词推导），先存为候选；
+4. 候选必须经过「环境重置 + 独立完整回放」验证后才能发布复用；
+   回放失败（页面/API 变化）则作废该工作流版本并回退到 LLM。
 """
 
 import asyncio

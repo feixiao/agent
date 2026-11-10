@@ -481,6 +481,11 @@ def release_manifest(
     *,
     provenance: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
+    """生成发布清单（manifest）：全部检查通过才 release_to_canary，否则 reject。
+
+    关键安全属性：回滚版本/哈希永远钉在稳定版上（候选被拒也不动 stable/）；
+    清单同时保留故障簇、来源轨迹、影响预测与生成器溯源，供事后审计。
+    """
     accepted = candidate.get("changed", False) and bool(checks) and all(checks.values())
     failed = [name for name, passed in checks.items() if not passed]
     contract = diagnosis.get("change_contract", {})

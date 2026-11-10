@@ -1,4 +1,12 @@
-"""LLM helper for safety checks, approval, and summarization."""
+"""LLM helper for safety checks, approval, and summarization.
+
+【中文说明】LLM 辅助（懒加载客户端，纯离线工具不需要 key）：三类 LLM 用途——
+① 危险操作事前审批 request_approval；② 长输出/复杂结果总结；③ 非 Python
+语言的语法检查（Python 走本地 ast）。注意：本实验的 provider 解析只支持
+付费 provider（dashscope/siliconflow/doubao/kimi/openrouter），无 openai
+分支，无法指向本地 LM Studio；本地无对应 key 时审批走 fail-safe 拒绝
+（命令被拦截、不执行），纯本地工具（文件/Python 沙盒/shell 安全命令）不受影响。
+"""
 
 import json
 import datetime as dt

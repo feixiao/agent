@@ -1,5 +1,9 @@
 """
 Search tools: knowledge base, web search, and file download.
+
+【中文说明】搜索工具：search_web（DuckDuckGo HTML 抓取 + BeautifulSoup 解析，
+免费无需 Key）、search_knowledge_base（本地 JSON 知识库）、download_file
+（下载到受限工作区）。依赖 requests + bs4（venv 缺 bs4 时本模块 import 失败）。
 """
 import json
 import logging

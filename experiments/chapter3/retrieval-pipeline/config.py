@@ -1,4 +1,4 @@
-"""Configuration for the retrieval pipeline."""
+"""混合检索流水线（实验 3-6）配置：外部 dense/sparse 服务地址、重排模型、各阶段超参。"""
 
 import os
 from dataclasses import dataclass, field

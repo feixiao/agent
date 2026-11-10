@@ -1,9 +1,17 @@
 """
-Safety Policy Gate Module.
+Safety Policy Gate Module（安全策略门禁，本实验的「可信」静态检查组件）。
 
-Inspects tool call parameters against security rules (path traversal, dangerous bash commands,
-resource limits). Enforces confirmation gates for high-risk operations and triggers automated state
-rollbacks on safety violations.
+对每次工具调用做模型外强制检查：
+1) 路径穿越 / 敏感目录检测（含 URL 双重解码与 realpath 解析）；
+2) 危险 shell 命令模式检测（rm -rf、mkfs、fork 炸弹、管道执行远程代码等）；
+3) 破坏性 SQL 检测（DROP/TRUNCATE、无 WHERE 的 DELETE）；
+4) 资源上限（超时、token、文件大小、内存、线程数）。
+高风险调用需持有「一次性确认 token」（绑定工具名+参数指纹、TTL 过期、
+HMAC 安全比较、用后即毁）才放行；违反安全策略时可触发注册的回滚回调
+把 Agent 状态恢复到最近快照。
+
+本模块是模型不可修改的可信代码：进化流程只能「提案」新门禁模块，
+由这里的规则在模型外部裁决。
 """
 
 import hashlib
@@ -44,7 +52,12 @@ class SafetyGateDecision:
 
 
 class SafetyPolicyGate:
-    """Harness Safety Policy Gate for tool call security inspection and confirmation."""
+    """Harness 安全策略门禁：工具调用安全检查 + 高风险确认 + 违规自动回滚。
+
+    正则规则只是纵深防御（防呆），不是完整沙箱：注释中已标明它拦不住
+    精心构造的绕过（变量展开、base64 管道等），生产环境仍需真正的
+    操作系统级沙箱配合。
+    """
 
     # Patterns for detecting path traversal attempts (applied to all paths)
     PATH_TRAVERSAL_PATTERNS = [
@@ -157,7 +170,12 @@ class SafetyPolicyGate:
             del self._pending_confirmations[token]
 
     def issue_confirmation(self, tool_name: str, params: Dict[str, Any]) -> str:
-        """Generate a single-use non-deterministic confirmation token bound to tool name and parameters."""
+        """签发一次性确认 token：绑定「工具名+参数」的规范化指纹，带 TTL 过期。
+
+        token 用 secrets 随机生成（不可预测）；指纹只取业务参数
+        （剔除 confirm_token/user_confirmed 控制字段），保证换一个参数
+        或换一个工具旧 token 一律失效。
+        """
         self._cleanup_expired_tokens()
         fp = self._fingerprint(tool_name, params)
         token = secrets.token_hex(16)
@@ -165,7 +183,11 @@ class SafetyPolicyGate:
         return token
 
     def verify_confirmation(self, token: str, tool_name: str, params: Dict[str, Any]) -> bool:
-        """Verify and consume a single-use confirmation token."""
+        """校验并消费一次性确认 token（HMAC 常数时间比较，防止时序侧信道）。
+
+        指纹不匹配时故意不删除 token：让调用方可以用正确参数重试，
+        而不是被一次错误的尝试把 token 烧掉。
+        """
         self._cleanup_expired_tokens()
         if not token or token not in self._pending_confirmations:
             return False
@@ -326,7 +348,15 @@ class SafetyPolicyGate:
         confirm_token: Optional[str] = None,
         user_confirmed: bool = False,
     ) -> SafetyGateDecision:
-        """Inspect and validate a tool call against security rules and confirmation policies."""
+        """对一次工具调用做完整安全裁决，返回 SafetyGateDecision。
+
+        裁决顺序（先查严重违规，再查高风险确认，最后放行低风险）：
+        1. 路径穿越 → 直接拒绝并触发状态回滚；
+        2. 危险命令 → 直接拒绝并触发状态回滚；
+        3. 资源超限 → 直接拒绝（不回滚）；
+        4. 高风险操作（删除/force push/破坏性 SQL）→ 需要用户显式确认
+           或一次性确认 token，否则挂起等待确认（pending_confirmation）。
+        """
         params = params if params is not None else {}
 
         # 1. Inspect Path Traversal (Critical Violation)

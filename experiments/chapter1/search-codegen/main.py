@@ -1,6 +1,11 @@
 """
 Main entry point for GPT-5 Native Tools Agent
 Interactive CLI for using web_search and code_interpreter tools
+
+【中文说明】实验 1-3 的入口脚本：支持 interactive / single / dry-run 三种模式，
+后端可选 openai / dashscope / openrouter。web_search 与 code_interpreter 均为
+服务端托管工具，真实运行需外部付费 API Key；--dry-run 只打印请求体、不联网，
+是本地可验证的离线路径。
 """
 
 import sys

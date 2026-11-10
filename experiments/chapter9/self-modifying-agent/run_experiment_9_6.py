@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
-"""Run the real Coding-Agent self-modification campaign for Experiment 9-6."""
+"""实验 9-6 验收入口：真实 Coding Agent 的自修改发布战役。
+
+三条候选（确定性提案 / 真实 LLM 提案 / 故意过宽的反例）走同一组发布门：
+故障回放、非重试熔断、临时故障恢复、旧任务回归、灰度/回滚就绪——
+候选代码只在 Docker 沙箱里被验证（--quick 模式离线，跳过真实 LLM）。
+证据（候选源码、manifest、API 回执）写入 validation/<run>/。
+本地限制：真实 LLM 需付费 Key；沙箱需 Docker（缺失时相关检查失败）。
+"""
 
 from __future__ import annotations
 

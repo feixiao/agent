@@ -1,4 +1,14 @@
-"""Reference and real-model agents for the Experiment 9-9 task stream."""
+"""实验 9-9 任务流用的两类 Agent：可复现参考臂 + 真实模型臂。
+
+- ReferenceAgent：确定性参考实现，只用于对模型外评测框架做单元测试
+  （不依赖任何 LLM，demo.py 默认跑的就是它）。
+- OpenAILongitudinalAgent：真实 LLM 策略，每个任务由模型决策；
+  臂差异（static/append_only/evolving）体现在 act 之后由模型外代码
+  执行的外部记忆更新操作上，模型在看到期望动作之前无法接触它。
+
+本地测试注意：provider=openai 时 base 为 None，SDK 自动读取环境变量
+OPENAI_BASE_URL——指向 LM Studio 即打到本地 qwen3.8-27b-splash。
+"""
 
 from __future__ import annotations
 

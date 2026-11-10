@@ -1,4 +1,10 @@
-"""Run a visual Browser Use trajectory through an open-model API endpoint."""
+"""通过「开放模型 API 端点」跑一条视觉 Browser Use 轨迹（实验 6-8）。
+
+流程：config 解析端点 -> browser-use Agent（use_vision=True，每步最多 1 个动作）
+执行只读天气查询任务 -> 用 httpx 事件钩子把每个请求/响应脱敏留存为
+api-receipts.json -> 留存历史、截图与汇总 -> 写 manifest。
+--dry-run 只校验并打印（脱敏后的）端点配置，不导入 browser-use、不调用 API。
+"""
 
 from __future__ import annotations
 

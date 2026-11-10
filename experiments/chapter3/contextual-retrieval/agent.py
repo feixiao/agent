@@ -1,4 +1,8 @@
-"""Agentic RAG System with ReAct Pattern"""
+"""Agentic RAG 系统（ReAct 模式）：思考 -> 检索工具 -> 观察 -> 再思考，循环直到能作答。
+
+与 agentic-rag 项目同源：这里的服务端版本用 OpenAI 兼容客户端调用 LLM，
+工具集见 tools.py。ReAct 轨迹完整保留，用于"检索次数 / 延迟"对比实验。
+"""
 
 import json
 import logging

@@ -1,7 +1,7 @@
-"""RAG Indexer for User Memory Conversations
+"""用户对话记忆的 RAG 索引器（实验 3-11）：与 3-9 的索引器同构，索引内容换成上下文化块。
 
-This module handles indexing of conversation chunks using the retrieval pipeline service.
-Interfaces with the existing retrieval pipeline on port 4242.
+对话 -> 分块 ->（可选 LLM 情境前缀）-> 索引；检索供 Agent 的 search_user_memory 使用。
+支持 4242 流水线服务或进程内本地 BM25 后端（后者完全离线）。
 """
 
 import os

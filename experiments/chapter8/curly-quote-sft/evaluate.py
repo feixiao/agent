@@ -1,3 +1,12 @@
+"""弯引号作用域 SFT 评估脚本（实验 8-18）。
+
+加载 Qwen3-8B（+可选 LoRA adapter），对 eval/boundary 数据集中每条样本
+生成修订文本，计算三类指标：
+- exact：预测与金标逐字一致（含保护区）
+- curly_count_match：弯引号数量与金标一致
+- protected_preservation：代码/JSON/英文原文等 ASCII 引号片段未被误改
+结果写入 validation/eval_<label>_<split>.json。
+"""
 from __future__ import annotations
 import argparse, hashlib, json, re
 from pathlib import Path
@@ -19,6 +28,7 @@ def protected_segments(target: str) -> list[str]:
     """
     return re.findall(r"`[^`\n]+`|\"[^\"\n]*\"", target)
 def score(pred, target, kind):
+    # 中文注释：单样本打分 —— 弯引号数量 + 保护区片段是否原样保留 + 逐字一致
     eligible = target.count("“") + target.count("”") + target.count("‘") + target.count("’")
     got = sum(pred.count(c) for c in "“”‘’")
     protected = protected_segments(target)
