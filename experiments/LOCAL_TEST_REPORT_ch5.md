@@ -20,7 +20,7 @@
 | code-for-math (5-3) | `demo.py --selfcheck` / `--limit 1 --mode both` / `pytest` / `build_aime_2024.py` | PASS | build_aime_2024.py | selfcheck 11/11；LLM 两臂均 925 ✓；AIME 2024 基准下载构建 30 题成功（revision 锁定） |
 | coding-agent（ledger 未编号） | 驱动：本地端点跑「写 hello.py 并运行」 | PASS | agent.py, config.py, hello_world.py | 本地模型 Write+Bash 完成 hello.py 并输出 `Hello, Agent`，done |
 | conversational-ui (5-14) | `demo.py --quick --no-build`（tool_choice 补丁）/ `pytest` | PARTIAL(vite 构建未验证: 无 node_modules；浏览器 campaign 需 playwright) | 已含中文注释，未重复添加 | LLM 将主色改为 `#2563eb` 写回 theme.css，断言通过；pytest 8 过 |
-| dynamic-form (5-12) | 无（模块级 import bs4 即失败） | BLOCKED(缺依赖: bs4/beautifulsoup4；campaign 需 playwright) | 已含中文注释，未重复添加 | demo 与 pytest 均无法收集（bs4 缺失） |
+| dynamic-form (5-12) | `/tmp 副本`：`pytest`（13）/ `demo.py --offline` / `demo.py`（真实LLM）/ `campaign.py`（真实 Chromium） | PASS（补跑后：原 BLOCKED 解除） | 已含中文注释，未重复添加 | bs4 4.15/playwright 1.64 已装：pytest 13 过；离线三步全通；在线 LLM 生成表单+bs4 校验全通；campaign 11/11 门全过（official_complete=true，真实 headless Chromium 156 执行级联 JS 并一次提交） |
 | erp-agent (5-13) | `demo.py gold` / `demo.py run --only 1 --model qwen3.8-27b-splash` / `pytest` | PASS | 已含中文注释，未重复添加 | gold 10/10；LLM 生成 SQL 与参考一致（886.20 天）；pytest 4 过 |
 | log-diagnosis (5-11) | `demo.py --smoke` / 全流程（response_format 补丁）/ `pytest` | PASS | 已含中文注释，未重复添加 | smoke 3/3+3/3；全流程 2 次真实 LLM 调用：3 问题→3 用例→重放复现 3/3、修复后 2/3（RT-002 为模型生成的断言与内置修复不匹配，属模型输出质量）→mock GitHub 3 Issue；pytest 6 过 |
 | paper-to-ppt (5-6) | 驱动：make_figures + Proposer 本地 LLM | PARTIAL(Slidev 渲染/Vision 审查 BLOCKED: 缺 fitz/playwright；本地模型无视觉) | paper_source.py | 本地 LLM 2 次调用生成 20 页 slides.md（峰值 prompt 3532 tokens） |
@@ -30,7 +30,7 @@
 | small-model-codified-rules (5-5) | `demo.py --selftest` / `--task TB009 --mode both` / `pytest` | PASS | 已含中文注释，未重复添加 | selftest OK；LLM 两臂 TB009 均正确拒绝（1/1，违规 0）；pytest 4 过 |
 | video-edit (5-8) | `demo.py --smoke` / `--quick`(LLM) / `pytest` | PARTIAL(视觉定位 BLOCKED: 本地模型对图像输入返回空) | 已含中文注释，未重复添加 | smoke 剪辑链路+bpy 脚本 OK；文本解析 OK（目标=冲浪场景），vision 步骤返回空；pytest 18 过 |
 
-**汇总：16 = 8 PASS + 5 PARTIAL + 3 BLOCKED**
+**汇总：16 = 9 PASS + 5 PARTIAL + 2 BLOCKED**（补跑后更新：dynamic-form 由 BLOCKED → PASS）
 
 ## 各实验详细记录
 
@@ -231,3 +231,48 @@ models smoke OK: recruiter1 position True
 1. `cad-vs-diffusion/llm.py`：约 52-64 行 `try:` 块含裸 `raise` 且无 `except` 子句 → import 即 SyntaxError（提交 3e05b43 原样带入）。按「只加注释」规则不修复。
 2. `code-for-logic`：合并跑全部 test 文件时 1 个失败，系跨文件 `sys.modules` 注入污染（假 `csp_solver`），逐文件运行全部通过。
 3. LM Studio 兼容性：不支持 `json_object` response_format、function 级 `tool_choice`、图像输入 → 均由 /tmp 驱动 harness 级兼容，仓库零改动。
+
+## 补跑记录（venv 同步后）
+
+补跑时间：2026-11-10。venv 补齐 bs4 4.15.0 / playwright 1.64.1（playwright 浏览器二进制 chromium-1248 已存在，
+实测 `playwright.chromium.launch(headless=True)` OK → Chromium 156.0.8078.4，**未重新下载**）。
+仓库实验代码零改动；demo/campaign 均在 `/tmp/ch5_df` 副本中运行（`generated_form.html` 为仓库内被跟踪文件，
+副本运行避免覆盖；campaign 证据写入 `/tmp/ch5_df/validation/runs/`，仓库 `validation/` 未动）。
+
+### dynamic-form (5-12)
+
+- 命令（/tmp/ch5_df 副本）：
+```
+$ .venv/bin/python -m pytest -q
+  13 passed in 0.78s
+$ .venv/bin/python demo.py --offline
+  [步骤 1] 确定性渲染级联表单 → generated_form.html
+  [步骤 2] bs4 结构化校验（出发城市/日期/单程往返/返程 + 级联 JS）
+  [步骤 3] 模拟一次性提交 → 订票摘要（上海→北京 往返，公务舱，2 件行李）
+  表单字段/级联校验: 全部通过 | 提交 JSON 解析: 成功
+$ env MODEL=qwen3.8-27b-splash OPENAI_API_KEY=not-needed OPENAI_BASE_URL=http://localhost:1234/v1 \
+    .venv/bin/python demo.py            # 在线：真实 LLM 生成表单
+  （真实 qwen 生成 HTML，bs4 校验「表单字段/级联校验: 全部通过」，提交摘要正确 → 航班检索）
+$ env …(同上) .venv/bin/python campaign.py --provider openai --model qwen3.8-27b-splash
+  {
+    "run_id": "20261110T051651Z-5_9-live-browser",
+    "official_complete": true,
+    "gates": { "live_model_generated_complete_html": true,
+               "all_manuscript_fields_present": true,
+               "real_chromium_executed_javascript": true,
+               "return_date_hidden_before_round_trip": true,
+               "return_date_visible_after_round_trip": true,
+               "user_submitted_exactly_once": true,
+               "browser_submission_contains_all_values": true,
+               "agent_consumed_exact_browser_payload": true,
+               "agent_continued_booking_task": true,
+               "raw_provider_receipts_complete": true,
+               "rendered_browser_screenshot_retained": true }
+  }
+```
+- 结论：原 BLOCKED(缺依赖: bs4；campaign 需 playwright) 的两个阻塞因素均已解除——
+  ① bs4 已装 → demo 的在线/离线与 pytest 全部可跑且全通；② playwright + chromium 二进制可用
+  （无需下载，二进制先前已就位）→ 浏览器 campaign 11 道门全过、`official_complete=true`。
+  状态 BLOCKED → **PASS**（demo 离线/在线 + pytest + 真实 Chromium campaign 全部真实跑通，LLM 锁死 qwen3.8-27b-splash）。
+- 备注：demo 的在线模式此前还受「本地端点不支持 json_object」影响吗？——本实验代码未使用
+  `response_format`/`tool_choice`（grep 验证），直连 1234 即可，无需代理。

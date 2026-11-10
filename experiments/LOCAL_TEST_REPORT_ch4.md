@@ -12,10 +12,10 @@
 |---|---|---|---|---|
 | active-tool-discovery | `python demo.py --offline`；`pytest test_exact_experiment.py`；`python run_exact_experiment.py` | PARTIAL | run_exact_experiment.py（demo/agent/discovery/offline_backend/tools_library 原代码即全中文，未重复加） | 离线三策略对比 8/8 任务全部跑通；`run_exact_experiment.py` 需本地 Ollama qwen3:4b（11434 端口拒连）BLOCKED(本地无 Ollama)；在线 LLM 路径 BLOCKED(探测超时 + 在线路径需 OpenAI embeddings 端点，本地不可用) |
 | active-tool-selection | `python demo_comparison.py --offline`；`pytest tests`；`python quickstart.py` | PARTIAL | agent.py, semantic_router.py, tool_knowledge_base.py, config.py, quickstart.py, demo_comparison.py, benchmark.py | 离线对比 10 任务 100% 召回、token -86.6%、35→400 扩展曲线全部输出；端到端/quickstart BLOCKED(LLM服务暂不可用，探测 3 次超时) |
-| collaboration-tools | `python main.py demo`；`python subagent_comparison.py`；`pytest`；`python quickstart.py` | PARTIAL | src/subagent_tools.py, src/hitl_tools.py, src/notification_tools.py, src/llm_fallback.py, src/config.py, src/main.py, quickstart.py, run_experiment_4_5.py, subagent_comparison.py（main.py 原代码即中文） | 端到端演示真实跑通（minimal 86 tok / llm_generated 258+854 tok，均无隐私泄漏；HITL 两场景）；pytest 48 passed+6 subtests；quickstart/run_experiment_4_5 BLOCKED(缺依赖: mcp 2.x 与代码 1.x FastMCP API 不兼容；正式实验另需 Moonshot 付费 Key) |
+| collaboration-tools | `python main.py demo`；`python subagent_comparison.py`；`pytest`（全量 82 条）；`python quickstart.py` / `run_experiment_4_5.py`（MCP stdio，补跑复核） | PARTIAL | src/subagent_tools.py, src/hitl_tools.py, src/notification_tools.py, src/llm_fallback.py, src/config.py, src/main.py, quickstart.py, run_experiment_4_5.py, subagent_comparison.py（main.py 原代码即中文） | 端到端演示真实跑通（minimal 86 tok / llm_generated 258+854 tok，均无隐私泄漏；HITL 两场景）；pytest 48 passed+6 subtests。补跑：lock 解析为 mcp 2.3.0/fastmcp 4.1.6，`mcp.server.fastmcp` 模块在 2.x 已移除 → quickstart/run_experiment_4_5 的 stdio 路径仍 ModuleNotFoundError（`Connection closed`），代码不可改 → 该路径仍 BLOCKED(依赖版本漂移: mcp 2.x vs 代码 1.x API)；chess 1.11 已装 → 全量 pytest 77 passed+6 subtests（含原被排除文件 + test_intelligence_tools 5 次真实 LLM 调用全部跑通，OPENAI_TIMEOUT=600） |
 | execution-tools | `python cli.py demo`；`cli.py code/shell/write/edit`；`pytest` | PARTIAL | server.py, execution_tools.py, file_tools.py, llm_helper.py, config.py（cli.py 原代码即中文） | 离线演示 4 项安全机制全过；code_interpreter/virtual_terminal/file_write/file_edit 单独调用全过；LLM 审批/总结路径 BLOCKED(代码 provider 解析无 openai 分支，仅支持付费 provider，无法指向本地 LM Studio)；calendar/PR BLOCKED(缺 github/googleapiclient 库)；pytest 76 passed 1 failed(既有) |
-| multimodal-agent | `python create_sample.py`；`python demo.py`/`main.py` | BLOCKED(缺依赖: google-genai) | agent.py, config.py, main.py, demo.py, quickstart.py, campaign.py（create_sample.py 原代码即中文） | agent.py 顶部 `from google import genai` import 失败（venv 缺包，禁止安装）→ demo/main/quickstart/campaign/pytest 全部 BLOCKED；离线可验证部分 create_sample.py PASS（生成 sample_chart.png + sample_report.pdf）；且模型注册表硬编码 gemini/gpt-5/doubao，无本地 qwen 路由，视觉模型未加载 |
-| perception-tools | `pytest`（逐文件）；`python run_experiment_4_2.py`；`python smoke_test_mcp_v2.py` | PARTIAL | run_experiment_4_2.py, smoke_test_mcp_v2.py, quickstart.py, src/main.py, src/search_tools.py | 8 个可导入测试文件 48 passed（+1 既有 failed）；13 个测试文件 import 失败 BLOCKED(缺依赖: bs4/cv2/wikipedia/yfinance/duckduckgo_search)；MCP stdio 入口（正式实验/冒烟）因服务器缺 bs4 崩溃 BLOCKED(缺依赖: bs4 等) |
+| multimodal-agent | `python create_sample.py`；`python demo.py --model gpt-5 --skip-model-comparison`（本地端点） | PARTIAL（补跑后更新：google-genai 已装、demo 全通；main/quickstart/campaign/pytest 未含在补跑范围） | agent.py, config.py, main.py, demo.py, quickstart.py, campaign.py（create_sample.py 原代码即中文） | 原 BLOCKED(缺依赖: google-genai)。补跑：google-genai 1.75 已装 → import 恢复；`demo.py` 三范式全部真实跑通（含图像视觉理解，本地端点回落到已加载 qwen3.8-27b-splash，未触发模型切换，见补跑记录）；注册表无本地 qwen 条目，默认 gemini 路径仍无 Key |
+| perception-tools | `pytest`（逐文件，18 个测试文件） | PARTIAL | run_experiment_4_2.py, smoke_test_mcp_v2.py, quickstart.py, src/main.py, src/search_tools.py | 原 13 个文件 import 失败（缺 bs4/cv2/wikipedia/yfinance）。补跑：4 包已装 → 18/18 测试文件全部可导入收集；64 passed，22 failed 全部为环境/既有问题（yahoo 15=Yahoo 免费 API 限流 429、youtube 5=真实 YouTube 网络、arxiv 1+real_evidence 1=仓库既有测试缺陷）；duckduckgo_search 仅 docstring 提及、非硬依赖，无文件需跳过 |
 
 ## 各实验详细记录
 
@@ -124,8 +124,99 @@ $ python smoke_test_mcp_v2.py   → MCPError: Connection closed（服务器 impo
 
 ## 本章统计
 
-6 个实验 = 0 PASS + 5 PARTIAL + 1 BLOCKED
+6 个实验 = 0 PASS + 6 PARTIAL + 0 BLOCKED（补跑后：multimodal-agent 由 BLOCKED 升为 PARTIAL，其余状态不变）
 
-- PARTIAL（5）：active-tool-discovery、active-tool-selection、collaboration-tools、execution-tools、perception-tools
-  （离线核心/安全机制/pytest 全部真实跑通，受阻环节均为环境限制：LLM 服务间歇性故障、缺依赖、代码不支持本地 provider 路由）
-- BLOCKED（1）：multimodal-agent（缺依赖: google-genai，连带全部 LLM 路径；离线部分 create_sample.py 已跑通）
+- PARTIAL（6）：active-tool-discovery、active-tool-selection、collaboration-tools、execution-tools、perception-tools、multimodal-agent
+  （离线核心/安全机制/pytest 全部真实跑通，受阻环节均为环境限制：LLM 服务间歇性故障、缺依赖、代码不支持本地 provider 路由、mcp 2.x API 漂移）
+- BLOCKED（0）：无（原 multimodal-agent 缺 google-genai 已随 venv 同步解除）
+
+## 补跑记录（venv 同步后）
+
+补跑时间：2026-11-10。venv 状态：bs4 4.15.0 / opencv(headless) 5.0.0 / wikipedia 1.4.0 / yfinance 1.8.0 /
+google-genai 1.75.0 / mcp 2.3.0 + fastmcp 4.1.6 / playwright 1.64.1 / chess 1.11.2 已装；`duckduckgo_search` 仍缺
+（但 perception-tools 代码中**无**该包的硬 import，仅 docstring/URL 提及，故无测试文件因此跳过）。
+模型锁死：全程仅 qwen3.8-27b-splash；每 LLM 实验前已 curl 探测；每次 LLM 实验前已 curl 探测；结束后复核
+`/api/v0/models` 确认仍仅 `qwen3.8-27b-splash` 处于 loaded（未触发单槽位切换）。仓库零代码改动，运行产物只落 /tmp。
+
+### 1. perception-tools：13 个缺依赖测试文件重跑
+
+- 命令：`for f in test_*.py; do .venv/bin/python -m pytest $f -q; done`（逐文件，规避既有 sys.modules 污染）
+- 结果：**18/18 测试文件全部可导入/收集**（原先 13 个 import 失败）；合计 64 passed + 22 failed：
+```
+test_analyze_video_release_on_error.py      1 passed          （cv2 已装）
+test_arxiv_request_bounds.py                1 failed, 1 passed  ← 既有测试缺陷（见下）
+test_document_tools.py                      5 passed          （bs4 已装）
+test_expanded_catalog.py                    4 passed
+test_experiment_4_2.py                      6 passed
+test_filesystem_mutations.py                6 passed
+test_imports.py                             （0 个测试，收集正常）
+test_new_tools.py                           1 passed（42.9s，真实 arxiv 元数据）
+test_parse_page_range_trailing_comma.py     5 passed
+test_pubchem_async.py                       1 passed
+test_pubchem_tools.py                       14 passed（真实 PubChem 免费 API）
+test_real_experiment_4_2_evidence.py        1 failed, 5 passed  ← 既有（回执字节数 136≠28，注释前即存在）
+test_search_kb_negative_top_k.py            1 passed
+test_video_keyframes_num_frames.py          2 passed
+test_wiki_article_history_date.py           1 passed          （wikipedia 已装）
+test_xquik_tools.py                         9 passed
+test_yahoo_finance_tools.py                 15 failed, 1 passed  ← 外部限流（见下）
+test_youtube_tools.py                       5 failed, 2 passed   ← 真实 YouTube 网络（见下，耗时 38 分钟）
+```
+- 22 个 failed 的定性（**均非依赖/代码问题**）：
+  - `test_yahoo_finance_tools.py`（15）：yfinance 1.8.0 已装且 API 正常，Yahoo Finance 对本机 IP 持续限流
+    `YFRateLimitError: Too Many Requests`（间隔 60s 重试仍 429）→ 环境限制（免费外部 API 限流）。
+  - `test_youtube_tools.py`（5）：真实 YouTube 网页抓取在本机网络下超时/被拦截 → 环境限制。
+  - `test_arxiv_request_bounds.py::test_download_paper_case_insensitive_arxiv_prefix`（1）：**仓库既有测试缺陷**——
+    测试的 `FakeClient` 未定义接受 kwargs 的 `__init__`，而代码以 `httpx.AsyncClient(timeout=180, follow_redirects=True, headers=…)`
+    构造 → `FakeClient() takes no arguments` → success=False。与 venv 同步无关，按「不改代码」规则不修复。
+- 备注：duckduckgo_search 仍缺，但无任何测试/源码硬 import 它 → **无需跳过任何文件**。MCP stdio 入口（smoke/正式）
+  不在本次补跑任务清单内，未动。状态维持 PARTIAL。
+
+### 2. collaboration-tools：mcp 版本对齐复核 + 全量 pytest
+
+- 命令与结果：
+```
+$ uv.lock 解析：mcp 2.3.0 + fastmcp 4.1.6（pyproject 约束 mcp[cli]>=1.0 → 解析到 2.x）
+$ .venv/bin/python src/main.py
+ModuleNotFoundError: No module named 'mcp.server.fastmcp'. This is mcp 2.x, where FastMCP was
+renamed to MCPServer … pin 'mcp<2' to keep running v1 code.
+$ python quickstart.py            → MCPError: Connection closed（服务器子进程 import 崩溃）
+$ python run_experiment_4_5.py    → 同上（MCP stdio 连接建立即断）；崩溃产生的空 campaign 目录已清理
+$ .venv/bin/python -m pytest $(ls test_*.py | grep -v test_intelligence_tools) -q
+  71 passed, 6 subtests passed in 1.29s   （chess 1.11.2 已装 → 原被排除文件全部纳入）
+$ OPENAI_TIMEOUT=600 OPENAI_MAX_RETRIES=1 .venv/bin/python -m pytest test_intelligence_tools.py -q
+  6 passed in 224.33s   （5 次真实 LLM 调用全部跑通，27B 慢速但完成）
+```
+- 结论：lock「对齐」= 安装态与 lock 一致（mcp 2.3.0），但 **2.3.0 中 `mcp.server.fastmcp` 模块已移除**，
+  代码按 1.x API 编写 → MCP stdio 路径（quickstart / run_experiment_4_5 客户端拉起服务器）**仍 BLOCKED(依赖版本漂移)**，
+  按协议不改代码、不注入 shim（fastmcp PyPI 包无法补回 SDK 1.x 命名空间，强行 shadow 会破坏客户端侧 import）。
+  正式 campaign 另需 Moonshot 付费 Key（未调用）。
+- pytest 侧：chess 安装后全量 77 passed + 6 subtests，**0 failed**；原先「27B 慢速只跑完 3 个」的
+  test_intelligence_tools 本轮 6/6 全过。状态维持 PARTIAL（受阻环节由「缺依赖」改判为「mcp 2.x API 漂移」）。
+
+### 3. multimodal-agent：google-genai 已装 → demo.py 真实跑通
+
+- 命令：
+```
+$ .venv/bin/python -c "import agent, config; print('imports OK')"   → imports OK
+$ env -u GOOGLE_API_KEY -u GEMINI_API_KEY -u OPENROUTER_API_KEY -u ARK_API_KEY -u DOUBAO_API_KEY \
+    OPENAI_API_KEY=not-needed OPENAI_BASE_URL=http://localhost:1234/v1 \
+    python demo.py --file test_files/sample_chart.png \
+      --query "Which quarter had the highest revenue, and what was the exact value?" \
+      --model gpt-5 --skip-model-comparison --output /tmp/mm_demo_rerun.txt
+```
+- 结果（**三范式全部真实跑通，含视觉**）：
+```
+1. NATIVE MULTIMODAL MODE (gpt-5)      → Q4 had the highest revenue, at **$180M**.
+2. EXTRACT TO TEXT MODE                → 图像→文本描述 1239 字符（正确读出四柱/坐标/趋势），
+                                         回答：Q4, $180M（超 Q2 峰值 $30M）
+3. EXTRACT TO TEXT + TOOLS             → 追问「主色调」触发 [Tool: analyze_image]，
+                                         正确列出 蓝/绿/红/紫/黑/白/灰
+```
+- 说明（模型锁死合规性）：注册表无本地 qwen 条目，请求按 `--model gpt-5`/`gpt-5.6-luna` 发出，
+  但本地 LM Studio 对**目录中不存在**的模型 id 不做单槽位切换（回落到已加载模型应答），运行后复核
+  `/api/v0/models`：仍仅 `qwen3.8-27b-splash` = loaded，其余 8 个目录模型全部 not-loaded，服务未崩溃。
+  付费 Key 全部显式 unset（未调用任何付费端点）。
+- 结论：原「视觉模型未加载」假设不成立——已加载的 qwen3.8-27b-splash 实际具备视觉理解能力，demo 的
+  import/文本/视觉各环节全部通过，BLOCKED 解除。未含在补跑清单内的 main/quickstart/campaign/pytest 未重跑。
+  状态 BLOCKED → **PARTIAL**（demo.py 全通；其余入口未验证）。

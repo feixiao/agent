@@ -11,7 +11,7 @@
 
 | 实验 | 命令 | 状态 | 已加注释文件 | 关键输出/说明 |
 |---|---|---|---|---|
-| agent-cost-analysis | `demo.py --offline --scenario ab`（在线 `--live` 尝试 3 次） | PARTIAL | demo.py, agent.py（tracer.py/config.py 原已全中文注释） | 离线 A/B 表完整跑通：B 优化较 A 朴素总成本 -30.0%（$0.003776→$0.002643），A 是 B 的 1.43 倍；在线路径被 60s 硬编码客户端超时阻塞 |
+| agent-cost-analysis | `demo.py --offline --scenario ab`；`demo.py --live --scenario ab --model qwen3.8-27b-splash`（补跑：OPENAI_TIMEOUT=600 已设但代码不读取，服务空闲下 16 轮真实调用全部 <60s） | PASS（补跑后：在线路径真实跑通） | demo.py, agent.py（tracer.py/config.py 原已全中文注释） | 离线 A/B 表完整跑通（-30.0%，A 是 B 的 1.43 倍）；补跑在线 `--live` A/B 真实跑通：A $0.003417 / B $0.002581（-24.5%，A 是 B 的 1.32 倍，16/16 轮无超时，单轮 14~43s）；`config.py` 硬编码 `timeout=60.0` 不读 OPENAI_TIMEOUT（按指令记录，未改代码），并发高峰下仍可能 60s 超时；LM Studio 不返回 cached_tokens（观测受限，见补跑记录） |
 | android-world | `pytest test_experiment.py` | BLOCKED(设备) | experiment_core.py, run_controlled_experiment.py, test_experiment.py | 19 passed；主入口 `run_controlled_experiment.py` 需真实 Android emulator + 外部 android_world checkout（本地未克隆） |
 | elo-leaderboard | `cli.py pipeline --source simulate --models alpha beta --num-battles 40 --method bradley-terry --bootstrap 20` | PARTIAL | battle_simulator.py, bradley_terry.py（cli.py 原已中文注释） | 离线模拟 2 模型×40 场 → BT 评分+95%CI → 排行榜；online-elo 与 42 条 pytest 全过；LLM 评判路径需付费 Anthropic/OpenRouter |
 | experiment-7-2-human-benchmark | 离线校验 results/manifest JSON | BLOCKED(设备+人工+外部checkout) | run_android_human.py | 18/18 记录完整、13 通过；发现 selection_manifest.json 实际哈希与预登记哈希不一致（见详细记录） |
@@ -150,6 +150,37 @@ judge_rubric: response_format=json_object 本地返回 400 -> 不可用
 
 ## 本章统计
 
-12 个实验目录 = **3 PASS**（model-action-threshold、model-benchmark、public-health-reporting-eval）+ **2 PARTIAL**（agent-cost-analysis、elo-leaderboard）+ **7 BLOCKED**（android-world(设备)、experiment-7-2-human-benchmark(设备+人工)、openvla-robotwin2-eval(GPU)、tau2-bench-eval(外部仓库)、tts-quality-eval(付费TTS)、user-memory-policy-eval(付费API)、user-memory-system-evaluation(付费API+embedding)）。
+12 个实验目录 = **4 PASS**（agent-cost-analysis〈补跑后：在线路径真实跑通〉、model-action-threshold、model-benchmark、public-health-reporting-eval）+ **1 PARTIAL**（elo-leaderboard）+ **7 BLOCKED**（android-world(设备)、experiment-7-2-human-benchmark(设备+人工)、openvla-robotwin2-eval(GPU)、tau2-bench-eval(外部仓库)、tts-quality-eval(付费TTS)、user-memory-policy-eval(付费API)、user-memory-system-evaluation(付费API+embedding)）。
 
 所有可离线验证部分（pytest 合计 137 条全过：android-world 19、elo 42、openvla 6、public-health 19、model-benchmark 15、tts 10、action-threshold 6、memory-policy 4、memory-system 16；另有确定性/模拟/本地 LLM 运行）均已执行；全部 LLM 调用仅请求 `qwen3.8-27b-splash`；未改动任何证据文件。
+
+## 补跑记录（venv 同步后）
+
+补跑时间：2026-11-10。任务：agent-cost-analysis 的在线 `--live` 路径（此前 3 次尝试全部 APITimeout——
+`config.make_client_and_model` 硬编码 `OpenAI(timeout=60.0, max_retries=2)`，叠加多 subagent 并发压 LM Studio
+使单轮耗时冲到 129s）。
+
+- 前置验证（按任务要求）：`config.py` **不读取** `OPENAI_TIMEOUT` 环境变量（三处 client 构造均为字面量
+  `timeout=60.0`，已逐行核对；openai SDK 仅从 env 读 base_url，不读 timeout）→ 按要求记录「代码不读取该变量」，
+  未改代码；仍按指令以 `OPENAI_TIMEOUT=600` 在环境中设置（本例为 no-op，如实记录）。
+- 命令（补跑当天 LM Studio 空闲，curl 探测 200/14.2s；模型锁死 qwen3.8-27b-splash）：
+```
+$ env -u OPENROUTER_API_KEY OPENAI_TIMEOUT=600 OPENAI_BASE_URL=http://localhost:1234/v1 \
+    OPENAI_API_KEY=not-needed python demo.py --live --scenario naive --model qwen3.8-27b-splash --no-warmup
+  8/8 轮全部成功（单轮 15.1s/16.5s/17.8s/18.8s/19.0s/19.7s/22.2s/32.1s…42.8s，全部 <60s，零 APITimeout）
+  A 朴素：输入 17642 tok | 缓存 0 | 工具注入 10749 | 输出 1280 | 合计时延 177.4s | $0.003414
+$ env … python demo.py --live --scenario ab --model qwen3.8-27b-splash --no-warmup --save-trace /tmp/aca_live_trace.json
+===== A/B 成本对比（同一个 8 轮客服退款任务）=====
+方案                     总输入tok   缓存tok   缓存率   输出tok   总成本($)   vs基线
+A 朴素(无缓存/无压缩)      17663        0      0.0%     1280     0.003417     基线
+B 优化(KV缓存+压缩)       12087        0      0.0%     1280     0.002581     -24.5%
+总 token: A=18943 → B=13367 减少 5576 (29.4%)   成本倍率: A 是 B 的 1.32 倍
+```
+- 结论：**在线 `--live` 最小规模（默认 8 轮 ×A/B 两臂 = 16 次真实 LLM 调用）完整跑通**，零超时——
+  此前 3 次失败是「60s 硬编码超时 × 并发高峰 129s/轮」叠加所致；服务空闲（单轮 14~43s）时 60s 预算足够，
+  在线路径并未被 60s 硬阻塞「永久」封死。真实 trace 落盘 `/tmp/aca_live_trace.json`（仓库零写入）。
+  状态 PARTIAL → **PASS**（离线 + 在线两模式均真实跑通）。
+- 保留的两个诚实限定（环境观测限制，非运行失败）：
+  1) 代码不读 `OPENAI_TIMEOUT` → 若再现并发高峰（单轮 >60s）仍会 APITimeout（max_retries=2 亦硬编码）；
+  2) LM Studio 不返回 `usage.prompt_tokens_details.cached_tokens` → 两臂缓存命中均显示 0%，
+     「B 的缓存省价」在本次观测中体现为压缩带来的输入 token 下降（-29.4%）而非缓存价计费。

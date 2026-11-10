@@ -10,14 +10,14 @@
 
 | 实验 | 命令 | 状态 | 已加注释文件 | 关键输出/说明 |
 |---|---|---|---|---|
-| sparse-embedding (3-5) | `python cli.py --eval`、`python -m pytest` | PARTIAL | bm25_engine.py, quickstart.py（cli.py 原已中文） | 核心 BM25 全通：pytest 8 passed；eval 宏平均 recall@5=0.800/MRR=0.800，"cat" 同义词漏召回=0（设计预期）；HTTP 服务部分 BLOCKED（缺 fastapi，server.py/demo.py 依赖它） |
+| sparse-embedding (3-5) | `python cli.py --eval`、`python -m pytest`；HTTP：`python server.py 4241` + `python demo.py` | **PASS**（venv 同步后补跑） | bm25_engine.py, quickstart.py（cli.py 原已中文） | 核心 BM25 全通：pytest 8 passed；eval 宏平均 recall@5=0.800/MRR=0.800；fastapi 补装后 HTTP 服务补跑全通（启动→10 篇索引→统计→检索→停止，demo + 手工 curl），原 HTTP BLOCKED(缺 fastapi) 环节解锁，见「补跑记录」 |
 | log-sanitization (3-3) | `python main.py --demo`、`python -m pytest tests/` | PARTIAL | main.py, test_loader.py, metrics.py, agent.py（regex_sanitizer.py 原已中文） | 离线 regex 引擎：16 处脱敏/13 类别；pytest 26 passed；LLM 路径 BLOCKED（Ollama 服务未运行、无 OpenRouter 回退 Key） |
-| dense-embedding (3-4) | `python -m pytest` + 临时 ANN 验证脚本 | BLOCKED(缺依赖 FlagEmbedding/colorlog + 无本地 embedding 服务) | config.py, document_store.py, embedding_service.py, main.py, indexing.py | 嵌入模型不可用；ANN 层验证：HNSW recall@5=1.000（500 向量/10 查询，与 numpy 精确 top-k 一致）；ANNOY 在 venv 中库级损坏（裸 annoy 单热向量也只返回 1 个邻居，recall 0.02） |
+| dense-embedding (3-4) | `python -m pytest` + 临时 ANN 验证脚本；服务补跑：临时脚本（已缓存 MiniLM 87MB，8000 端口）+ `python test_client.py` | PARTIAL(venv 同步后补跑；BGE-M3 仍超下载上限) | config.py, document_store.py, embedding_service.py, main.py, indexing.py | FlagEmbedding/colorlog 补装后：服务全部环节（初始化→索引 10 篇→检索→删除→列表）用已缓存 all-MiniLM-L6-v2 真实跑通（384 维/HNSW）；默认 BGE-M3(~2.3GB) 仍超 200MB 下载上限 → 该模型本体 BLOCKED(模型下载超限)；ANNOY 库仍损坏，ANN 走 HNSW；见「补跑记录」 |
 | retrieval-pipeline (3-6) | `python evaluate.py --reranker-model cross-encoder/ms-marco-MiniLM-L-6-v2` | **PASS** | config.py, reranker.py, retrieval_pipeline.py, document_store.py（evaluate.py/fusion.py 原已中文） | 全 5 阶段单进程离线评测跑通：BM25 R@3=0.833 → Dense 1.000 → Hybrid-RRF 1.000 → Weighted 0.958 → +Rerank 0.903；pytest 4 passed；稠密用已缓存 MiniLM，重排模型下载后跑通 |
-| structured-index (3-7) | `python structured_vs_flat_demo.py`、`python -m pytest test_*.py` | PARTIAL | raptor_indexer.py, graphrag_indexer.py, hybrid_retriever.py, document_processor.py（main.py 原已中文） | 离线对比演示全通（图谱多跳/层次树 vs 扁平检索）；pytest 12 passed；索引构建 BLOCKED（缺 loguru/sentence-transformers/umap，main.py 连 `--help` 都起不来；LLM 当时亦不可用） |
-| user-memory (3-1/3-2) | `python main.py --mode demo --memory-mode notes --provider dashscope --model qwen3.8-27b-splash`（env 覆写 DASHSCOPE_BASE_URL 指向本地） | PARTIAL | main.py, conversational_agent.py, background_memory_processor.py, memory_manager.py | 本地 LLM 真实跑通对话 9/10 轮（日志留存）：记忆检索注入、偏好记住/更新均正常；单轮 1–2 分钟，5 分钟规则 kill 于后台记忆处理前；pytest 17 passed |
+| structured-index (3-7) | `python structured_vs_flat_demo.py`、`python -m pytest test_*.py`；补跑：`python main.py build/query`（小 txt + 已缓存 MiniLM + 本地 LLM） | PARTIAL(venv 同步后补跑：缺依赖阻塞解除，RAPTOR 构建/查询全通，GraphRAG 实体抽取受 27B 推理预算限制) | raptor_indexer.py, graphrag_indexer.py, hybrid_retriever.py, document_processor.py（main.py 原已中文） | 离线演示全通；pytest 12 passed；loguru/sentence-transformers/umap 补装后索引构建解锁：RAPTOR 树（本地 27B 摘要）+ query 正常，GraphRAG 管线跑通但 0 实体（27B reasoning 占满写死的 max_tokens=1000 → JSON 解析失败）；见「补跑记录」 |
+| user-memory (3-1/3-2) | `python main.py --mode demo --memory-mode notes --provider dashscope --model qwen3.8-27b-splash`（env 覆写 DASHSCOPE_BASE_URL 指向本地）；补跑同命令 + `OPENAI_TIMEOUT=600` | **PASS**（venv 同步后补跑：后台记忆闭环完整） | main.py, conversational_agent.py, background_memory_processor.py, memory_manager.py | 补跑完整闭环：对话 3/3 轮 → 后台记忆提取 3 条（add_memory×3 + STOP，"Memory update task completed: True"）→ Session 2 跨会话召回正确复述全部偏好 → 正常退出；原 PARTIAL 缺口（5 分钟 kill 于后台处理前）已补齐；pytest 17 passed；见「补跑记录」 |
 | user-memory-evaluation (3-1) | `python main.py --mode compare --metric keyword-recall`、`python -m pytest` | PARTIAL | main.py, framework.py, evaluator.py, models.py（metrics.py 原已中文） | 离线 4 系统对比表：full_context 1.000 / json_cards 1.000 / simple_notes 0.323 / no_memory 0.000 (n=8)；pytest 6 passed；llm-judge BLOCKED（kimi 无 Key；openai 本地路由在但服务被占） |
-| mem0 (3-2) | `python -m pytest test_simple.py` | BLOCKED(缺依赖 mem0ai + 外部 LLM/embedding) | main.py, agent.py | 框架包未安装，agent 无法 import；test_simple 4 passed（不依赖该包的部分）；test_agent_v3 收集报错 |
+| mem0 (3-2) | `python -m pytest test_simple.py test_agent_v3.py`；demo：`python main.py --mode demo`（KIMI_* 指向本地） | BLOCKED(mem0 cloud：embedder 强制 openai，本地无 embeddings 端点) | main.py, agent.py | mem0ai 2.2.1 补装后 import 解锁：pytest 9 passed（test_simple + test_agent_v3 全部收集通过，原 4 passed+收集报错）；Memory 本地 chroma 初始化 OK、LLM 路由本地 OK；但 embedder 写死 openai 云配置 → 首次 memory.add 即 `POST /v1/embeddings 400`（本地无 embedding 模型）→ 记忆闭环 BLOCKED；见「补跑记录」 |
 | memobase (3-2) | `python -m pytest` | PARTIAL | main.py, agent.py | 自研实现、无外部框架依赖：pytest 7 passed；LLM 记忆更新 BLOCKED（默认 kimi 外部付费；本地路由 LLM_PROVIDER=dashscope+env 覆写存在，但 LLM 服务当时不可用） |
 | agentic-rag (3-8) | `python compare_offline.py`、`python -m pytest` | PARTIAL | main.py, agent.py（compare_offline.py/offline_retriever.py 原已中文） | 离线司法检索对比：21372 法条块/288 文档；单次检索证据召回 76% vs 分解式 100%（复杂题 58%→100%）；pytest 7 passed 3 skipped；LLM ReAct 环节 BLOCKED(LLM服务暂不可用) |
 | agentic-rag-for-user-memory (3-9) | `python offline_demo.py`、`python -m pytest` | PARTIAL | main.py, agent.py, indexer.py（offline_demo.py 原已中文） | 离线演示：朴素单次检索决定性证据召回 50% → 智能体 5 轮追查 100%（本田预约+特斯拉双车都取回）；pytest 10 passed；LLM 评审 BLOCKED |
@@ -202,4 +202,102 @@ Contextual（上下文化后索引）     0.750      1.000      0.875
 
 ## 统计
 
-14 个实验 = **1 PASS**（retrieval-pipeline）+ **11 PARTIAL**（sparse-embedding、log-sanitization、structured-index、user-memory、user-memory-evaluation、memobase、agentic-rag、agentic-rag-for-user-memory、contextual-retrieval、contextual-retrieval-for-user-memory、structured-knowledge-extraction）+ **2 BLOCKED**（dense-embedding、mem0）
+14 个实验 = **3 PASS**（retrieval-pipeline、sparse-embedding※、user-memory※）+ **10 PARTIAL**（log-sanitization、structured-index※、dense-embedding※、user-memory-evaluation、memobase、agentic-rag、agentic-rag-for-user-memory、contextual-retrieval、contextual-retrieval-for-user-memory、structured-knowledge-extraction）+ **1 BLOCKED**（mem0※）
+
+（※ = venv 同步补跑后状态变化，见「补跑记录」小节。原口径：1 PASS + 11 PARTIAL + 2 BLOCKED。其中 sparse-embedding 由 PARTIAL→PASS，user-memory 由 PARTIAL→PASS，dense-embedding 由 BLOCKED→PARTIAL（BGE-M3 本体仍超下载上限、ANNOY 仍损坏，故非 PASS）；structured-index 保持 PARTIAL（缺依赖阻塞解除，GraphRAG 实体抽取受 27B 预算限制）；mem0 保持 BLOCKED（原因收窄为 mem0 cloud embedder，pytest 由 4 passed 提升至 9 passed）。）
+
+## 补跑记录（venv 同步后）
+
+> 背景：`uv sync --all-extras` 后 venv 补装/升级 fastapi 0.136.3、FlagEmbedding 1.4.2、colorlog 6.12.0、loguru 0.7.3、sentence-transformers 6.2.0、mem0ai 2.2.1、umap-learn 0.5.12、beautifulsoup4、html2text 等（transformers 5.17.0 / trl 1.15.0）。
+> 模型锁死规则全程遵守：LLM 仅请求 `qwen3.8-27b-splash`（每个 LLM 实验前 curl 探测通过）；HF 只用 `~/.cache` 已缓存的 all-MiniLM-L6-v2(87MB)/cross-encoder(88MB)，无新下载；未装依赖、未改代码/validation/*.json/LEDGER/.env，未 git commit。
+
+### 1. sparse-embedding (3-5)：HTTP 检索服务（原 BLOCKED：缺 fastapi）→ **PASS**
+
+- 命令：`python server.py 4241`（后台启动）→ `python demo.py` → `curl -X POST http://localhost:4241/search` → kill 服务。
+- 输出片段：
+```
+INFO:     Uvicorn running on http://0.0.0.0:4241 (Press CTRL+C to quit)
+   Successfully indexed 10 documents
+   Total documents: 10   Unique terms: 162   Total terms: 242
+   Query: 'machine learning algorithms' (top 3 results)
+   Rank 1:  Score: 2.3624   Title: Introduction to Machine Learning
+   Matched terms: ['machine', 'learning', 'algorithms']
+（手工 curl "how do I learn machine learning"：#1 Machine learning 2.987 / #2 Deep learning 0.838）
+```
+- 结论：启动→清空→索引→统计→结构→检索 全环节经 HTTP 真实跑通，服务正常停止；原「HTTP 服务部分 BLOCKED（缺 fastapi）」环节解锁 → 实验整体 **PASS**。
+
+### 2. dense-embedding (3-4)：索引+检索（原 BLOCKED：缺 FlagEmbedding/colorlog + 无本地 embedding 服务）→ **PARTIAL**
+
+- 模型选择：默认 `BAAI/bge-m3`（~2.3GB）超 200MB 下载上限，且 `main.py` 无 `--model` 参数、`ServiceConfig.from_env()`（`DENSE_MODEL` 变量）在 `main()` 中未被调用 → 按「不得改代码」用临时脚本 `/tmp/dense_service_mini.py`：import 仓库 `main` 模块后注入 `model_name="sentence-transformers/all-MiniLM-L6-v2"`（87MB，HF 缓存已有，`HF_HUB_OFFLINE=1` 禁网）、`use_fp16=False`（macOS CPU），8000 端口起服务（test_client 默认端口）。
+- 输出片段（`python test_client.py`）：
+```
+✅ Service is running   - Index type: hnsw   - Model: sentence-transformers/all-MiniLM-L6-v2
+✅ Indexed 10 documents   - embedding_dimension: 384
+  Query: 'What is deep learning and neural networks?'  (top1 Score: 0.9413)
+  Deleting document: bcf102da-...  Result: ... deleted successfully
+✅ Demo completed successfully!
+```
+  另：`EmbeddingService` 直接初始化验证 dim=384、encode 正常；`pytest -q` 1 passed（与注释期一致）。
+- 结论：嵌入（BGEM3FlagModel 包装小模型）+ HNSW 索引 + 服务全部环节真实跑通；残留限制：① BGE-M3 本体仍 BLOCKED(模型下载超限)；② ANNOY 库在 numpy 2.x 下损坏（原阻塞汇总第 3 条，未变），ANN 验证走 HNSW。整体 **BLOCKED→PARTIAL**。
+
+### 3. structured-index (3-7)：索引构建（原 BLOCKED：缺 loguru/sentence-transformers/umap）→ 保持 **PARTIAL**（阻塞解除，GraphRAG 受模型预算限制）
+
+- 代码中嵌入模型硬编码 `sentence-transformers/all-MiniLM-L6-v2`（87MB，缓存已有）→ 符合小模型规则；LLM 经 `OPENAI_BASE_URL`(.env 本地) + `RAPTOR_MODEL/GRAPHRAG_MODEL=qwen3.8-27b-splash` 指向本地。
+- 命令：`HF_HUB_OFFLINE=1 ... python main.py build /tmp/si_x86_docs.txt --type both`（2 篇 SSE/AVX 小文档），随后 `python main.py query "What registers does AVX use?" --type both --top-k 3`。
+- 输出片段：
+```
+Initialized RAPTOR indexer with model: qwen3.8-27b-splash
+  Created 1 text chunks
+  RAPTOR tree built with 1 nodes and 1 root nodes
+  RAPTOR index built: {'total_nodes': 1, 'root_nodes': 1, 'levels': 1, ...}
+  Extracting entities: 100%|██| 1/1 [00:45<00:00]
+  WARNING Could not parse JSON from LLM response
+  GraphRAG index built: {'total_entities': 0, 'total_relationships': 0, ...}
+  Indexing complete!
+（query） RAPTOR returned 1 results   1. Score: 0.539   Summary: ...   Level: 0
+（query） GraphRAG returned 0 results   ← 退出码 0
+```
+- 结论：loguru 日志、SentenceTransformer 加载（offline 6s）、RAPTOR 构建（本地 27B 摘要 16s）+ 查询全通——「索引构建 BLOCKED(缺依赖)」已解除。GraphRAG 实体抽取：LLM 调用真实发出（45s），但 27B 为推理模型，思考耗掉写死的 `max_tokens=1000` 预算 → content 空/非 JSON → 解析失败 0 实体（两次、中英文文档一致复现，属模型预算而非代码/依赖问题，不得改码）→ 图谱为空。整体保持 **PARTIAL**（原缺依赖缺口补齐，新增模型预算缺口）。
+- 备注：运行副产物 `structured-index/indexes/{raptor,graphrag}/*_index.pkl`（实验代码默认写盘路径，未提交）。
+
+### 4. mem0 (3-2)：demo/pytest（原 BLOCKED：缺 mem0ai）→ 保持 **BLOCKED**（原因收窄：mem0 cloud embedder）
+
+- 命令：`python -m pytest test_simple.py test_agent_v3.py`；`KIMI_API_KEY=local KIMI_API_BASE=http://localhost:1234/v1 MODEL_NAME=qwen3.8-27b-splash OPENAI_TIMEOUT=600 python main.py --mode demo --user-id rerun_user`。
+- 输出片段：
+```
+pytest: 9 passed, 2 warnings（mem0ai 2.2.1 装好后 test_agent_v3 亦可收集）
+agent - INFO - Initialized Mem0 memory system with local backend（chroma ./data/chroma_db）
+  Agent initialized successfully
+  Session 1 —— 首次对话，建立用户画像
+  httpx - HTTP Request: POST http://localhost:1234/v1/embeddings "HTTP/1.1 400 Bad Request"
+  → memory.add 首次嵌入即失败（LM Studio 无 embeddings 模型，/v1/embeddings 返回 "No models loaded"）
+```
+- 结论：mem0ai 补装后框架 import/pytest 全通；但 `agent.py` 中 embedder 写死 `{"provider": "openai", "model": text-embedding-3-small}`（cloud 配置，无本地替代开关）；即便借 `.env` 的 `OPENAI_BASE_URL` 把请求路由到本地，本地单槽位是 27B 对话模型、embeddings 端点不可用（协议既定事实）→ 记忆 add/search 闭环 **BLOCKED(mem0 cloud/无本地 embedding 端点)**，按任务口径记录。
+
+### 5. user-memory (3-1/3-2)：后台记忆闭环重试（原 PARTIAL：5 分钟规则 kill 于后台记忆处理前）→ **PASS**
+
+- 超时规避核查：本实验 `ConversationalAgent`/`BackgroundMemoryProcessor` 的 `OpenAI(...)` 均未写死 timeout（SDK 默认 600s；`conversation_history.py` 的 `timeout=30` 是其自有 REST 接口），代码不读取 `OPENAI_TIMEOUT`——仍按任务指令显式携带 `OPENAI_TIMEOUT=600`（无害），未出现 APITimeoutError。
+- 命令：`DASHSCOPE_BASE_URL=http://localhost:1234/v1 DASHSCOPE_API_KEY=local OPENAI_TIMEOUT=600 python main.py --mode demo --memory-mode notes --provider dashscope --model qwen3.8-27b-splash`（退出码 0，约 5 分钟）。
+- 输出片段：
+```
+👤 User: I'm currently working on a new mobile app project for our company.
+🔄 Processing conversation for memory updates...
+   Memory update task completed: True
+📝 Memory Operations (3 total):
+1. ➕ ADD: Alice is a Product Manager at TechCorp.
+2. ➕ ADD: Alice is currently working on a new mobile app project for TechCorp.
+3. ➕ ADD: Alice prefers Python for scripting, uses VS Code as her IDE, and likes dark themes.
+✅ Summary: 3 added, 0 updated, 0 deleted
+📝 Session 2: Testing memory persistence
+👤 User: What do you know about me and my work?
+🤖 Assistant: Hi Alice! ... Product Manager at TechCorp ... mobile app project ... Python/VS Code/dark themes（全部正确召回）
+👋 Thank you for using User Memory Agent!
+```
+- 结论：对话 3/3 轮 → 后台记忆提取/持久化 → 跨会话（Session 2）召回 正确复述全部 3 条记忆 → 正常收尾。**PARTIAL→PASS**（原缺口补齐）。
+
+### 6. 阻塞汇总补跑覆盖说明
+
+- 阻塞汇总第 2 条（venv 缺包）中**仅因缺依赖**的 LLM 环节按「性价比」挑 2 个补跑：structured-index 构建/查询的 LLM 环节（loguru/sentence-transformers/umap → 已补跑，RAPTOR 全通、GraphRAG 受 27B 预算限制）与 mem0 的 LLM 环节（mem0ai → 已补跑，LLM 路由通、embedder 仍 BLOCKED）。其余缺依赖环节（fastapi/FlagEmbedding/colorlog）分别由第 1/2 条覆盖。
+- 阻塞汇总第 1 条（LM Studio 被占）中的 LLM 环节（agentic-rag 生成、3-9/3-11 评审、3-10/3-11 前缀生成、3-12 阶段 1-2、log-sanitization）**保持 BLOCKED 不动**（按任务要求不补跑；本次服务健康、可后续由用户择机重试）。
+- 补跑期间新增未跟踪文件（实验代码正常写盘，非证据篡改，不删除）：`chapter2/context-compression/logs/strategy_{run,results}_*.log/json`、`chapter3/structured-index/indexes/{raptor,graphrag}/*_index.pkl`。
+- 本次补跑 LLM 请求全部且仅发往 `qwen3.8-27b-splash`（每次实验前 curl 探测；mem0 的 400 为 embeddings 端点、非模型切换）；未下载任何 >200MB 模型；未调用任何付费/外部 API。

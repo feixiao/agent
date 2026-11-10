@@ -6,7 +6,7 @@
 |---|---|---|---|---|
 | agent-skills-ppt | `python demo.py --offline -o output/presentation_offline.pptx`；LLM：`OPENAI_API_KEY=not-needed OPENAI_BASE_URL=http://localhost:1234/v1 python demo.py --model qwen3.8-27b-splash` | PARTIAL(60s 硬编码超时) | demo.py | 离线全流程 PASS（9 页 pptx 生成+校验）；LLM 路径第 1 轮 read_skill 成功后，生成大纲 payload 的轮次 >60s 触发 APITimeoutError（客户端 timeout=60.0 写死，不可改） |
 | attention_visualization | `python -m pytest -q` | BLOCKED(HF 模型下载 >200MB) | main.py, agent.py, visualization.py | 需下载 Qwen/Qwen3-0.6B 权重约 1.2GB，超 200MB 上限且本地无缓存 → LLM 部分 BLOCKED；离线 pytest 8 passed |
-| context-compression | 入口 `python main.py -s combined --model qwen3.8-27b-splash --no-streaming`；核心模块最小演示（临时脚本直接调 ContextCompressor，2 篇文档） | BLOCKED(缺依赖: bs4, html2text) | main.py, compression_strategies.py | main.py/run_all_strategies.py 因 web_tools 顶层 import bs4 无法运行（venv 缺 bs4/html2text，禁止装依赖）；核心压缩模块用本地 LLM 真实验证：combined 1533→863 字符(56.3%)、context_aware 1533→902(58.8%)；pytest 1 passed（2 个依赖 bs4 的测试文件跳过） |
+| context-compression | 入口 `python main.py -s combined --model qwen3.8-27b-splash --no-streaming`；核心模块最小演示（临时脚本直接调 ContextCompressor，2 篇文档） | PARTIAL(venv 同步后补跑，入口已解锁；最小规模 27B 未收敛 final answer，见「补跑记录」) | main.py, compression_strategies.py | venv 同步补装 bs4/html2text 后入口解锁：main.py 与 run_all_strategies.py 最小规模全流程真实跑通（agent 循环/工具/压缩/落盘），但 27B 最小规模下 success=False、压缩比反转；原记录：核心压缩模块本地验证 combined 1533→863(56.3%)、context_aware 1533→902(58.8%)；pytest 1 passed |
 | kv-cache | `KIMI_BASE_URL=http://localhost:1234/v1 MOONSHOT_API_KEY=not-needed python main.py --mode correct --model qwen3.8-27b-splash --no-interactive --root-dir . --task "..."`（再跑 --mode dynamic_system 第二轮） | PARTIAL(LM Studio 不上报 cached_tokens) | main.py, agent.py | 两轮演示均跑通（各 2 轮迭代 / 1 次 read_file / 最终答案 / 结果 JSON 落盘）；缓存列恒 0：本地 usage 无 cached_tokens 字段，属预期；TTFT correct 56.8s→76.9s，dynamic_system 51.3s→107.7s，TTFT 差异在本地噪声范围内，缓存结论仅能以线上报告 cached_tokens 的模型得出 |
 | local_llm_serving | `python check_compatibility.py`、`python main.py --info`、`python -m pytest -q` | BLOCKED(Ollama 服务未安装/未启动，vllm 包缺失) | main.py, agent.py, ollama_native.py | 离线检查全部通过（macOS/arm64/Py3.12，Ollama 包已装但 11434 无服务，无 vllm）；LLM 演示无法运行：代码只支持 ollama/vllm 两个后端，无指向 LM Studio 等任意 OpenAI 兼容端点的参数（--backend 仅 vllm/ollama/auto）；quick_test_streaming.py 是 0 字节空文件；pytest 20 passed / 4 failed（4 个失败全部要求真实 Ollama/vLLM 服务） |
 | prompt-engineering | `OPENAI_API_KEY=not-needed OPENAI_API_BASE=http://localhost:1234/v1 python run_ablation.py --model qwen3.8-27b-splash --model-provider openai --user-model qwen3.8-27b-splash --user-model-provider openai --env retail --end-index 1 --num-trials 1 --max-agent-steps 3` | PASS(最小规模) | run.py, run_ablation.py | tau-bench retail 任务完整闭环（用户模拟器 LLM + Agent 3 步 + 2 次工具调用 + 8 条消息），reward 0.0（3 步截断属最小规模的预期结果），结果存 results_ablation/tool-calling-qwen3.8-27b-splash-baseline_*.json |
@@ -153,16 +153,53 @@ Hi, my name is Yusuf Rossi. I recently received my order #W2378156 ... exchange 
 
 ## 统计
 
-8 个实验 = **1 PASS + 4 PARTIAL + 3 BLOCKED**：
+8 个实验 = **1 PASS + 5 PARTIAL + 2 BLOCKED**（venv 同步补跑后口径，原 1 PASS + 4 PARTIAL + 3 BLOCKED）：
 
 | 状态 | 数量 | 实验 |
 |---|---|---|
 | PASS | 1 | prompt-engineering |
-| PARTIAL | 4 | agent-skills-ppt、kv-cache、prompt-injection、system-hint |
-| BLOCKED | 3 | attention_visualization(HF 下载>200MB)、context-compression(缺依赖 bs4/html2text)、local_llm_serving(无 Ollama 服务/vllm) |
+| PARTIAL | 5 | agent-skills-ppt、kv-cache、prompt-injection、system-hint、context-compression(补跑后入口解锁) |
+| BLOCKED | 2 | attention_visualization(HF 下载>200MB)、local_llm_serving(无 Ollama 服务/vllm) |
 
 环境限制共性说明：
 1. **60s 硬编码客户端超时**（agent-skills-ppt run_agent、prompt-injection make_client）与本地 27B 单调用 60~110s 的推理速度冲突，导致长生成轮次必然 APITimeoutError；代码禁止改动逻辑，无法放宽。
 2. **LM Studio 不上报 cached_tokens**（usage 仅含 completion_tokens_details.reasoning_tokens）→ kv-cache 缓存列恒 0。
 3. **冻结协议 JSON**（prompt-injection / system-hint 的 run_campaign、run_experiment_2_8 固定 Moonshot 付费端点）不可修改，且付费 API 禁止调用。
 4. 所有 LLM 请求均只使用 `qwen3.8-27b-splash`（LM Studio 单槽位保护规则遵守，无其他模型 id 请求）。
+
+## 补跑记录（venv 同步后）
+
+> 背景：`uv sync --all-extras` 后 venv 补装了 beautifulsoup4(4.15.0)/html2text(2025.4.15) 等。
+> 本小节只记录补跑结果；总表 context-compression 行已由 `BLOCKED(缺依赖)` 更新为 `PARTIAL`。
+
+### context-compression（原 BLOCKED：缺依赖 bs4/html2text，入口无法 import）
+
+- 依赖确认：`import main` 成功（`web_tools.py` 的 `from bs4 import BeautifulSoup` / `import html2text` 可解析）；`run_all_strategies.py --list-strategies` 正常输出 6 种策略。
+- 超时规避核查：agent.py / compression_strategies.py 的 `OpenAI(api_key=..., base_url=...)` **未写死 timeout** → openai SDK 默认 600s，无 60s 硬编码；本次仍显式携带 `OPENAI_TIMEOUT=600`（SDK 该版本不读此变量，仅作无害冗余），未出现 APITimeoutError，无需改码。
+- 命令 1（run_all_strategies 最小规模，1 策略）：
+  `MAX_ITERATIONS=5 MODEL_TEMPERATURE=1 LLM_PROVIDER=openai LLM_MODEL=qwen3.8-27b-splash OPENAI_BASE_URL=http://localhost:1234/v1 OPENAI_API_KEY=not-needed OPENAI_TIMEOUT=600 python run_all_strategies.py -s combined -m qwen3.8-27b-splash -n 5`（退出码 0）
+- 命令 2（main.py 入口，非交互 stdin 注 `n`）：
+  同 env + `printf 'n' | python main.py -s combined --no-streaming`（退出码 0）
+- 输出片段（命令 1，324s 完成）：
+```
+Strategy                                 Success    Time(s)    Tokens       Compression  Overflows
+non_context_aware_combined_summary       ❌ No       323.99     16,581       233.2%       0
+  - Successful: 0/1
+JSON results saved to logs/strategy_results_20261110_114448.json
+                             TEST RUN COMPLETE
+```
+- 输出片段（命令 2，524s 完成）：
+```
+RESEARCH COMPLETE
+❌ Failed
+📊 Statistics:
+  Tool Calls: 20          Context Overflows: 0
+  Total Tokens Used: 24,278    Compression Ratio: 280.7%   Space Saved: -15,925 chars
+Try another strategy? (y/n):
+Thank you for using the demo!
+```
+- 结果解读：
+  - **依赖阻塞已解除**——两个入口首次完整跑通：研究 agent 循环（20 次工具调用：search_web 走 mock 数据 + fetch_webpage）、13 次压缩摘要调用全部命中本地 LM Studio（200 OK）、token 统计、流式/非流式、日志与 JSON 落盘全部正常。
+  - 但 `success=False`（5/6 轮内 27B 未给出 final answer，循环到 max_iterations 自然结束，无异常）；且压缩比 >100%（模型把 54 字符的 mock 占位内容"摘要"成 1200+ 字符长文，属 27B 在最小 mock 语料上的行为质量问题，非环境/代码问题）。fetch_webpage 真实外网请求全部 10s 超时（沙箱无外网），代码按设计捕获并缓存错误结果，agent 继续运行。
+  - 状态结论：`BLOCKED(缺依赖)` → **PARTIAL**（入口与全链路可运行；"研究成功+真实压缩收益"需在可联网 + 更强模型/更大语料下验证）。
+- 备注：运行在 `chapter2/context-compression/logs/` 新增 `strategy_run_*.log` 与 `strategy_results_*.json`（实验代码自身正常写盘，未提交）。
