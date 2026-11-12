@@ -1,12 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Autoresearch Benchmark Entrypoint for Mac Standalone TTS
-# Apple Silicon Metal (MPS) Closed-Loop TTS & Fine-Tuning Benchmark
+# Canonical benchmark entrypoint for On-Device Agent Harness (C++20 Native Core)
+# Measures harness turn latency, throughput, routing overhead, and task success rate.
 
-export PYTHONPATH="."
-export PYTHONUNBUFFERED=1
-export PYTORCH_ENABLE_MPS_FALLBACK=1
+BUILD_DIR="core/native_cpp/build"
 
-# Execute deterministic benchmark on Mac Apple Silicon
-uv run python -m mac_standalone_tts.benchmark
+# Ensure binary is compiled
+if [ ! -f "${BUILD_DIR}/harness_benchmark" ]; then
+    mkdir -p "${BUILD_DIR}"
+    cmake -B "${BUILD_DIR}" -S "core/native_cpp" -DCMAKE_BUILD_TYPE=Release > /dev/null 2>&1
+    cmake --build "${BUILD_DIR}" --config Release -j4 > /dev/null 2>&1
+fi
+
+# Execute deterministic benchmark (5000 iterations)
+exec "${BUILD_DIR}/harness_benchmark" 5000

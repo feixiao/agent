@@ -9,6 +9,9 @@ __pycache__/
 # Distribution / packaging
 .Python
 build/
+core/native_cpp/build/
+*.dylib
+*.a
 develop-eggs/
 dist/
 downloads/
