@@ -181,7 +181,12 @@ public:
                 Json args = step_decision.args;
 
                 // 1. Circuit Breaker check for identical loop calls & step limit
-                std::string action_sig = tool_name + ":" + args.dump();
+                std::string args_dump = args.dump();
+                std::string action_sig;
+                action_sig.reserve(tool_name.size() + 1 + args_dump.size());
+                action_sig += tool_name;
+                action_sig += ':';
+                action_sig += args_dump;
                 if (!circuit_breaker_.record_action(action_sig, false)) {
                     set_state(AgentState::CIRCUIT_BROKEN);
                     res.breaker_reason = circuit_breaker_.trip_reason();
@@ -212,7 +217,7 @@ public:
                 // 4. Execution in Sandbox
                 set_state(AgentState::EXECUTING);
                 Json real_args = pii_sanitizer_.restore_json(args);
-                auto tool_res = sandbox_.execute(tool_registry_, tool_name, real_args);
+                auto tool_res = sandbox_.execute(tool_registry_, tool_name, real_args, false, args_dump);
                 executed_tools_in_turn_.push_back(tool_name);
 
                 // 5. Reflecting & working memory update

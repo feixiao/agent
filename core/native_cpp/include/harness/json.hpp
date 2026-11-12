@@ -134,7 +134,71 @@ public:
         return arr[index];
     }
 
+    void dump_to(std::string& out) const {
+        switch (type()) {
+            case Type::Null: out += "null"; break;
+            case Type::Boolean: out += (as_bool() ? "true" : "false"); break;
+            case Type::Number: {
+                double v = as_number();
+                if (v == static_cast<int64_t>(v)) {
+                    out += std::to_string(static_cast<int64_t>(v));
+                } else {
+                    char buf[32];
+                    std::snprintf(buf, sizeof(buf), "%.6g", v);
+                    out += buf;
+                }
+                break;
+            }
+            case Type::String: {
+                out += '"';
+                const auto& s = as_string();
+                for (char c : s) {
+                    if (c == '"') out += "\\\"";
+                    else if (c == '\\') out += "\\\\";
+                    else if (c == '\b') out += "\\b";
+                    else if (c == '\f') out += "\\f";
+                    else if (c == '\n') out += "\\n";
+                    else if (c == '\r') out += "\\r";
+                    else if (c == '\t') out += "\\t";
+                    else out += c;
+                }
+                out += '"';
+                break;
+            }
+            case Type::Array: {
+                const auto& arr = as_array();
+                out += '[';
+                for (size_t i = 0; i < arr.size(); ++i) {
+                    arr[i].dump_to(out);
+                    if (i + 1 < arr.size()) out += ',';
+                }
+                out += ']';
+                break;
+            }
+            case Type::Object: {
+                const auto& obj = as_object();
+                out += '{';
+                size_t i = 0;
+                for (const auto& [k, v] : obj) {
+                    out += '"';
+                    out += k;
+                    out += "\":";
+                    v.dump_to(out);
+                    if (++i < obj.size()) out += ',';
+                }
+                out += '}';
+                break;
+            }
+        }
+    }
+
     std::string dump(int indent = -1) const {
+        if (indent < 0) {
+            std::string s;
+            s.reserve(64);
+            dump_to(s);
+            return s;
+        }
         std::ostringstream ss;
         serialize(ss, indent, 0);
         return ss.str();

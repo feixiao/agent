@@ -30,9 +30,14 @@ struct ExecutionAuditRecord {
 };
 
 // Generates unique idempotency key adhering to AGENT.md: action:payload_hash:counter
-inline std::string generate_idempotency_key(const std::string& action_name, const Json& args) {
+inline std::string generate_idempotency_key(const std::string& action_name, const Json& args, std::string_view precomputed_payload = "") {
     static uint64_t counter = 0;
-    std::string payload = args.dump();
+    std::string local_dump;
+    std::string_view payload = precomputed_payload;
+    if (payload.empty()) {
+        local_dump = args.dump();
+        payload = local_dump;
+    }
     uint64_t hash = 5381;
     for (char c : payload) {
         hash = ((hash << 5) + hash) + static_cast<unsigned char>(c);
@@ -60,7 +65,8 @@ public:
         const ToolRegistry& registry,
         const std::string& tool_name,
         const Json& args,
-        bool pre_confirmed = false
+        bool pre_confirmed = false,
+        std::string_view precomputed_payload = ""
     ) {
         auto start = std::chrono::steady_clock::now();
         ToolExecutionResult result;
@@ -84,7 +90,7 @@ public:
 
         // 2. Generate Idempotency Key for mutating tools
         if (tool->effect != ToolEffect::READ) {
-            result.idempotency_key = generate_idempotency_key(tool_name, args);
+            result.idempotency_key = generate_idempotency_key(tool_name, args, precomputed_payload);
         }
 
         // 3. User Confirmation Gate for Irreversible operations
