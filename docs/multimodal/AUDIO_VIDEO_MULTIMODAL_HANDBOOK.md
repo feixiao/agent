@@ -9,7 +9,7 @@
 ### 📋 极速上手 6 步法清单 (10-Minute Executive Cheatsheet)
 
 ```
-1. 跑通练习 ➔ bash examples/multimodal_practice/run_all_labs.sh (5 套练习一键全绿)
+1. 跑通练习 ➔ bash perception/labs/run_all_labs.sh (5 套练习一键全绿)
 2. 架构选型 ➔ 90% 场景直接调用；仅在固化工业严格 JSON、音色克隆或塞入手机时做 LoRA 微调
 3. 本地推理 ➔ Mac Studio 上使用 MLX 跑 Qwen2.5-VL-7B，使用 ANE 硬解跑 Whisper (32ms)
 4. 契约微调 ➔ 在 Mac Studio 上运行 python -m mlx_vlm.lora，5.1GB 显存搞定结构化输出
@@ -287,7 +287,7 @@ python3 llama.cpp/convert_hf_to_gguf.py ./fused_model --outtype f16 --outfile mo
 ./llama.cpp/build/bin/llama-quantize model-f16.gguf model-q4_k_m.gguf Q4_K_M
 
 # 3. 通过 ADB 将导出的轻量化模型推送至 Pixel 10
-bash examples/multimodal_practice/setup_environment.sh --push-pixel10 ./qwen2.5_vl_3b_w4a16.tflite
+bash perception/labs/setup_environment.sh --push-pixel10 ./qwen2.5_vl_3b_w4a16.tflite
 ```
 
 
@@ -371,21 +371,21 @@ sequenceDiagram
 
 ## 五、 五套开箱即用、可直接动手实操练习的工程范例 (Hands-on Practice Labs)
 
-为了让手册不仅停留在理论与配置，仓库内提供了五套**零门槛、无第三方复杂依赖、在任何 Mac / PC 上可直接单键执行**的完整实操练习代码与原生客户端（位于 `examples/multimodal_practice/`）：
+为了让手册不仅停留在理论与配置，仓库内提供了五套**零门槛、无第三方复杂依赖、在任何 Mac / PC 上可直接单键执行**的完整实操练习代码与原生客户端（位于 `perception/labs/`）：
 
 ### 5.1 实操练习 1：Mac Studio 视频帧抽取与视觉多模态大模型 (VLM) 调用
-* **对应脚本**：`examples/multimodal_practice/01_video_vlm_inference.py`
+* **对应脚本**：`perception/labs/01_video_vlm_inference.py`
 * **练习内容**：
   1. 学习如何在无外部环境负担下模拟/提取视频高通量抽帧；
   2. 构造标准的 OpenAI / MLX-VLM / Ollama 视觉多模态 Payload；
   3. 发起调用并解析工业安全时序事件（包括告警灯判定、安全复位判定）。
 * **执行练习命令**：
   ```bash
-  python3 examples/multimodal_practice/01_video_vlm_inference.py --demo
+  python3 perception/labs/01_video_vlm_inference.py --demo
   ```
 
 ### 5.2 实操练习 2：Mac Studio 音频大模型 (Whisper ASR + TTS) 语音交互闭环实战
-* **对应脚本**：`examples/multimodal_practice/02_audio_whisper_tts.py`
+* **对应脚本**：`perception/labs/02_audio_whisper_tts.py`
 * **练习内容**：
   1. 学习利用原生 Python 生成符合标准 16kHz PCM 单声道格式的测试波形；
   2. 模拟端侧低功耗 VAD（语音活动检测）能量门限切片与静音滤除；
@@ -393,11 +393,11 @@ sequenceDiagram
   4. 触发本地 TTS 拟人语音反馈（加 `--play` 参数可直接调用 macOS 系统的发音引擎出声）。
 * **执行练习命令**：
   ```bash
-  python3 examples/multimodal_practice/02_audio_whisper_tts.py --demo
+  python3 perception/labs/02_audio_whisper_tts.py --demo
   ```
 
 ### 5.3 实操练习 3：Mac Studio 多模态大模型 (VLM) LoRA 格式微调实战
-* **对应脚本**：`examples/multimodal_practice/03_vlm_lora_dataset_and_train.py`
+* **对应脚本**：`perception/labs/03_vlm_lora_dataset_and_train.py`
 * **练习内容**：
   1. 自动化构造符合 MLX / ShareGPT 规范的多模态图文对数据集（`train.jsonl` 与 `valid.jsonl`）；
   2. 严格校验微调数据集输出内容是否满足 100% 结构化 JSON 契约；
@@ -405,22 +405,22 @@ sequenceDiagram
   4. 体验微调如何彻底解决大模型“不听话、格式飘移”的工程痛点。
 * **执行练习命令**：
   ```bash
-  python3 examples/multimodal_practice/03_vlm_lora_dataset_and_train.py --demo
+  python3 perception/labs/03_vlm_lora_dataset_and_train.py --demo
   ```
 
 ### 5.4 实操练习 4：模型 4-bit 量化导出与 Pixel 10 端侧部署练习
-* **对应脚本**：`examples/multimodal_practice/04_export_to_pixel10.py`
+* **对应脚本**：`perception/labs/04_export_to_pixel10.py`
 * **练习内容**：
   1. 测算 3.0B 视觉模型从 FP16 (6.0GB) 压缩至 W4A16 INT4 (1.8GB) 的完整内存拓扑；
   2. 依据 Pixel 10 移动端硬件硬顶（<= 4.5GB），校验模型是否具备部署可行性；
   3. 自动生成可直接引入 Android Studio 的 CameraX + LiteRT 零拷贝 HardwareBuffer 调用模板。
 * **执行练习命令**：
   ```bash
-  python3 examples/multimodal_practice/04_export_to_pixel10.py --demo
+  python3 perception/labs/04_export_to_pixel10.py --demo
   ```
 
 ### 5.5 实操练习 5：Mac Studio 本地 OpenAI 兼容多模态 HTTP API 网关服务
-* **对应脚本**：`examples/multimodal_practice/05_local_multimodal_server.py`
+* **对应脚本**：`perception/labs/05_local_multimodal_server.py`
 * **练习内容**：
   1. 纯 Python 标准库构建零依赖 OpenAI 兼容 HTTP 网关服务；
   2. 暴露 `GET /health`（硬件/加速器状态）、`GET /v1/models`（模型清单）；
@@ -429,13 +429,13 @@ sequenceDiagram
   5. 支持 Pixel 10 移动端、Web 前端或 Agent 框架跨局域网高速调用。
 * **执行练习命令**：
   ```bash
-  python3 examples/multimodal_practice/05_local_multimodal_server.py --demo
+  python3 perception/labs/05_local_multimodal_server.py --demo
   ```
   ```bash
   # 启动本地服务并在另一终端使用练习 1/2 直连自测
-  python3 examples/multimodal_practice/05_local_multimodal_server.py --port 8000
-  python3 examples/multimodal_practice/01_video_vlm_inference.py --endpoint http://localhost:8000/v1/chat/completions
-  python3 examples/multimodal_practice/02_audio_whisper_tts.py --endpoint http://localhost:8000/v1/audio/transcriptions
+  python3 perception/labs/05_local_multimodal_server.py --port 8000
+  python3 perception/labs/01_video_vlm_inference.py --endpoint http://localhost:8000/v1/chat/completions
+  python3 perception/labs/02_audio_whisper_tts.py --endpoint http://localhost:8000/v1/audio/transcriptions
   ```
 
 ---
@@ -511,10 +511,10 @@ python3 tools/multimodal_tools/dataset_formatter.py --split data/all.jsonl --tra
 可以通过一键运行脚本体验全部 6 阶段流水线：
 ```bash
 # 一键执行全量 6 阶段流水线
-bash examples/multimodal_practice/run_all_labs.sh
+bash perception/labs/run_all_labs.sh
 
 # 或进入交互式终端控制台菜单自由单选练习 (选项 0~10)
-bash examples/multimodal_practice/run_all_labs.sh --menu
+bash perception/labs/run_all_labs.sh --menu
 ```
 
 ### 7.5 全景命令行速查矩阵 (Master CLI Command Reference Table)
@@ -531,7 +531,7 @@ bash examples/multimodal_practice/run_all_labs.sh --menu
 | **显存预算核算**| 预算估算器 | `python3 tools/multimodal_tools/vram_and_budget.py --list-models` | 列出已注册模型与默认精度，支持 `--model` 与 `--device` 测算 |
 | **数据格式工程**| 数据集工具 | `python3 tools/multimodal_tools/dataset_formatter.py --validate data.jsonl` | 扫描多模态数据语法、Token 截断风险并支持确定性切分 |
 | **抽帧采样调试**| 视频流仿真 | `python3 tools/multimodal_tools/multimodal_pipeline.py --sample-video` | 验证多模态 Token 构建与滑动窗口 VAD 切片逻辑 |
-| **客户端直连** | 原生客户端调用 | `python3 examples/multimodal_practice/client_example.py --server http://127.0.0.1:8000` | 零依赖直接请求 Mac Studio 网关完成视觉问答与语音转写 |
+| **客户端直连** | 原生客户端调用 | `python3 perception/labs/client_example.py --server http://127.0.0.1:8000` | 零依赖直接请求 Mac Studio 网关完成视觉问答与语音转写 |
 | **Agent能力评测** | 智能体基准评估 | `python3 tools/multimodal_tools/eval_agent_capabilities.py` | 自动化评测多模态感知、全双工延迟、契约遵从与端云协同 |
 
 全套体系通过 `bash autoresearch.sh` 实行持续基准验证，确保所有公式、语法、命令在 Mac Studio 及通用开发环境下均严格自洽闭环。
