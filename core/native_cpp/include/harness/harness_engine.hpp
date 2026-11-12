@@ -164,9 +164,12 @@ public:
 
             // Case A: Model outputs Final Answer
             if (step_decision.type == StepDecisionType::FINAL_ANSWER) {
-                // Record in history
+                // Record in history with sliding window cap (max 20 messages = 10 turns)
                 history_.push_back(Message{"user", user_input});
                 history_.push_back(Message{"assistant", step_decision.text});
+                if (history_.size() > 20) {
+                    history_.erase(history_.begin(), history_.begin() + (history_.size() - 20));
+                }
                 set_state(AgentState::COMPLETED);
                 res.success = true;
                 res.response = step_decision.text;
