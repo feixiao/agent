@@ -84,6 +84,7 @@ public:
         consecutive_errors_ = 0;
         trip_reason_ = BreakerTripReason::NONE;
         history_actions_.clear();
+        history_actions_.reserve(static_cast<size_t>(config_.max_steps + 1));
     }
 
 private:

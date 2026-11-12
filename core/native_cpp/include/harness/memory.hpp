@@ -143,11 +143,22 @@ public:
     }
 
     // Export memory snippets formatted for system prompt context injection
-    std::vector<std::string> get_context_snippets(const std::string& query, size_t limit = 5) const {
-        auto matches = search(query, limit);
+    std::vector<std::string> get_context_snippets(std::string_view query, size_t limit = 5) const {
         std::vector<std::string> snippets;
-        for (const auto& m : matches) {
-            snippets.push_back(m.key + ": " + m.value);
+        snippets.reserve(limit);
+        for (const auto& [id, rec] : records_) {
+            if (rec.deleted) continue;
+            if (query.empty() ||
+                rec.key.find(query) != std::string_view::npos ||
+                rec.value.find(query) != std::string_view::npos) {
+                std::string s;
+                s.reserve(rec.key.size() + rec.value.size() + 2);
+                s += rec.key;
+                s += ": ";
+                s += rec.value;
+                snippets.push_back(std::move(s));
+                if (snippets.size() >= limit) break;
+            }
         }
         return snippets;
     }
