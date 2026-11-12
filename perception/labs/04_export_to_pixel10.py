@@ -8,7 +8,9 @@
 4. 生成可在 Android Studio 中直接引用的 CameraX 零拷贝多模态推理代码模版。
 
 运行方式：
-    python3 04_export_to_pixel10.py --demo
+    python3 04_export_to_pixel10.py
+    # 或指定模型名称并导出代码模版
+    python3 04_export_to_pixel10.py --model Qwen2.5-VL-3B-Instruct --save-android-code EdgeVisionAnalyzer.kt
 """
 import argparse
 import json
@@ -105,7 +107,7 @@ class EdgeVisionAnalyzer(private val context: Context) : ImageAnalysis.Analyzer 
 
 def main():
     parser = argparse.ArgumentParser(description="实操 4：端侧量化导出与 Pixel 10 部署练习")
-    parser.add_argument("--demo", action="store_true", help="执行完整实操演示")
+    parser.add_argument("--demo", action="store_true", help="兼容历史参数（默认直接执行完整实操）")
     parser.add_argument("--model", type=str, default="Qwen2.5-VL-3B-Instruct", help="待导出模型")
     parser.add_argument("--save-manifest", type=str, default=None, help="将生成的 manifest.json 保存至指定路径")
     parser.add_argument("--save-android-code", type=str, default=None, help="将生成的 Kotlin 代码保存至指定路径")

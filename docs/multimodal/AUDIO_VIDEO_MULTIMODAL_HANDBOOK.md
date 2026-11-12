@@ -400,7 +400,9 @@ sequenceDiagram
   4. 触发本地 TTS 拟人语音反馈（加 `--play` 参数可直接调用 macOS 系统的发音引擎出声）。
 * **执行练习命令**：
   ```bash
-  python3 perception/labs/02_audio_whisper_tts.py --demo
+  python3 perception/labs/02_audio_whisper_tts.py
+  # 开启 Mac 扬声器播放语音
+  python3 perception/labs/02_audio_whisper_tts.py --play
   ```
 
 ### 5.3 实操练习 3：Mac Studio 多模态大模型 (VLM) LoRA 格式微调实战
@@ -412,7 +414,7 @@ sequenceDiagram
   4. 体验微调如何彻底解决大模型“不听话、格式飘移”的工程痛点。
 * **执行练习命令**：
   ```bash
-  python3 perception/labs/03_vlm_lora_dataset_and_train.py --demo
+  python3 perception/labs/03_vlm_lora_dataset_and_train.py
   ```
 
 ### 5.4 实操练习 4：模型 4-bit 量化导出与 Pixel 10 端侧部署练习
@@ -423,7 +425,7 @@ sequenceDiagram
   3. 自动生成可直接引入 Android Studio 的 CameraX + LiteRT 零拷贝 HardwareBuffer 调用模板。
 * **执行练习命令**：
   ```bash
-  python3 perception/labs/04_export_to_pixel10.py --demo
+  python3 perception/labs/04_export_to_pixel10.py
   ```
 
 ### 5.5 实操练习 5：Mac Studio 本地 OpenAI 兼容多模态 HTTP API 网关服务
@@ -436,7 +438,8 @@ sequenceDiagram
   5. 支持 Pixel 10 移动端、Web 前端或 Agent 框架跨局域网高速调用。
 * **执行练习命令**：
   ```bash
-  python3 perception/labs/05_local_multimodal_server.py --demo
+  # 执行自动化全路由联调自测
+  python3 perception/labs/05_local_multimodal_server.py --test
   ```
   ```bash
   # 启动本地服务并在另一终端使用练习 1/2 直连自测

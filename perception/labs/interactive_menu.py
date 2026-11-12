@@ -15,16 +15,16 @@ TOOLS_DIR = BASE_DIR.parent.parent / "tools" / "multimodal_tools"
 PYTHON_BIN = sys.executable
 
 MENU_ITEMS = [
-    ("1", "实操 1：Mac Studio 视频抽帧与视觉大模型 (Qwen2.5-VL) 批处理调用", ["01_video_vlm_inference.py", "--demo"]),
-    ("2", "实操 2：Mac Studio 音频大模型 (Whisper ASR + TTS) 语音交互闭环", ["02_audio_whisper_tts.py", "--demo"]),
-    ("3", "实操 3：Mac Studio 多模态 LoRA 结构化微调与数学梯度下降仿真", ["03_vlm_lora_dataset_and_train.py", "--demo"]),
-    ("4", "实操 4：Pixel 10 4-bit 量化导出与端侧 LiteRT/GGUF 内存防爆校验", ["04_export_to_pixel10.py", "--demo"]),
-    ("5", "实操 5：Mac Studio 本地 OpenAI 兼容多模态 HTTP API 网关自测", ["05_local_multimodal_server.py", "--demo"]),
+    ("1", "实操 1：Mac Studio 视频抽帧与视觉大模型 (Qwen2.5-VL) 批处理调用", ["01_video_vlm_inference.py"]),
+    ("2", "实操 2：Mac Studio 音频大模型 (Whisper ASR + TTS) 语音交互闭环", ["02_audio_whisper_tts.py"]),
+    ("3", "实操 3：Mac Studio 多模态 LoRA 结构化微调与数学梯度下降仿真", ["03_vlm_lora_dataset_and_train.py"]),
+    ("4", "实操 4：Pixel 10 4-bit 量化导出与端侧 LiteRT/GGUF 内存防爆校验", ["04_export_to_pixel10.py"]),
+    ("5", "实操 5：Mac Studio 本地 OpenAI 兼容多模态 HTTP API 网关自测", ["05_local_multimodal_server.py", "--test"]),
     ("6", "🚀 一键串行运行全部 6 套实操练习流水线", ["run_all_labs.sh"]),
     ("7", "🔍 执行宿主机环境与 UMA 统一内存硬件探测", ["probe_env"]),
     ("8", "📊 打开多模态模型显存与算力预算估算器 (vram_and_budget)", ["vram_budget"]),
     ("9", "📈 查看音视频多模态技术雷达与基准全景看板 (benchmark_summary)", ["benchmark_summary"]),
-    ("10", "📡 运行原生轻量客户端调用参考实现 (client_example)", ["client_example.py", "--demo"]),
+    ("10", "📡 运行原生轻量客户端调用参考实现 (client_example)", ["client_example.py"]),
     ("11", "🤖 执行音视频多模态 Agent 能力全量基准评测 (eval_agent_capabilities)", ["eval_agent_capabilities"]),
 ]
 
@@ -101,10 +101,11 @@ def print_menu():
 def main():
     parser = argparse.ArgumentParser(description="音视频多模态实操练习交互式控制台")
     parser.add_argument("--choice", type=str, default=None, choices=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"], help="直接执行指定编号任务")
-    parser.add_argument("--demo", action="store_true", help="演示模式：直接运行一键流水线 (选项 6)")
+    parser.add_argument("--run-all", action="store_true", help="直接运行一键流水线 (选项 6)")
+    parser.add_argument("--demo", action="store_true", help="兼容历史参数（直接运行一键流水线）")
     args = parser.parse_args()
 
-    if args.demo:
+    if args.run_all or args.demo:
         run_choice("6")
         return
 

@@ -7,7 +7,9 @@
 3. 模拟与真实本地端点（Ollama / LM Studio / MLX Server）交互。
 
 运行方式：
-    python3 01_video_vlm_inference.py --demo
+    python3 01_video_vlm_inference.py
+    # 或指定本地视觉模型与提示词
+    python3 01_video_vlm_inference.py --model qwen3-vl-8b-instruct --prompt "画面中有何内容？"
 """
 import argparse
 import base64
@@ -39,11 +41,15 @@ def detect_local_vlm_model(endpoint_url: str) -> str:
         req = urllib.request.Request(f"{host_base}/api/v0/models", headers={"Content-Type": "application/json"})
         with urllib.request.urlopen(req, timeout=2) as resp:
             data = json.loads(resp.read().decode("utf-8")).get("data", [])
-            # 优先挑已经在内存中 loaded 的视觉模型 (type == "vlm" 或 id 中带 vl)
+            # 优先挑已经在内存中 loaded 且包含 vl/vision 的多模态视觉模型
             loaded_vl = [
                 m["id"] for m in data 
-                if m.get("state") == "loaded" and (m.get("type") == "vlm" or "vl" in m.get("id", "").lower())
+                if m.get("state") == "loaded" and (m.get("type") == "vlm" or any(k in m.get("id", "").lower() for k in ("vl", "vision", "visual")))
             ]
+            # 优先选择名称明确带有 vl 的视觉专精模型
+            explicit_vl = [m for m in loaded_vl if "vl" in m.lower()]
+            if explicit_vl:
+                return explicit_vl[0]
             if loaded_vl:
                 return loaded_vl[0]
     except Exception:
@@ -174,7 +180,7 @@ def build_vlm_request(frames: list, user_prompt: str, model: str = "qwen2.5-vl:7
         "model": model,
         "messages": [{"role": "user", "content": content}],
         "temperature": 0.1,
-        "max_tokens": 512
+        "max_tokens": 1024
     }
 
 def call_local_vlm_mock_or_live(payload: dict, endpoint_url: str = None) -> dict:
@@ -191,8 +197,12 @@ def call_local_vlm_mock_or_live(payload: dict, endpoint_url: str = None) -> dict
         with urllib.request.urlopen(req, timeout=60) as resp:
             raw = json.loads(resp.read().decode("utf-8"))
             msg = raw.get("choices", [{}])[0].get("message", {})
-            content = msg.get("content") or raw.get("message", {}).get("content") or str(raw)
+            content = msg.get("content") or raw.get("message", {}).get("content") or ""
             reasoning = msg.get("reasoning_content")
+            if not content and reasoning:
+                content = "(模型主要完成了深度思维链推理，请参见下方思考过程)"
+            elif not content:
+                content = str(raw)
             usage = raw.get("usage", {})
             res = {
                 "status": "success",
@@ -228,7 +238,7 @@ def main():
     env_base = os.getenv("LLM_BASE_URL", "http://127.0.0.1:1234/v1").rstrip("/")
     default_endpoint = f"{env_base}/chat/completions"
     
-    parser.add_argument("--demo", action="store_true", help="兼容参数（直接执行本地大模型端到端演示）")
+    parser.add_argument("--demo", action="store_true", help="兼容历史参数（直接执行真实本地大模型端到端调用）")
     parser.add_argument("--endpoint", type=str, default=default_endpoint, help=f"LM Studio 接口端点 (默认: {default_endpoint})")
     parser.add_argument("--model", type=str, default=None, help="模型标识 (默认自动探测本地 LM Studio 中加载的视觉模型，或使用 LLM_MODEL)")
     parser.add_argument("--dump-frames", type=str, default=None, help="将抽取的关键帧图像保存到指定目录")

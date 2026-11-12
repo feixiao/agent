@@ -5,8 +5,10 @@
 支持健康探测、视觉时序抽帧问答 (Chat Completion) 以及音频转写 (ASR)。
 
 运行方式：
+    # 直连正在运行的本地/局域网网关服务：
     python3 client_example.py --server http://127.0.0.1:8000
-    python3 client_example.py --demo
+    # 或直接运行（未启动服务时自动拉起临时服务自测）：
+    python3 client_example.py
 """
 import argparse
 import base64
@@ -98,13 +100,18 @@ def transcribe_audio_file(server_url: str, audio_path: str = None) -> str:
 def main():
     parser = argparse.ArgumentParser(description="多模态网关轻量客户端调用示例")
     parser.add_argument("--server", type=str, default="http://127.0.0.1:8000", help="Mac Studio 网关地址")
-    parser.add_argument("--demo", action="store_true", help="演示模式 (自动启动微服务并联调)")
+    parser.add_argument("--test", action="store_true", help="自测模式 (自动拉起临时微服务完成端到端联调)")
+    parser.add_argument("--demo", action="store_true", help="兼容历史参数（等同于 --test 自测）")
     args = parser.parse_args()
 
     server_url = args.server
     server = None
 
-    if args.demo:
+    # 若显式指定自测或默认 8000 端口服务未开启，则自动拉起内置服务保证链路畅通
+    need_embedded = args.test or args.demo or not check_server_reachable(server_url, timeout=0.5)
+    if need_embedded:
+        if not (args.test or args.demo):
+            print(f"💡 [提示] 目标地址 {server_url} 未检测到常驻网关，自动启动临时测试网关...")
         import socket, threading, time
         from http.server import HTTPServer
         import importlib.util

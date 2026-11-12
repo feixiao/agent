@@ -118,16 +118,15 @@ make server  # 启动本地多模态网关服务 (8000端口)
   4. 触发本地语音合成 (TTS) 反馈（在 macOS 上加 `--play` 可调用系统语音合成引擎直接发音朗读）。
 * **命令示例**：
   ```bash
-  # 基础实操
-  python3 02_audio_whisper_tts.py --demo
+  # 默认运行（自动调用本地 Whisper 模型进行音频转写）
+  python3 02_audio_whisper_tts.py
 
   # 在 Mac 扬声器中播放合成的回复语音
-  python3 02_audio_whisper_tts.py --demo --play
+  python3 02_audio_whisper_tts.py --play
 
   # 传入自己录制的真实 WAV 音频文件
-  python3 02_audio_whisper_tts.py --audio /path/to/my_record.wav
+  python3 02_audio_whisper_tts.py --audio /path/to/my_record.wav --play
   ```
-
 ---
 
 ### 练习 3：Mac Studio 多模态大模型 LoRA 微调与数学梯度下降
@@ -139,9 +138,8 @@ make server  # 启动本地多模态网关服务 (8000端口)
   4. **原生数学级 LoRA 仿真**：使用原生 Python 完整计算 $W + \frac{\alpha}{r}BA$ 的前向传播与反向传播，演示在冻结基座权重前提下仅更新低秩适配器使 Loss 降低 87% 的过程。
 * **命令示例**：
   ```bash
-  python3 03_vlm_lora_dataset_and_train.py --demo
+  python3 03_vlm_lora_dataset_and_train.py
   ```
-
 ---
 
 ### 练习 4：W4A16 4-bit 量化导出与 Pixel 10 端侧部署
@@ -153,9 +151,8 @@ make server  # 启动本地多模态网关服务 (8000端口)
   4. 生成直接可贴入 Android Studio 的 CameraX 零拷贝 HardwareBuffer 调用模板代码。
 * **命令示例**：
   ```bash
-  python3 04_export_to_pixel10.py --demo
+  python3 04_export_to_pixel10.py
   ```
-
 ---
 
 ### 练习 5：Mac Studio 本地 OpenAI 兼容多模态 HTTP API 网关服务
@@ -167,13 +164,12 @@ make server  # 启动本地多模态网关服务 (8000端口)
   4. 允许局域网内的 Pixel 10、Web 客户端或 Agent 框架跨端调用。
 * **命令示例**：
   ```bash
-  # 自动化全路由联调自测
-  python3 05_local_multimodal_server.py --demo
-
-  # 在前台启动服务供局域网 / 手机调用 (端口 8000)
+  # 在前台启动正式网关服务供局域网 / 手机调用 (端口 8000)
   python3 05_local_multimodal_server.py --port 8000 --host 0.0.0.0
-  ```
 
+  # 执行自动化全路由联调自测
+  python3 05_local_multimodal_server.py --test
+  ```
 #### 客户端与网关服务联动联调命令：
 ```bash
 # 终端 A：在 Mac Studio 上启动本地多模态网关服务

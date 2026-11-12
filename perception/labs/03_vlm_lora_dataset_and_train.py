@@ -8,7 +8,9 @@
 4. 验证微调后模型对特定结构化 JSON 输出契约的 100% 遵从能力。
 
 运行方式：
-    python3 03_vlm_lora_dataset_and_train.py --demo
+    python3 03_vlm_lora_dataset_and_train.py
+    # 或指定输出目录与迭代步数
+    python3 03_vlm_lora_dataset_and_train.py --steps 30 --outdir /tmp/my_lora
 """
 import argparse
 import json
@@ -207,15 +209,15 @@ def run_numerical_lora_optimization(d: int = 16, r: int = 4, alpha: int = 8, ste
 
 def main():
     parser = argparse.ArgumentParser(description="实操 3：Mac Studio 多模态大模型 LoRA 微调练习")
-    parser.add_argument("--demo", action="store_true", help="执行完整实操演示")
+    parser.add_argument("--demo", action="store_true", help="兼容历史参数（默认直接执行完整实操）")
     parser.add_argument("--outdir", type=str, default="/tmp/multimodal_lora_data", help="微调数据输出目录")
-    parser.add_argument("--use-sample-data", action="store_true", help="直接使用预置 sample_data 真实多模态标注数据")
+    parser.add_argument("--use-sample-data", action="store_true", help="强制使用预置 sample_data 真实多模态标注数据")
     parser.add_argument("--steps", type=int, default=20, help="原生数学 LoRA 梯度下降步数 (默认 20)")
     args = parser.parse_args()
 
     sample_dir = Path(__file__).resolve().parent / "sample_data"
-    is_using_sample = args.use_sample_data and (sample_dir / "train.jsonl").exists()
-
+    # 若预置真实标注数据存在且用户未显式修改输出路径，默认直接加载真实标注数据
+    is_using_sample = (args.use_sample_data or args.outdir == "/tmp/multimodal_lora_data") and (sample_dir / "train.jsonl").exists()
     print("===============================================================")
     print(" 🛠️ 实操 3：Mac Studio 多模态大模型 (VLM) LoRA 微调实战练习")
     print("===============================================================")

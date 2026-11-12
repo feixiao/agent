@@ -4,15 +4,15 @@
 
 PYTHON ?= python3
 
-.PHONY: all help demo menu test check report server eval-agent clean
+.PHONY: all help run demo menu test check report server eval-agent clean
 
-all: demo
-
+all: run
 help:
 	@echo "=================================================================="
 	@echo "🎬 音视频多模态实操练习套件快捷指令 (Mac Studio & Pixel 10)"
 	@echo "=================================================================="
-	@echo "  make demo        - 运行全部 6 阶段端到端实操练习流水线"
+	@echo "  make run         - 运行全部 6 阶段端到端实操练习流水线"
+	@echo "  make demo        - 兼容别名（等同于 make run）"
 	@echo "  make menu        - 打开交互式终端控制台菜单 (选项 0~11)"
 	@echo "  make test        - 运行 131 项全量标准单元测试套件 (unittest)"
 	@echo "  make eval-agent  - 执行音视频多模态 Agent 能力全量基准评测"
@@ -21,9 +21,10 @@ help:
 	@echo "  make server      - 启动本地 OpenAI 兼容多模态微服务网关 (端口 8000)"
 	@echo "=================================================================="
 
-demo:
+run:
 	bash run_all_labs.sh
 
+demo: run
 menu:
 	bash run_all_labs.sh --menu
 
