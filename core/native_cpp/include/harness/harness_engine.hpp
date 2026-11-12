@@ -109,14 +109,10 @@ public:
         // Retrieve relevant memory snippets for context injection
         auto memory_snippets = long_term_memory_.get_context_snippets(user_input, 3);
 
-        // Select Top tools (L1) based on intent
-        std::vector<std::string> selected_tools;
-        for (const auto& [name, tool] : tool_registry_.all_tools()) {
-            selected_tools.push_back(name);
-            if (selected_tools.size() >= 5) break; // Max 5 tools per 4096 budget
-        }
-        Json l1_tools = tool_registry_.get_l1_schemas(selected_tools);
-        std::string l1_tools_text = l1_tools.dump();
+        // Select Top tools (L1) from cached pre-serialized schemas
+        update_tools_cache_if_needed();
+        const auto& l1_tools = cached_l1_tools_;
+        const auto& l1_tools_text = cached_l1_tools_text_;
 
         // Check if history context overflow requires rebuild
         size_t est_tokens = context_engine_.estimate_tokens(user_input) +
@@ -288,6 +284,21 @@ private:
     AgentState state_;
     std::vector<Message> history_;
     std::vector<std::string> executed_tools_in_turn_;
+    Json cached_l1_tools_;
+    std::string cached_l1_tools_text_;
+    bool tools_cache_dirty_ = true;
+
+    void update_tools_cache_if_needed() {
+        if (!tools_cache_dirty_) return;
+        std::vector<std::string> selected_tools;
+        for (const auto& [name, tool] : tool_registry_.all_tools()) {
+            selected_tools.push_back(name);
+            if (selected_tools.size() >= 5) break;
+        }
+        cached_l1_tools_ = tool_registry_.get_l1_schemas(selected_tools);
+        cached_l1_tools_text_ = cached_l1_tools_.dump();
+        tools_cache_dirty_ = false;
+    }
 
     void set_state(AgentState new_state) {
         state_ = new_state;

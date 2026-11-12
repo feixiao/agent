@@ -33,14 +33,19 @@ struct ExecutionAuditRecord {
 inline std::string generate_idempotency_key(const std::string& action_name, const Json& args) {
     static uint64_t counter = 0;
     std::string payload = args.dump();
-    // Fast djb2 hash of payload
     uint64_t hash = 5381;
     for (char c : payload) {
         hash = ((hash << 5) + hash) + static_cast<unsigned char>(c);
     }
-    std::ostringstream ss;
-    ss << action_name << ":" << std::hex << hash << ":" << (++counter);
-    return ss.str();
+    char buf[64];
+    int len = std::snprintf(buf, sizeof(buf), ":%llx:%llu",
+        static_cast<unsigned long long>(hash),
+        static_cast<unsigned long long>(++counter));
+    std::string res;
+    res.reserve(action_name.size() + len);
+    res += action_name;
+    res.append(buf, len);
+    return res;
 }
 
 class ExecutionSandbox {
@@ -140,6 +145,9 @@ private:
         bool success,
         double duration_us
     ) {
+        if (audit_log_.size() >= 100) {
+            audit_log_.erase(audit_log_.begin());
+        }
         audit_log_.push_back(ExecutionAuditRecord{
             name,
             effect,
