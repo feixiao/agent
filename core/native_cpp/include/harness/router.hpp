@@ -245,37 +245,14 @@ private:
 
 
     void init_rules() {
-        // Rule: Turn on/off flashlight (手电筒)
-        rules_.push_back(Rule{
-            std::regex(R"((打开|关闭|开启|关掉|turn on|turn off).*手电筒|(turn on|turn off).*flashlight)", std::regex::icase),
-            "device.flashlight",
-            [](const std::smatch& m) {
-                std::string match_str = m[0].str();
-                bool enable = (match_str.find("打开") != std::string::npos ||
-                               match_str.find("开启") != std::string::npos ||
-                               match_str.find("turn on") != std::string::npos);
-                Json args;
-                args["enable"] = enable;
-                return args;
-            }
-        });
+        // Core device fast-paths (flashlight, bluetooth, alarm) are handled
+        // directly via zero-allocation string matching in match_fast_path.
+        // Custom regex rules can be appended by clients via add_custom_rule().
+    }
 
-        // Rule: Bluetooth control (蓝牙)
-        rules_.push_back(Rule{
-            std::regex(R"((打开|关闭|开启|关掉|turn on|turn off).*蓝牙|(turn on|turn off).*bluetooth)", std::regex::icase),
-            "device.bluetooth",
-            [](const std::smatch& m) {
-                std::string match_str = m[0].str();
-                bool enable = (match_str.find("打开") != std::string::npos ||
-                               match_str.find("开启") != std::string::npos ||
-                               match_str.find("turn on") != std::string::npos);
-                Json args;
-                args["enable"] = enable;
-                return args;
-            }
-        });
-
-        // Custom fast-path rules handled directly above
+public:
+    void add_custom_rule(std::regex pattern, std::string tool_name, std::function<Json(const std::smatch&)> builder) {
+        rules_.push_back(Rule{std::move(pattern), std::move(tool_name), std::move(builder)});
     }
 };
 
