@@ -57,13 +57,35 @@ public:
     }
     // Evaluates fast path first (<1ms) using compiled regex patterns
     std::optional<FastPathResult> match_fast_path(std::string_view query) const {
-        std::string q(query);
+        // Fast-path 1: Flashlight
+        if (query.find("手电筒") != std::string_view::npos || query.find("flashlight") != std::string_view::npos) {
+            bool enable = (query.find("打开") != std::string_view::npos ||
+                           query.find("开启") != std::string_view::npos ||
+                           query.find("turn on") != std::string_view::npos);
+            FastPathResult res;
+            res.matched = true;
+            res.tool_name = "device.flashlight";
+            res.args["enable"] = enable;
+            return res;
+        }
 
-        // Fast path for alarm setting
-        if ((q.find("闹钟") != std::string::npos || q.find("alarm") != std::string::npos) &&
-            (q.find("定") != std::string::npos || q.find("设") != std::string::npos || q.find("set") != std::string::npos)) {
+        // Fast-path 2: Bluetooth
+        if (query.find("蓝牙") != std::string_view::npos || query.find("bluetooth") != std::string_view::npos) {
+            bool enable = (query.find("打开") != std::string_view::npos ||
+                           query.find("开启") != std::string_view::npos ||
+                           query.find("turn on") != std::string_view::npos);
+            FastPathResult res;
+            res.matched = true;
+            res.tool_name = "device.bluetooth";
+            res.args["enable"] = enable;
+            return res;
+        }
+
+        // Fast-path 3: Alarm
+        if ((query.find("闹钟") != std::string_view::npos || query.find("alarm") != std::string_view::npos) &&
+            (query.find("定") != std::string_view::npos || query.find("设") != std::string_view::npos || query.find("set") != std::string_view::npos)) {
             int hour = 0, minute = 0;
-            if (parse_alarm_time(q, hour, minute)) {
+            if (parse_alarm_time(query, hour, minute)) {
                 FastPathResult res;
                 res.matched = true;
                 res.tool_name = "device.set_alarm";
@@ -73,19 +95,21 @@ public:
             }
         }
 
-        for (const auto& rule : rules_) {
-            std::smatch match;
-            if (std::regex_search(q, match, rule.pattern)) {
-                FastPathResult res;
-                res.matched = true;
-                res.tool_name = rule.tool_name;
-                res.args = rule.builder(match);
-                return res;
+        if (!rules_.empty()) {
+            std::string q(query);
+            for (const auto& rule : rules_) {
+                std::smatch match;
+                if (std::regex_search(q, match, rule.pattern)) {
+                    FastPathResult res;
+                    res.matched = true;
+                    res.tool_name = rule.tool_name;
+                    res.args = rule.builder(match);
+                    return res;
+                }
             }
         }
         return std::nullopt;
     }
-
     // Complete 3-tier routing evaluation
     RouteDecision route(std::string_view query) const {
         // 1. Tier 1: Fast Path Check
@@ -101,34 +125,30 @@ public:
             return d;
         }
 
-        // 2. Tier 2: Lightweight Semantic Classification (rule + keyword heuristics)
-        std::string q(query);
-        std::string q_lower = q;
-        for (auto& c : q_lower) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
-
-        bool has_device_keyword = has_any(q_lower, {
+        // 2. Tier 2: Lightweight Semantic Classification (zero-heap string_view matching)
+        bool has_device_keyword = has_any(query, {
             "闹钟", "alarm", "蓝牙", "bluetooth", "wifi", "手电筒", "flashlight",
             "日历", "calendar", "日程", "联系人", "contact", "提醒", "reminder",
             "设置", "setting", "亮度", "brightness", "音量", "volume"
         });
 
-        bool has_private_keyword = has_any(q_lower, {
+        bool has_private_keyword = has_any(query, {
             "我的", "my", "日程", "schedule", "邮件", "email", "私信", "message",
             "联系人", "contacts", "备忘录", "notes", "照片", "photos"
         });
 
-        bool has_web_keyword = has_any(q_lower, {
+        bool has_web_keyword = has_any(query, {
             "搜索", "search", "最新", "latest", "新闻", "news", "股价", "stock",
             "天气预报", "weather", "维基", "wikipedia", "今天几号", "who is", "what is"
         });
 
-        bool has_complex_keyword = has_any(q_lower, {
+        bool has_complex_keyword = has_any(query, {
             "写代码", "code", "设计", "design", "规划", "plan", "重构", "refactor",
             "翻译长文", "深度分析", "compare and contrast", "step-by-step"
         });
 
         int complexity = 1;
-        if (has_complex_keyword || q.size() > 200) {
+        if (has_complex_keyword || query.size() > 200) {
             complexity = 4;
         } else if (has_web_keyword && has_private_keyword) {
             complexity = 3;
@@ -176,13 +196,13 @@ private:
     Config config_;
     std::vector<Rule> rules_;
 
-    static bool has_any(const std::string& str, const std::vector<std::string>& keywords) {
-        for (const auto& kw : keywords) {
-            if (str.find(kw) != std::string::npos) return true;
+    static bool has_any(std::string_view str, std::initializer_list<std::string_view> keywords) {
+        for (std::string_view kw : keywords) {
+            if (str.find(kw) != std::string_view::npos) return true;
         }
         return false;
     }
-    static bool parse_alarm_time(const std::string& q, int& hour, int& minute) {
+    static bool parse_alarm_time(std::string_view q, int& hour, int& minute) {
         size_t colon_pos = q.find("点");
         if (colon_pos == std::string::npos) colon_pos = q.find("时");
         if (colon_pos == std::string::npos) colon_pos = q.find(":");
@@ -195,7 +215,7 @@ private:
         size_t h_start = h_end;
         while (h_start > 0 && std::isdigit(static_cast<unsigned char>(q[h_start - 1]))) h_start--;
         try {
-            hour = std::stoi(q.substr(h_start, h_end - h_start));
+            hour = std::stoi(std::string(q.substr(h_start, h_end - h_start)));
         } catch (...) {
             return false;
         }
@@ -211,7 +231,7 @@ private:
             size_t m_end = m_start;
             while (m_end < q.size() && std::isdigit(static_cast<unsigned char>(q[m_end]))) m_end++;
             try {
-                minute = std::stoi(q.substr(m_start, m_end - m_start));
+                minute = std::stoi(std::string(q.substr(m_start, m_end - m_start)));
             } catch (...) {
                 minute = 0;
             }
