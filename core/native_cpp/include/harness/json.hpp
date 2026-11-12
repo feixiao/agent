@@ -99,6 +99,14 @@ public:
         const auto& obj = std::get<Object>(value_);
         return obj.find(key) != obj.end();
     }
+    const Json* find_field(const std::string& key) const {
+        if (!is_object()) return nullptr;
+        const auto& obj = std::get<Object>(value_);
+        auto it = obj.find(key);
+        if (it != obj.end()) return &it->second;
+        return nullptr;
+    }
+
 
     const Json& operator[](const std::string& key) const {
         const auto& obj = as_object();

@@ -105,10 +105,11 @@ public:
             return false;
         }
 
-        // Check required fields
-        if (schema.contains("required") && schema["required"].is_array()) {
-            for (const auto& req_key : schema["required"].as_array()) {
-                std::string k = req_key.as_string();
+        // Check required fields with single-lookup find_field
+        const auto* req = schema.find_field("required");
+        if (req && req->is_array()) {
+            for (const auto& req_key : req->as_array()) {
+                const auto& k = req_key.as_string();
                 if (!args.contains(k)) {
                     error_out = "Missing required argument: " + k;
                     return false;
@@ -116,32 +117,33 @@ public:
             }
         }
 
-        // Check property types
-        if (schema.contains("properties") && schema["properties"].is_object()) {
-            for (const auto& [prop_name, prop_spec] : schema["properties"].as_object()) {
-                if (!args.contains(prop_name)) continue;
-                if (!prop_spec.contains("type")) continue;
+        // Check property types with single-lookup find_field
+        const auto* props = schema.find_field("properties");
+        if (props && props->is_object()) {
+            for (const auto& [prop_name, prop_spec] : props->as_object()) {
+                const auto* val = args.find_field(prop_name);
+                if (!val) continue;
+                const auto* type_field = prop_spec.find_field("type");
+                if (!type_field) continue;
 
-                std::string expected_type = prop_spec["type"].as_string();
-                const auto& val = args[prop_name];
-
-                if (expected_type == "string" && !val.is_string()) {
+                const auto& expected_type = type_field->as_string();
+                if (expected_type == "string" && !val->is_string()) {
                     error_out = "Argument '" + prop_name + "' must be string";
                     return false;
                 }
-                if (expected_type == "number" && !val.is_number()) {
+                if (expected_type == "number" && !val->is_number()) {
                     error_out = "Argument '" + prop_name + "' must be number";
                     return false;
                 }
-                if (expected_type == "boolean" && !val.is_bool()) {
+                if (expected_type == "boolean" && !val->is_bool()) {
                     error_out = "Argument '" + prop_name + "' must be boolean";
                     return false;
                 }
-                if (expected_type == "array" && !val.is_array()) {
+                if (expected_type == "array" && !val->is_array()) {
                     error_out = "Argument '" + prop_name + "' must be array";
                     return false;
                 }
-                if (expected_type == "object" && !val.is_object()) {
+                if (expected_type == "object" && !val->is_object()) {
                     error_out = "Argument '" + prop_name + "' must be object";
                     return false;
                 }

@@ -78,8 +78,13 @@ public:
             set_state(AgentState::COMPLETED);
 
             res.success = tool_res.success;
-            res.response = tool_res.success ? "Direct rule executed: " + tool_res.output.dump()
-                                            : "Direct rule failed: " + tool_res.error;
+            if (tool_res.success) {
+                res.response.reserve(64);
+                res.response = "Direct rule executed: ";
+                tool_res.output.dump_to(res.response);
+            } else {
+                res.response = "Direct rule failed: " + tool_res.error;
+            }
             res.final_state = state_;
             res.steps_taken = 1;
             res.executed_tools.push_back(fp.tool_name);
@@ -224,9 +229,12 @@ public:
                 // 5. Reflecting & working memory update
                 set_state(AgentState::REFLECTING);
                 if (tool_res.success) {
-                    working_memory_.set(tool_name + "_result", tool_res.output);
+                    std::string tool_out_str;
+                    tool_out_str.reserve(32);
+                    tool_res.output.dump_to(tool_out_str);
+                    working_memory_.set(tool_name + "_result", std::move(tool_res.output));
                     history_.push_back(Message{"assistant", "Called " + tool_name});
-                    history_.push_back(Message{"tool", tool_res.output.dump()});
+                    history_.push_back(Message{"tool", std::move(tool_out_str)});
                     set_state(AgentState::PLANNING);
                 } else {
                     circuit_breaker_.record_action(action_sig, true);
