@@ -42,6 +42,18 @@
                             │  - 协同上报: 遇复杂疑难切片 ➔ 局域网请求 Mac Studio 网关  │
                             └──────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## 核心 Demo 重点速览 (Key Highlights)
+
+| 编号与模块 | 对应脚本 | 核心功能与亮点 | 解决的技术痛点 / 关键价值 |
+| :--- | :--- | :--- | :--- |
+| **Lab 01: 视觉时序推理** | `01_video_vlm_inference.py` | • 时序抽帧并编码为标准 JPEG Data URI<br>• 直连本地 LM Studio（自动探测 loaded 状态模型）<br>• 捕获思考链（`reasoning_content`）与图像落盘 | 验证多帧时序图像在本地 VLM 下的端到端调用与结构化研判链路 |
+| **Lab 02: 语音交互闭环** | `02_audio_whisper_tts.py` | • 纯 Python 生成/加载 16kHz PCM 单声道音频<br>• 端侧低功耗 VAD 静音切除<br>• Whisper ASR 语音转写 + 本地 TTS 朗读（`--play`） | 建立轻量级、低延迟、零云端依赖的端到端双向语音交互闭环 |
+| **Lab 03: VLM LoRA 训练** | `03_vlm_lora_dataset_and_train.py` | • 自动化生成 ShareGPT 图文数据集与 JSON Schema 校验<br>• 输出 MLX LoRA 生产级微调命令<br>• **原生数学级 LoRA 梯度下降仿真**（$W + \frac{\alpha}{r}BA$） | 在无需 GPU 算力集群前提下透彻理解低秩适配器（Loss 降低 87%）与微调原理 |
+| **Lab 04: 端侧量化与部署** | `04_export_to_pixel10.py` | • 测算 3.0B 模型从 FP16 (6GB) 到 INT4 (1.8GB) 的压缩比与显存预算<br>• 针对 Pixel 10 硬件约束（$\le 4.5\text{GB}$ 内存、$< 2\text{W}$ 功耗）安全校验<br>• 生成 LiteRT/GGUF/ExecuTorch 转换矩阵与 CameraX 零拷贝代码 | 解决多模态大模型落地移动边缘端算力、显存与零拷贝直通核心工程难点 |
+| **Lab 05: 本地 HTTP 网关** | `05_local_multimodal_server.py` | • 纯 Python 标准库构建零依赖 OpenAI 兼容 HTTP 网关（端口 8000）<br>• 提供 `/health`、`/v1/models`、`/v1/chat/completions`、`/v1/audio/transcriptions` | 充当桌面边缘中枢，打通局域网 Pixel 10、Web 客户端与本地模型的统一接入与联调 |
 ---
 
 ## 快速开始
