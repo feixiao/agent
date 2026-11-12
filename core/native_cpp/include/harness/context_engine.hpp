@@ -11,6 +11,10 @@ namespace harness {
 struct Message {
     std::string role;    // "system", "user", "assistant", "tool"
     std::string content;
+    size_t token_count = 0;
+
+    Message(std::string r = "", std::string c = "", size_t tokens = 0)
+        : role(std::move(r)), content(std::move(c)), token_count(tokens) {}
 };
 
 class ContextEngine {
@@ -60,11 +64,15 @@ public:
         const std::vector<std::string>& memory_snippets = {}
     ) const {
         std::vector<Message> messages;
+        messages.reserve(4 + history.size());
 
         // 1. Static prefix: system prompt + tool schemas
-        std::string full_system = system_prompt;
+        std::string full_system;
+        full_system.reserve(system_prompt.size() + tool_schemas_text.size() + 256);
+        full_system += system_prompt;
         if (!tool_schemas_text.empty()) {
-            full_system += "\n\nAvailable Tools:\n" + tool_schemas_text;
+            full_system += "\n\nAvailable Tools:\n";
+            full_system += tool_schemas_text;
         }
 
         if (!memory_snippets.empty()) {
@@ -78,14 +86,13 @@ public:
                 }
             }
         }
-        messages.push_back(Message{"system", full_system});
-
+        messages.push_back(Message{"system", std::move(full_system)});
         // 2. History pruning: calculate history tokens from newest to oldest
         std::vector<Message> trimmed_history;
         size_t current_history_tokens = 0;
 
         for (auto it = history.rbegin(); it != history.rend(); ++it) {
-            size_t t = estimate_tokens(it->content);
+            size_t t = (it->token_count > 0) ? it->token_count : estimate_tokens(it->content);
             if (current_history_tokens + t <= budget_.history_reserve) {
                 trimmed_history.push_back(*it);
                 current_history_tokens += t;
@@ -97,11 +104,15 @@ public:
         messages.insert(messages.end(), trimmed_history.begin(), trimmed_history.end());
 
         // 3. Current user input with dynamic status_bar suffix strictly at the end
-        std::string final_user_content = current_user_input;
+        std::string final_user_content;
+        final_user_content.reserve(current_user_input.size() + status_bar.size() + 48);
+        final_user_content += current_user_input;
         if (!status_bar.empty()) {
-            final_user_content += "\n\n<status_bar>\n" + status_bar + "\n</status_bar>";
+            final_user_content += "\n\n<status_bar>\n";
+            final_user_content += status_bar;
+            final_user_content += "\n</status_bar>";
         }
-        messages.push_back(Message{"user", final_user_content});
+        messages.push_back(Message{"user", std::move(final_user_content)});
 
         return messages;
     }

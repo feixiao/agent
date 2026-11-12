@@ -93,6 +93,7 @@ public:
 
     // Recursively restore placeholders in a JSON argument structure before execution/user confirmation
     Json restore_json(const Json& val) const {
+        if (reverse_map_.empty()) return val; // Fast path when no PII is registered
         switch (val.type()) {
             case Json::Type::String:
                 return Json(restore(val.as_string()));
