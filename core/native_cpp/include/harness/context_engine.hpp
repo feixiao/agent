@@ -30,17 +30,29 @@ public:
         size_t cjk_chars = 0;
         size_t ascii_chars = 0;
 
-        for (size_t i = 0; i < text.size(); ++i) {
+        size_t i = 0;
+        const size_t n = text.size();
+        while (i + 8 <= n) {
+            uint64_t chunk;
+            std::memcpy(&chunk, text.data() + i, 8);
+            if ((chunk & 0x8080808080808080ULL) == 0) {
+                ascii_chars += 8;
+                i += 8;
+            } else {
+                break;
+            }
+        }
+
+        for (; i < n; ++i) {
             unsigned char c = static_cast<unsigned char>(text[i]);
             if (c <= 0x7F) {
                 ascii_chars++;
             } else if ((c & 0xC0) != 0x80) {
-                // Leading byte of a multibyte UTF-8 sequence
                 cjk_chars++;
             }
         }
 
-        size_t ascii_tokens = (ascii_chars + 3) / 4; // ~4 chars per token
+        size_t ascii_tokens = (ascii_chars + 3) / 4;
         return cjk_chars + ascii_tokens;
     }
 
@@ -61,20 +73,25 @@ public:
         const std::vector<Message>& history,
         const std::string& current_user_input,
         const std::string& status_bar = "",
-        const std::vector<std::string>& memory_snippets = {}
+        const std::vector<std::string>& memory_snippets = {},
+        std::string_view precomputed_system_prefix = ""
     ) const {
         std::vector<Message> messages;
         messages.reserve(4 + history.size());
 
         // 1. Static prefix: system prompt + tool schemas
         std::string full_system;
-        full_system.reserve(system_prompt.size() + tool_schemas_text.size() + 256);
-        full_system += system_prompt;
-        if (!tool_schemas_text.empty()) {
-            full_system += "\n\nAvailable Tools:\n";
-            full_system += tool_schemas_text;
+        if (!precomputed_system_prefix.empty()) {
+            full_system.reserve(precomputed_system_prefix.size() + 256);
+            full_system = precomputed_system_prefix;
+        } else {
+            full_system.reserve(system_prompt.size() + tool_schemas_text.size() + 256);
+            full_system += system_prompt;
+            if (!tool_schemas_text.empty()) {
+                full_system += "\n\nAvailable Tools:\n";
+                full_system += tool_schemas_text;
+            }
         }
-
         if (!memory_snippets.empty()) {
             full_system += "\n\nRelevant User Context & Memory:\n";
             size_t mem_tokens = 0;

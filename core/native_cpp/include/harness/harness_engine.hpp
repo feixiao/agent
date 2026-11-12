@@ -114,9 +114,8 @@ public:
         const auto& l1_tools = cached_l1_tools_;
         const auto& l1_tools_text = cached_l1_tools_text_;
 
-        // Check if history context overflow requires rebuild
-        size_t est_tokens = context_engine_.estimate_tokens(user_input) +
-                            context_engine_.estimate_tokens(l1_tools_text);
+        // Check if history context overflow requires rebuild (using cached schema tokens)
+        size_t est_tokens = context_engine_.estimate_tokens(user_input) + cached_l1_tools_tokens_;
         if (context_engine_.needs_session_rebuild(est_tokens)) {
             // Compact history: summarize state into 1 entry
             std::string state_summary = working_memory_.summarize_state();
@@ -125,7 +124,6 @@ public:
                 history_.push_back(Message{"assistant", state_summary});
             }
         }
-
         // 3. AGENT LOOP Execution
         set_state(AgentState::PLANNING);
         int step = 0;
@@ -139,16 +137,16 @@ public:
                 break;
             }
 
-            // Assemble messages with static prefix invariant
+            // Assemble messages with static prefix invariant (using precomputed system prefix)
             auto messages = context_engine_.assemble(
                 config_.system_prompt,
                 l1_tools_text,
                 history_,
                 user_input,
                 config_.status_bar_provider,
-                memory_snippets
+                memory_snippets,
+                cached_system_prefix_
             );
-
             // Step in Model
             StepDecision step_decision = model_backend_->generate_step(messages, l1_tools, is_cancelled);
 
@@ -291,6 +289,8 @@ private:
     std::vector<std::string> executed_tools_in_turn_;
     Json cached_l1_tools_;
     std::string cached_l1_tools_text_;
+    size_t cached_l1_tools_tokens_ = 0;
+    std::string cached_system_prefix_;
     bool tools_cache_dirty_ = true;
 
     void update_tools_cache_if_needed() {
@@ -302,6 +302,11 @@ private:
         }
         cached_l1_tools_ = tool_registry_.get_l1_schemas(selected_tools);
         cached_l1_tools_text_ = cached_l1_tools_.dump();
+        cached_l1_tools_tokens_ = ContextEngine::estimate_tokens(cached_l1_tools_text_);
+        cached_system_prefix_ = config_.system_prompt;
+        if (!cached_l1_tools_text_.empty()) {
+            cached_system_prefix_ += "\n\nAvailable Tools:\n" + cached_l1_tools_text_;
+        }
         tools_cache_dirty_ = false;
     }
 
