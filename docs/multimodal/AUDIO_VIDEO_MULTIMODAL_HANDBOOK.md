@@ -373,17 +373,24 @@ sequenceDiagram
 
 为了让手册不仅停留在理论与配置，仓库内提供了五套**零门槛、无第三方复杂依赖、在任何 Mac / PC 上可直接单键执行**的完整实操练习代码与原生客户端（位于 `perception/labs/`）：
 
-### 5.1 实操练习 1：Mac Studio 视频帧抽取与视觉多模态大模型 (VLM) 调用
+### 5.1 实操练习 1：Mac Studio 视频帧抽取与本地 LM Studio 视觉大模型 (VLM) 实时调用
 * **对应脚本**：`perception/labs/01_video_vlm_inference.py`
-* **练习内容**：
-  1. 学习如何在无外部环境负担下模拟/提取视频高通量抽帧；
-  2. 构造标准的 OpenAI / MLX-VLM / Ollama 视觉多模态 Payload；
-  3. 发起调用并解析工业安全时序事件（包括告警灯判定、安全复位判定）。
+* **核心升级**：直连本地真实运行的 **LM Studio**（或 Ollama / vLLM / OpenAI 兼容接口），完全弃用离线 Mock 假数据。
+* **主要特性**：
+  1. **环境自适应**：自动读取根目录 `.env` 的 `LLM_BASE_URL`（默认 `http://localhost:1234/v1`），自动枚举并优先绑定已加载的多模态/视觉大模型（如 `qwen3.8-27b-splash`、`qwen3-vl-8b-instruct`）；
+  2. **多模态编码无缝兼容**：自动将抽帧图像以标准 JPEG Data URI 封装，彻底解决 LM Studio 对原生格式校验严格导致 400 报错的问题；
+  3. **思维链原样呈现**：完整解析并高亮打印模型的 `reasoning_content`（思考过程）与最终安全分析结论。
 * **执行练习命令**：
   ```bash
-  python3 perception/labs/01_video_vlm_inference.py --demo
-  ```
+  # 1. 默认一键直连本地 LM Studio
+  python3 perception/labs/01_video_vlm_inference.py
 
+  # 2. 显式指定具体模型与自定义提示词
+  python3 perception/labs/01_video_vlm_inference.py --model qwen3-vl-8b-instruct --prompt "请逐帧分析画面颜色并判断工业设备状态"
+
+  # 3. 将抽取的 4 帧图片导出到本地临时目录核对
+  python3 perception/labs/01_video_vlm_inference.py --dump-frames /tmp/vlm_frames
+  ```
 ### 5.2 实操练习 2：Mac Studio 音频大模型 (Whisper ASR + TTS) 语音交互闭环实战
 * **对应脚本**：`perception/labs/02_audio_whisper_tts.py`
 * **练习内容**：

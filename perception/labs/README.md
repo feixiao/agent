@@ -86,24 +86,25 @@ make server  # 启动本地多模态网关服务 (8000端口)
 
 ## 5 套实操练习详解
 
-### 练习 1：Mac Studio 视频抽帧与视觉语言模型 (VLM) 批处理
+### 练习 1：Mac Studio 视频抽帧与本地 LM Studio 视觉大模型 (VLM) 实时调用
 * **脚本文件**：`01_video_vlm_inference.py`
 * **功能**：
-  1. 纯 Python 原生无外部包依赖生成 BMP 格式连续视频抽帧切片；
-  2. 构造兼容 Qwen2.5-VL / MLX / Ollama 的标准多模态 Payload；
-  3. 执行视觉时序推理，识别工业场景违章状态变化与安全复位；
-  4. 支持指定 `--dump-frames /path` 将抽帧图片保存到本地硬盘查看；
-  5. 支持指定 `--endpoint http://localhost:11434/v1/chat/completions` 对接本地真实运行的 Ollama 或 LM Studio。
+  1. 读取预置测试时序抽帧图片或动态生成测试帧；
+  2. 自动读取 `.env` 中 `LLM_BASE_URL` 配置（如 `http://localhost:1234/v1`），直连本地真实运行的 **LM Studio**；
+  3. 自动探测并匹配 LM Studio 中处于 `loaded` 状态的视觉模型（如 `qwen3.8-27b-splash`、`qwen3-vl-8b-instruct`）；
+  4. 自动以标准 JPEG Data URI 封装图像帧，完全兼容本地多模态校验；
+  5. 支持展示模型的深度思考链（`reasoning_content`）与结构化研判；
+  6. 支持指定 `--dump-frames /path` 将抽帧图片保存到本地硬盘查看。
 * **命令示例**：
   ```bash
-  # 基础确定性实操
-  python3 01_video_vlm_inference.py --demo
+  # 默认一键直连本地 LM Studio
+  python3 01_video_vlm_inference.py
 
-  # 导出抽帧图像到本地查看
-  python3 01_video_vlm_inference.py --demo --dump-frames /tmp/vlm_frames
+  # 指定特定已加载的模型与提示词
+  python3 01_video_vlm_inference.py --model qwen3-vl-8b-instruct --prompt "分析时序画面是否存在设备故障"
 
-  # 挂接本地运行的真实 Ollama 服务
-  python3 01_video_vlm_inference.py --endpoint http://localhost:11434/v1/chat/completions --model qwen2.5-vl:7b
+  # 导出抽帧图像到本地目录
+  python3 01_video_vlm_inference.py --dump-frames /tmp/vlm_frames
   ```
 
 ---
