@@ -304,3 +304,106 @@ METRIC memory_rss_kb=2528.00
 3. **第三步（上下文优化）**：重点学习 `context_engine.hpp`，吃透大模型 KV-Cache 前缀静止与逆向滑窗裁剪原理；
 4. **第四步（协同调度）**：研读 `router.hpp`、`pii_sanitizer.hpp` 与 `memory.hpp`，理解 3-Tier 意图短路与隐私脱敏在工程落地的必要性；
 5. **第五步（总控与交付）**：研读 `harness_engine.hpp` 与 `harness_c_api.cpp`，体会工业级软件工程如何通过 C ABI 封装复杂逻辑并交付给移动端/端侧宿主。
+
+---
+
+## 九、 理论纵深：Google Harness² 理论体系与端侧底盘映射
+
+Google Research 在 2026 年发表的 [*Harness²: Recursive Agent Harnessing for an Open World*](https://arxiv.org/abs/2610.14224)（arXiv:2610.14224）中，首次系统性地形式化了智能体运行外壳（Harness）及其双层递归自进化理论。
+
+本 C++ 底盘与 Google Harness² 理论在**哲学体系、状态控制与工程边界**上高度同构，本节解析其核心理论并给出在端侧原生系统中的物理映射。
+
+### 1. 核心理论形式化：权重冻结下的策略最优化
+
+在基础模型权重完全冻结（Frozen Weights）的约束下，Agent 的执行策略 $\pi$ 本质上由底层概率模型 $M$ 与运行外壳 $\mathcal{H}$ 复合决定：
+$$\pi = \mathcal{H}(M)$$
+
+传统微调优化权重参数 $\max_\theta \mathbb{E}[R(\pi_\theta)]$，而 **Harnessing 理论**将优化目标重构为离散组件空间 $\Omega$ 上的结构化搜索：
+$$\max_{\mathcal{H} \in \Omega} \mathbb{E}_{x \sim \mathcal{D}} [R(x, \mathcal{H}(M))]$$
+
+其中，外壳系统 $\mathcal{H}$ 被解构为 8 个分层组件（$c_1 \sim c_8$），划分为三大系统子空间：
+1. **Context Space（上下文空间）**：静态与动态上下文装配（$c_1$ System Prompt, $c_2$ Guardrails, $c_3$ Memory, $c_6$ Skills）；
+2. **Interface Space（接口空间）**：动作边界与辅助调用（$c_4$ Tool Guidance, $c_7$ Scripts）；
+3. **Control Space（控制空间）**：调度流程与硬性干预（$c_5$ Subagents, $c_8$ Plugins/Hooks）。
+
+### 2. 双层递归自进化架构（Two Levels of Recursion）
+
+Google Harness² 解决了开放世界中**无测试期确定性判定器（Answer-Free & Verifier-Free）**的核心理论难题，提出了双层递归机制：
+
+```mermaid
+flowchart TB
+    subgraph HarnessingLevel ["外层递归：跨任务经验积累 (Harnessing-Level Recursion)"]
+        Lib[("Per-Domain Experience Library R<br/>(严格因果隔离，任务按序只读前序知识)")]
+    end
+
+    subgraph TaskLevel ["内层递归：单任务对比探测 (Task-Level Propose-Probe-Compose)"]
+        Base["Base Rollouts τ_base<br/>(收集基准执行轨迹)"]
+        
+        subgraph Exploration ["正交探索与探测 (Propose & Probe)"]
+            INV["Invariant Candidates (INV)<br/>不变性元认知 / 流程校验"]
+            DOM["Domain Candidates (DOM)<br/>领域专有知识 / 行业规范"]
+        end
+        
+        Compose["Harness Composer<br/>行为反差分析 (Divergence / Systematic Failure)"]
+        Selection["Blind Answer-Free Selection<br/>盲态打乱 / 交付物无偏评判"]
+    end
+
+    Lib -. 注入先验经验 .-> Base
+    Base --> INV & DOM
+    INV & DOM --> Compose
+    Compose --> Selection
+    Selection --> Adopted["Adopted Final Harness"]
+    Adopted -. "提炼 ⟨Cue, Lesson, Evidence⟩" .-> Lib
+```
+
+#### A. 内层：Propose–Probe–Compose 对比行为弱监督
+在没有 Ground-Truth 判定器的情况下，弱监督信号来自多路采样轨迹之间的**行为反差（Contrastive Evidence）**：
+* **Divergence（运行分歧）**：同任务在 Harness A 成功而在 Harness B 失败，证明底层模型已具备能力，仅需通过外壳最小指令修补（Cheapest Win）；
+* **Repeated Failure（系统性失误）**：多次独立运行一致复现的缺陷，判定为 Harness 规则缺失，触发定向结构修补；
+* **单次偶然失败（Noise）**：被判定为概率采样噪声，避免向 Harness 过度引入过拟合死指令。
+
+#### B. 探索展开拓扑与等预算对齐（Budget Identity）
+任务级递归在平行探索（广度）与链式深化（深度）上保持严格计算预算一致（采样轨迹数 $R = 4k$，提议阶段 $P = 3k$）：
+* **Parallel Recursion (`agg`)**：并行生成 $k$ 个 `INV` 与 $k$ 个 `DOM` 候选并 Rollout，最后执行 $k$ 次独立合成；
+* **Sequential Recursion (`seq`)**：顺序执行 $k$ 轮递进迭代，每一轮继承上一轮生成的检查点 $c_t$ 与累积反思。
+
+#### C. 外层：跨任务因果经验流（Continual Experience Accumulation）
+任务采纳后，通过元反思提炼结构化知识元组：
+$$\text{Experience} = \langle \text{Cue (触发场景)}, \text{Lesson (行动建议)}, \text{Evidence (轨迹反差依据)}, \text{Confidence (置信度)} \rangle$$
+经验存储于按领域隔离的经验库中，遵循**严格单向时间因果（Causal Ordering）**：任务 $N$ 严格仅允许读取任务 $< N$ 沉淀的历史条目，防止未来信息向训练期穿越。
+
+### 3. Google Harness² 组件与 C++ 端侧底盘工程映射
+
+| Google Harness² 抽象维度 | 理论定义 | `native_cpp` 原生端侧底盘物理实现 | 端侧核心工程心法 |
+|---|---|---|---|
+| **$c_1$ System Prompt** | Always-On 角色与全局指引 | `context_engine.hpp` | **Byte 0 锁定不变式**：物理连续对齐，确保 ANE/NPU KV-Cache 零重算。 |
+| **$c_2$ Guardrails** | Always-On 硬性红线与约束 | `circuit_breaker.hpp` | **确定性三级跳闸**：步数截断（$\le 8$）、同签名动作防循环（$\le 2$）、连续报错熔断。 |
+| **$c_3$ Long-Term Memory** | Always-On 持久化领域事实 | `memory.hpp` | **LWW + 墓碑增量同步**：无锁高吞吐结构，毫秒级跨端多实例一致性同步。 |
+| **$c_4$ Tool Guidance** | Always-On 工具调用认知指引 | `tool_registry.hpp` | **L0/L1 渐进披露**：平时仅注单行概览（L0），候选期注完整 Schema（L1），严控静态 Token 预算。 |
+| **$c_5$ Subagents** | 隔离上下文独立委托角色 | `router.hpp` | **3-Tier 意图短路与多级分流**：Tier-1 确定性直出，Tier-2 规则拦截，Tier-3 分流至端侧小模型或云端。 |
+| **$c_6$ Skills / SOP** | 按需激活的业务工作流 | `tool_registry.hpp` (L2 层) | **自愈式 L2 注入**：正向推理绝不加载，仅当模型触发 `REFLECTING` 报错态时靶向注入纠偏样例。 |
+| **$c_7$ Scripts** | 确定性 Python 辅助计算工具 | `router.hpp` Fast-Path | **零 Token 规则短路**：闹钟/手电筒等简单动作直接以纯 C++ 纳秒执行返回，模型零感知。 |
+| **$c_8$ Plugins / Hooks** | Tool-loop 内部强制拦截器 | `sandbox.hpp` | **DJB2 幂等键 + HITL 安全门禁**：对不可逆动作强制挂起要求人工放行，规避物理硬件灾难。 |
+
+### 4. 架构分工：运行时底盘（Runtime Chassis）与自进化引擎（Meta-Optimizer）
+
+现代 Agent 工程体系呈现两层解耦结构：
+
+```
+┌────────────────────────────────────────────────────────┐
+│ Google Harness² (Meta-Level Optimization Layer)        │
+│  • 职责：在离线 / 影子测试环境中进行跨任务自迭代      │
+│  • 产出：最优的 System Prompt、SOP 技能库、路由策略表  │
+│  • 媒介：Python / 沙箱容器 / 大算力集群                │
+└───────────────────────────────────┬────────────────────┘
+                                    │ 编译 / 固化配置下发
+                                    ▼
+┌────────────────────────────────────────────────────────┐
+│ native_cpp (Execution Substrate / Runtime Chassis)     │
+│  • 职责：在端侧设备上微秒级（3.25 μs）安全确定性执行   │
+│  • 保障：零 GC、< 3MB 极小常驻内存、前缀静止、硬件保护 │
+│  • 媒介：C++20 原生二进制 / 动态链接库 / C ABI         │
+└────────────────────────────────────────────────────────┘
+```
+
+`native_cpp` 实现了该分层理论中负责承载最高并发、最低线束开销与硬件安全的**物理基石**；而 Google Harness² 为后续如何自动化生成、调优与演进本底盘内的 Prompt 与路由配置提供了完备的理论依据。
