@@ -1,5 +1,24 @@
 #pragma once
 
+/**
+ * @file json.hpp
+ * @brief 【零外部依赖轻量 JSON 解析与序列化引擎】专为嵌入式与端侧 Harness 深度优化
+ * 
+ * 架构设计与工程心法：
+ * 1. 为什么不引入 nlohmann/json 或 Boost.JSON？
+ *    - 端侧动态库交付（如 iOS 动态 framework / Android .so）对二进制体积极其敏感（往往要求 < 2MB）。
+ *    - 第三方庞大 JSON 库充斥大量复杂模板元编程（Template Metaprogramming），会导致符号表膨胀与编译速度骤降。
+ *    - 本模块基于 C++20 标准（std::variant, std::string_view, std::map, std::vector）实现，零外部依赖，极易阅读与审计。
+ * 2. 内存布局优化：
+ *    - 基础类型（null, bool, double）在 std::variant 中以内联值存储，绝不引发额外堆内存分配。
+ *    - 复合类型（string, vector, map）遵循 RAII 原则，生命周期确定。
+ * 3. 递归下降解析器（Recursive Descent Parser）：
+ *    - 基于 std::string_view 进行零拷贝字符扫描与跳过空白。
+ *    - 完整支持 RFC 8259 规范：转义字符（\n, \t, \", \\）、Unicode 编码（\uXXXX 转 UTF-8 多字节编码）。
+ * 4. 序列化优化（dump_to）：
+ *    - 提供预分配目标缓冲区的 dump_to(std::string&)，避免生成大量中间临时 string，显著降低内存抖动。
+ */
+
 #include <string>
 #include <string_view>
 #include <vector>
@@ -13,21 +32,29 @@
 
 namespace harness {
 
+/**
+ * @brief 通用强类型 JSON 数据节点
+ */
 class Json {
 public:
+    /**
+     * @brief JSON 节点物理类型枚举（与 std::variant 内部索引一一对应）
+     */
     enum class Type {
-        Null,
-        Boolean,
-        Number,
-        String,
-        Array,
-        Object
+        Null = 0,    ///< 空值 null
+        Boolean = 1, ///< 布尔值 true / false
+        Number = 2,  ///< 双精度浮点数 / 整数统一表示为 double
+        String = 3,  ///< UTF-8 字符串
+        Array = 4,   ///< 动态有序数组
+        Object = 5   ///< 键值对字典对象
     };
 
     using Object = std::map<std::string, Json>;
     using Array = std::vector<Json>;
 
-    // Constructors
+    // ==========================================
+    // 构造函数重载（支持隐式与显式语义构造）
+    // ==========================================
     Json() : value_(nullptr) {}
     Json(std::nullptr_t) : value_(nullptr) {}
     Json(bool b) : value_(b) {}
@@ -40,10 +67,14 @@ public:
     Json(Array a) : value_(std::move(a)) {}
     Json(Object o) : value_(std::move(o)) {}
 
+    /// 获取当前节点的具体数据类型
     Type type() const {
         return static_cast<Type>(value_.index());
     }
 
+    // ==========================================
+    // 类型判断工具函数
+    // ==========================================
     bool is_null() const { return std::holds_alternative<std::nullptr_t>(value_); }
     bool is_bool() const { return std::holds_alternative<bool>(value_); }
     bool is_number() const { return std::holds_alternative<double>(value_); }
@@ -51,6 +82,9 @@ public:
     bool is_array() const { return std::holds_alternative<Array>(value_); }
     bool is_object() const { return std::holds_alternative<Object>(value_); }
 
+    // ==========================================
+    // 类型安全提取访问器（类型不符时抛出 runtime_error）
+    // ==========================================
     bool as_bool() const {
         if (!is_bool()) throw std::runtime_error("Json value is not boolean");
         return std::get<bool>(value_);
@@ -94,11 +128,17 @@ public:
         return std::get<Object>(value_);
     }
 
+    // ==========================================
+    // 字典与数组查询辅助方法
+    // ==========================================
+    /// 检查字典是否包含指定键
     bool contains(const std::string& key) const {
         if (!is_object()) return false;
         const auto& obj = std::get<Object>(value_);
         return obj.find(key) != obj.end();
     }
+
+    /// 安全查找指定字段，找到返回指针，不存在或非对象返回 nullptr（避免抛异常）
     const Json* find_field(const std::string& key) const {
         if (!is_object()) return nullptr;
         const auto& obj = std::get<Object>(value_);
@@ -107,7 +147,7 @@ public:
         return nullptr;
     }
 
-
+    /// 常量字典下标操作符（键不存在时返回静态常量 null 节点，不修改自身）
     const Json& operator[](const std::string& key) const {
         const auto& obj = as_object();
         auto it = obj.find(key);
@@ -118,6 +158,7 @@ public:
         return it->second;
     }
 
+    /// 可变字典下标操作符（若原为 null 则自动转型为空 Object 并插入默认节点）
     Json& operator[](const std::string& key) {
         if (is_null()) {
             value_ = Object{};
@@ -125,6 +166,7 @@ public:
         return as_object()[key];
     }
 
+    /// 常量数组索引操作符
     const Json& operator[](size_t index) const {
         const auto& arr = as_array();
         if (index >= arr.size()) {
@@ -134,6 +176,7 @@ public:
         return arr[index];
     }
 
+    /// 可变数组索引操作符（越界时自动扩容）
     Json& operator[](size_t index) {
         auto& arr = as_array();
         if (index >= arr.size()) {
@@ -142,6 +185,13 @@ public:
         return arr[index];
     }
 
+    // ==========================================
+    // 序列化与输出优化
+    // ==========================================
+    /**
+     * @brief 高性能零拷贝追加序列化
+     * 将当前 JSON 内容直接追加序列化至外部 pre-allocated string，避免重复内存拷贝
+     */
     void dump_to(std::string& out) const {
         switch (type()) {
             case Type::Null: out += "null"; break;
@@ -200,6 +250,10 @@ public:
         }
     }
 
+    /**
+     * @brief 序列化为 JSON 字符串
+     * @param indent 缩进空格数（默认 -1 表示紧凑输出，无换行与多余空格）
+     */
     std::string dump(int indent = -1) const {
         if (indent < 0) {
             std::string s;
@@ -212,6 +266,11 @@ public:
         return ss.str();
     }
 
+    /**
+     * @brief 解析 JSON 字符串视图为 Json 对象
+     * @param sv 待解析的字符串视图
+     * @return Json 解析生成的树形节点
+     */
     static Json parse(std::string_view sv) {
         size_t pos = 0;
         skip_whitespace(sv, pos);
@@ -223,6 +282,7 @@ public:
 private:
     std::variant<std::nullptr_t, bool, double, std::string, Array, Object> value_;
 
+    /// 带层级缩进的美化序列化内部递归辅助函数
     void serialize(std::ostream& os, int indent, int depth) const {
         std::string ind = (indent >= 0) ? std::string(indent * depth, ' ') : "";
         std::string next_ind = (indent >= 0) ? std::string(indent * (depth + 1), ' ') : "";
@@ -290,12 +350,14 @@ private:
         }
     }
 
+    /// 跳过空格、制表符与换行符
     static void skip_whitespace(std::string_view sv, size_t& pos) {
         while (pos < sv.size() && (sv[pos] == ' ' || sv[pos] == '\t' || sv[pos] == '\n' || sv[pos] == '\r')) {
             pos++;
         }
     }
 
+    /// 递归下降：根据当前字符特征派发解析具体的值节点
     static Json parse_value(std::string_view sv, size_t& pos) {
         skip_whitespace(sv, pos);
         if (pos >= sv.size()) throw std::runtime_error("Unexpected end of JSON input");
@@ -311,6 +373,7 @@ private:
         throw std::runtime_error(std::string("Unexpected character in JSON: ") + c);
     }
 
+    /// 解析 null 常量
     static Json parse_null(std::string_view sv, size_t& pos) {
         if (sv.substr(pos, 4) == "null") {
             pos += 4;
@@ -319,6 +382,7 @@ private:
         throw std::runtime_error("Invalid null literal");
     }
 
+    /// 解析 true / false 布尔值
     static Json parse_bool(std::string_view sv, size_t& pos) {
         if (sv.substr(pos, 4) == "true") {
             pos += 4;
@@ -331,6 +395,7 @@ private:
         throw std::runtime_error("Invalid boolean literal");
     }
 
+    /// 解析数值（支持负数、小数与科学计数法）
     static Json parse_number(std::string_view sv, size_t& pos) {
         size_t start = pos;
         if (sv[pos] == '-') pos++;
@@ -349,8 +414,9 @@ private:
         return Json(val);
     }
 
+    /// 解析字符串（完整支持转义字符与 \uXXXX 字符解码）
     static Json parse_string(std::string_view sv, size_t& pos) {
-        pos++; // skip leading "
+        pos++; // 跳过前导双引号 "
         std::string s;
         while (pos < sv.size()) {
             char c = sv[pos++];
@@ -368,6 +434,7 @@ private:
                     case 'r': s += '\r'; break;
                     case 't': s += '\t'; break;
                     case 'u': {
+                        // 解析 4 位 16 进制 Unicode 码点并转换为 UTF-8
                         if (pos + 4 > sv.size()) throw std::runtime_error("Incomplete unicode escape");
                         std::string hex_str(sv.substr(pos, 4));
                         pos += 4;
@@ -393,8 +460,9 @@ private:
         throw std::runtime_error("Unterminated string");
     }
 
+    /// 解析数组 [ ... ]
     static Json parse_array(std::string_view sv, size_t& pos) {
-        pos++; // skip '['
+        pos++; // 跳过 '['
         Array arr;
         skip_whitespace(sv, pos);
         if (pos < sv.size() && sv[pos] == ']') {
@@ -418,8 +486,9 @@ private:
         throw std::runtime_error("Unterminated array");
     }
 
+    /// 解析键值对对象 { "key": value, ... }
     static Json parse_object(std::string_view sv, size_t& pos) {
-        pos++; // skip '{'
+        pos++; // 跳过 '{'
         Object obj;
         skip_whitespace(sv, pos);
         if (pos < sv.size() && sv[pos] == '}') {
@@ -434,7 +503,7 @@ private:
 
             skip_whitespace(sv, pos);
             if (pos >= sv.size() || sv[pos] != ':') throw std::runtime_error("Expected ':' after key in object");
-            pos++; // skip ':'
+            pos++; // 跳过 ':'
 
             Json val = parse_value(sv, pos);
             obj[key] = std::move(val);

@@ -146,6 +146,22 @@ flowchart TB
   * 支持按用户比例、特征标签进行细粒度流量切分（Traffic Splitting）；
   * 在生产环境并行对比不同提示词版本、不同路由策略或不同底层模型的核心指标（转化率、打断率、时延、Token 消耗），实现数据驱动的迭代上线。
 
+
+### 9. 建议落地组合（企业级云侧 Harness 最佳实践与开源生态选型）
+若在企业中自研落地高可用云侧 Harness 架构，行业内主流且成熟的开源技术栈落地组合如下：
+
+```
+[LiteLLM Proxy / Semantic Router] (模型路由/网关)
+            │
+            ▼
+   [Guardrails / NeMo] (输入安全护栏)
+            │
+            ▼
+[LangGraph + Temporal] (核心状态机编排与容灾)
+  ├── 上下文与记忆: [Mem0 / Zep / LlamaIndex]
+  ├── 工具与执行沙箱: [MCP Gateway + E2B]
+  └── 统一观测与提示词中心: [Langfuse]
+```
 ---
 
 ## 四、 端侧 Harness：本地轻量运行时科普
