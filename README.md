@@ -1,4 +1,6 @@
-# 深入 AI Agent 开发体系 (Agent in Depth)
+# agent入门
+
+**作者**：gemini 3.8 flash
 
 > 核心公式：$$\text{Agent} = \text{Model（概率模型引擎）} + \text{Harness（确定性工程底盘）}$$
 > 
