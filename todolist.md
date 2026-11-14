@@ -41,20 +41,25 @@
   - [x] 索引文件：[`README.md`](README.md)
   - 🔍 **关注重点**：
     - 理解极简本质公式：$\text{Agent} = \text{Model} + \text{Harness}$。
-    - 为什么多步 Agent 会发生死循环和级联衰减（$0.9^{10} \approx 34.8\%$）。
-    - 浏览仓库 6 步通关路线与模块全景。
+    - 为什么多步 Agent 会发生死循环和级联衰减（$Pass^k = p^k$，如 $0.95^{10} \approx 59.8\%$）。
+    - 浏览仓库快速上手与全局模块索引。
 - [ ] **2. 12 大踩坑避险指南**
   - [ ] 索引文件：[`docs/books/AI-Agents-in-Depth-QuickStart.md`](docs/books/AI-Agents-in-Depth-QuickStart.md)
   - 🔍 **关注重点**：
     - 认真对照“12 大排雷地图”：防死循环、Token 飞逝、JSON 格式幻觉、无边界重试。
     - 明确 Agent 项目立项与设计时的反模式（Anti-patterns）。
-- [ ] **3. 系统化电子书与理论全景**
+- [ ] **3. 产品经理实战与设计方法论**
+  - [ ] 索引文件：[`AI-Agent-Product-Manager-Guide.md`](AI-Agent-Product-Manager-Guide.md)
+  - 🔍 **关注重点**：
+    - 商业化落地 $Pass^k$ 生死线。
+    - Agent 产品设计标准五步法与三态权限闸门（Allow/Confirm/Block）。
+    - 8 项 PRD 交付物自查清单。
+- [ ] **4. 系统化电子书与理论全景**
   - [ ] 索引文件：[`AI-Agent-Application-Development-Guide.md`](AI-Agent-Application-Development-Guide.md)
   - [ ] 附带电子书资源：[`docs/books/agentic-design-patterns-cn.epub`](docs/books/agentic-design-patterns-cn.epub) / [`AI-Agents-in-Depth-zh-CN.epub`](docs/books/AI-Agents-in-Depth-zh-CN.epub)
   - 🔍 **关注重点**：
     - Agent 认知循环的本质（Perception $\to$ Planning $\to$ Action $\to$ Memory）。
     - 评测体系（Eval）为何先于 Prompt 编写。
-
 ---
 
 ## 阶段一：经典 8 大设计模式实操运行 (`patterns/`)
@@ -86,10 +91,14 @@
 **目标**：跳出 Python 脚本胶水层，学习工业级高性能、微秒级响应与强内存安全的 Harness 实现。
 
 - [ ] **1. 核心架构设计文档研读**
-  - [ ] 索引文档：[`docs/architecture/AGENT_FRAMEWORKS_CPP_GO.md`](docs/architecture/AGENT_FRAMEWORKS_CPP_GO.md) 与 [`docs/architecture/ai-agent-harness-architecture.md`](docs/architecture/ai-agent-harness-architecture.md)
+  - [ ] 索引文档：
+    - [`docs/architecture/01_general_agent_harness_architecture_specification.md`](docs/architecture/01_general_agent_harness_architecture_specification.md)（通用 Agent Harness 五层架构标准与 OpenHarness/AgentBench/SWE-bench/OpenCode 深度剖析）
+    - [`docs/architecture/02_personal_voice_assistant_harness_architecture.md`](docs/architecture/02_personal_voice_assistant_harness_architecture.md)（个人语音助手与端云协同架构：FastAvatar 工业范式）
+    - [`docs/architecture/OMP_VS_CLAUDE_CODE_COMPARISON.md`](docs/architecture/OMP_VS_CLAUDE_CODE_COMPARISON.md)（Claude Code 垂直共生与 OMP Prewalk 阶梯降模）
+    - [`docs/architecture/AGENT_FRAMEWORKS_CPP_GO.md`](docs/architecture/AGENT_FRAMEWORKS_CPP_GO.md)（C++ 端侧运行时与 Go 云端微服务架构选型）
   - 🔍 **关注重点**：
-    - 为什么生产级关键路径需要 C++/Go/Rust 级别的 Harness。
-    - 了解低线束税（Low Harness Tax）与无拷贝状态传递。
+    - 为什么生产级关键路径需要 C++/Go 级别的 Harness。
+    - 了解低线束税（Low Harness Tax）、KV Cache 字节级静态对齐与无拷贝状态传递。
 - [ ] **2. C++ 关键防护与引擎头文件精读**
   - [ ] 索引目录：[`core/native_cpp/include/harness/`](core/native_cpp/include/harness/)
   - [ ] 重点组件：
