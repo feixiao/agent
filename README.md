@@ -232,6 +232,7 @@ agent/
    - 核心理论速查：[`docs/books/AI-Agents-in-Depth-QuickStart.md`](docs/books/AI-Agents-in-Depth-QuickStart.md)（掌握 12 大排雷归因地图与 $Pass^k$ 法则）
    - 模式电子书：中英双语 EPUB（[`agentic-design-patterns-cn.epub`](docs/books/agentic-design-patterns-cn.epub) / [`agentic-design-patterns-en.epub`](docs/books/agentic-design-patterns-en.epub)）
    - 企业落地实战指南：[`docs/books/AI-Agent-Application-Development-Guide.md`](docs/books/AI-Agent-Application-Development-Guide.md)（《AI Agent 开发实战：从基础原理到企业级应用》第 6~8 章核心工程化、多 Agent 框架选型与研报系统实战）
+   - 产品经理实战指南：[`docs/books/AI-Agent-Product-Manager-Guide.md`](docs/books/AI-Agent-Product-Manager-Guide.md)（面向 AI PM：打破聊天框心智、商业落地 $Pass^k$ 生死线、产品设计标准五步法与 PRD 自查清单）
 2. **经典模式工程**：
    - 模式总览：[`patterns/README.md`](patterns/README.md)（对应开源项目 [xindoo/agentic-design-patterns](https://github.com/xindoo/agentic-design-patterns)）
    - 查看 LangChain 8 大模式实现：[`patterns/langchain/ReadMe.md`](patterns/langchain/ReadMe.md)
