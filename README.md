@@ -262,3 +262,4 @@ agent/
    - 端侧 Harness 设计（Android / iOS / Mac 开放助手）：[`docs/architecture/ON_DEVICE_HARNESS_DESIGN.md`](docs/architecture/ON_DEVICE_HARNESS_DESIGN.md)（系统模型 Foundation Models / Gemini Nano 与 LiteRT-LM 选型、端云路由、4096 上下文约束下的上下文装配、工具权限闸门与跨端共享规格）。
    - Harness 总体架构白皮书：[`docs/architecture/ai-agent-harness-architecture.md`](docs/architecture/ai-agent-harness-architecture.md)。
    - 通用 Agent Harness 架构设计规范：[`docs/architecture/01_general_agent_harness_architecture_specification.md`](docs/architecture/01_general_agent_harness_architecture_specification.md)（系统解构状态外置、五层标准架构与五大顶级开源 Harness 项目深度剖析）。
+   - 个人语音助手 Harness 与跨端端云工程范式：[`docs/architecture/02_personal_voice_assistant_harness_architecture.md`](docs/architecture/02_personal_voice_assistant_harness_architecture.md)（以 [`feixiao/FastAvatar`](https://github.com/feixiao/FastAvatar) 为例深度剖析声学自激 AEC、首句微切、Unified Edge TTS、Barge-in $\le 50\text{ms}$ 与端云双环架构）。
