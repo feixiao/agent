@@ -5,6 +5,58 @@
 > 本清单作为**现存代码与文档的索引导航地图**，带你由浅入深逐一研读、运行、验证与掌握。
 
 ---
+## 🧭 推荐阅读顺序与学习路径 (Recommended Reading Order)
+
+> 💡 **导读建议**：本项目涵盖理论体系、经典模式、工程底盘与 109 个配套实验。请根据目标角色与阶段选用适合的阅读路径，切忌盲目从头到尾平铺硬啃。
+
+### 1. 角色定制化阅读矩阵
+
+| 目标角色 | 推荐阅读路径 | 核心关注重点 | 建议跳过/后置内容 |
+| :--- | :--- | :--- | :--- |
+| 🧑‍💻 **AI 应用 / 全栈工程师** | **路线 A（业务与工程闭环）**：<br>Step 1 认知 $\to$ Step 2 模式 $\to$ Step 3 三要素 $\to$ Step 5 落地与评测 | ReAct 闭环、工具动态路由、Agentic-RAG、Coding Agent 沙箱 | `core/native_cpp/` 源码（前期仅了解概念） |
+| 🏗️ **系统架构师 / 底座工程师** | **路线 B（高可用底盘与性能）**：<br>Step 1 认知 $\to$ Step 4 架构底盘 $\to$ Step 3 上下文/缓存 $\to$ Step 5 安全与自演化 | Harness 五层模型、KV Cache 字节级静态对齐、C++ 状态机与熔断机制、低延迟打断 | LangChain 高层胶水与垂直场景 UI 细节 |
+| 👔 **AI 产品经理 / 技术负责人** | **路线 C（商业化决策与评测）**：<br>Step 1 心智指南 $\to$ Step 5 评估与成本 $\to$ Step 3 工具与安全闸门 | $Pass^k$ 生死线、三态权限闸门 (Allow/Confirm/Block)、Elo 天梯打分、Token 成本核算 | C++ 底盘编译、LoRA 微调脚本细节 |
+
+---
+
+### 2. 标准五步全景阅读顺序（通读全通关）
+
+```mermaid
+flowchart LR
+    S1["第一步：认知破迷<br/>(1~2 天)"] --> S2["第二步：模式跑通<br/>(2~3 天)"]
+    S2 --> S3["第三步：工程三要素<br/>(1 周)"]
+    S3 --> S4["第四步：确定性底座<br/>(1 周)"]
+    S4 --> S5["第五步：工业落地与评测<br/>(1~2 周)"]
+```
+
+#### 第一步：理论认知破迷（建立直觉与排雷意识）
+1. [`README.md`](README.md)：理解核心公式 $\text{Agent} = \text{Model} + \text{Harness}$ 与 $Pass^k = p^k$ 级联失效率。
+2. [`docs/books/AI-Agents-in-Depth-QuickStart.md`](docs/books/AI-Agents-in-Depth-QuickStart.md)：精读 **12 大排雷地图**，了解死循环、Token 飞逝与 JSON 幻觉反模式。
+3. [`AI-Agent-Product-Manager-Guide.md`](AI-Agent-Product-Manager-Guide.md)：掌握产品五步法与三态权限闸门（Allow/Confirm/Block）。
+
+#### 第二步：模式破冰与微循环跑通（看清 Agent 怎么动）
+1. [`experiments/chapter1/`](experiments/chapter1/README.md)：运行最小 ReAct 决策、上下文消融与工具调用验证。
+2. [`patterns/langchain/`](patterns/langchain/README.md)：运行 `chap04.py` (路由分发)、`chap05.py` / `chap06.py` (ReAct 与 Tool Calling)、`chap07.py` (反思检查)。
+3. [`patterns/autogen/`](patterns/autogen/README.md)：运行 `chap01.py` 体验双智能体对话与状态转移。
+
+#### 第三步：核心工程三要素深度实战（上下文、记忆、工具）
+1. **上下文工程**：[`experiments/chapter2/`](experiments/chapter2/README.md) —— KV-Cache 命中率分析、Prompt Cache 前缀对齐与上下文压缩。
+2. **记忆系统**：[`experiments/chapter3/`](experiments/chapter3/README.md) —— Agentic-RAG、分层画像检索与过时记忆衰减（Decay）。
+3. **工具工程**：[`experiments/chapter4/`](experiments/chapter4/README.md) —— Model Context Protocol (MCP) 协议实战与多工具动态发现。
+
+#### 第四步：解剖工业级确定性 Harness 底座（跳出调包侠）
+1. [`docs/architecture/01_general_agent_harness_architecture_specification.md`](docs/architecture/01_general_agent_harness_architecture_specification.md)：通读通用 Agent Harness 五层架构规范与状态外置标准。
+2. [`docs/architecture/OMP_VS_CLAUDE_CODE_COMPARISON.md`](docs/architecture/OMP_VS_CLAUDE_CODE_COMPARISON.md)：剖析顶级终端智能体设计（Claude Code vs OMP 的工具原语与阶梯降模）。
+3. [`core/native_cpp/`](core/native_cpp/)：精读 `circuit_breaker.hpp`（熔断器）、`token_budget.hpp`（预算控制）与 `harness_engine.hpp`，并执行 C++ 单元测试与微秒级基准压测。
+
+#### 第五步：商业落地、科学评测与持续自演化（成专家）
+1. **代码智能体落地**：[`experiments/chapter5/coding-agent/`](experiments/chapter5/coding-agent/) —— 沙箱环境、AST 语法树修改与 Traceback 自动修复闭环。
+2. **科学客观评估**：[`experiments/chapter7/`](experiments/chapter7/README.md) —— 基于 Bradley-Terry 模型的 Elo 天梯赛与 Token 成本分析。
+3. **安全闸门与自演进**：[`experiments/chapter9/`](experiments/chapter9/README.md) —— 准出安全策略闸门（Safety Gate）与工具自生成沙箱热加载。
+4. **多 Agent 协同**：[`experiments/chapter10/`](experiments/chapter10/README.md) —— 复杂任务群体协作拓扑与状态治理。
+
+---
+
 
 ## 🚀 小白通关专区：四阶段“倒金字塔”成长路线（防劝退指南）
 
