@@ -46,7 +46,7 @@
 ### 3. 《AI Agent 开发实战：从基础原理到企业级应用》 — 郑天民
 聚焦企业级应用落地的技术体系，涵盖私有化运行时（Ollama）、链路追踪（LangSmith / Phoenix）、Streamlit 前后端流式交互、Web API 标准服务化（Flask / LangServe）、混合数据持久化（PostgreSQL / pgvector），以及三大主流多 Agent 框架（LlamaIndex Workflows、AutoGen、LangGraph）的架构设计与端到端实战研报系统。
 
-* **企业应用篇核心指南**：[`AI-Agent-Application-Development-Guide.md`](AI-Agent-Application-Development-Guide.md)
+* **企业应用篇核心指南**：[`../../AI-Agent-Application-Development-Guide.md`](../../AI-Agent-Application-Development-Guide.md)
   * 深度提炼第 6~8 章企业应用篇精髓（工程化底座、事件/会话/状态图三大多 Agent 范式、Supervisor 研报落地）
   * 提供三大框架（LlamaIndex vs AutoGen vs LangGraph）架构选型矩阵与生产落地五大铁律
 * **官方开源仓库**：[tianminzheng/agent-application-development](https://github.com/tianminzheng/agent-application-development)

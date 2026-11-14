@@ -21,7 +21,7 @@
     - 认真对照“12 大排雷地图”：防死循环、Token 飞逝、JSON 格式幻觉、无边界重试。
     - 明确 Agent 项目立项与设计时的反模式（Anti-patterns）。
 - [ ] **3. 系统化电子书与理论全景**
-  - [ ] 索引文件：[`docs/books/AI-Agent-Application-Development-Guide.md`](docs/books/AI-Agent-Application-Development-Guide.md)
+  - [ ] 索引文件：[`AI-Agent-Application-Development-Guide.md`](AI-Agent-Application-Development-Guide.md)
   - [ ] 附带电子书资源：[`docs/books/agentic-design-patterns-cn.epub`](docs/books/agentic-design-patterns-cn.epub) / [`AI-Agents-in-Depth-zh-CN.epub`](docs/books/AI-Agents-in-Depth-zh-CN.epub)
   - 🔍 **关注重点**：
     - Agent 认知循环的本质（Perception $\to$ Planning $\to$ Action $\to$ Memory）。
