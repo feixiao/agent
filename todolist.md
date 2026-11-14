@@ -6,6 +6,34 @@
 
 ---
 
+## 🚀 小白通关专区：四阶段“倒金字塔”成长路线（防劝退指南）
+
+> **写给初学者**：不要从第一行代码硬啃到最后一行！请采用**“先建心智（防忽悠） $\to$ 跑通微循环（见活物） $\to$ 拆解生产底盘（学架构） $\to$ 掌握评测与演进（成专家）”**的节奏通关。
+
+```text
+[Day 1] 认知破迷 (建立直觉，不写代码)
+  ├─ [ ] 1. 核心公式与本质: README.md (为什么 Agent = Model + Harness? 为什么 Pass^k 会暴跌?)
+  ├─ [ ] 2. 12 大排雷地图: docs/books/AI-Agents-in-Depth-QuickStart.md (防死循环、防 Token 飞逝)
+  └─ [ ] 3. 产品与商业心智: AI-Agent-Product-Manager-Guide.md (产品五步法、三态权限闸门 Allow/Confirm/Block)
+
+[Day 2-3] 破冰动手 (跑通最简 ReAct 循环)
+  ├─ [ ] 1. 极速环境装配: cp .env.example .env && uv sync --extra patterns
+  ├─ [ ] 2. 看清手脚怎么动: 运行 patterns/langchain/chap05.py & chap06.py (观察 ReAct 思考与工具分发)
+  └─ [ ] 3. 多角色协作体验: 运行 patterns/autogen/chap01.py (观察 UserProxyAgent 与 Assistant 对话)
+
+[Week 2] 进阶专家底盘 (从调包侠走向架构师)
+  ├─ [ ] 1. 五层底座与内存段: docs/architecture/01_general_agent_harness_architecture_specification.md (KV Cache 对齐)
+  ├─ [ ] 2. 顶级终端智能体拆解: docs/architecture/OMP_VS_CLAUDE_CODE_COMPARISON.md (Claude Code vs OMP)
+  ├─ [ ] 3. 端云语音与硬实时: docs/architecture/02_personal_voice_assistant_harness_architecture.md (Barge-in ≤50ms 打断)
+  └─ [ ] 4. 工业级 C++ 底座感知: core/native_cpp/include/harness/ (circuit_breaker 熔断器与 token_budget)
+
+[Week 3-4] 商业级落地与专家分水岭 (评测、安全与自演化)
+  ├─ [ ] 1. 真实 Coding Agent: experiments/chapter5/coding-agent/ (代码沙箱与 Traceback 自动修复)
+  ├─ [ ] 2. 科学客观打分体系: experiments/chapter7/ (Rubric 四档量表、Elo 对战天梯、首错归因 First Mistake)
+  ├─ [ ] 3. 商业成本精细核算: experiments/chapter7/agent-cost-analysis/ (Token 消耗、缓存命中与美元账单)
+  └─ [ ] 4. 安全策略与自演进: experiments/chapter9/harness-safety-gate/ & self-modifying-agent/ (上线准出检查)
+```
+
 ## 阶段零：理论基石与心智模型对齐
 **目标**：建立“以确定性 Harness 对抗概率模型不确定性（$Pass^k = p^k$）”的工业级认知。
 
