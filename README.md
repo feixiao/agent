@@ -261,3 +261,4 @@ agent/
    - 终端智能体架构对比白皮书：[`docs/architecture/OMP_VS_CLAUDE_CODE_COMPARISON.md`](docs/architecture/OMP_VS_CLAUDE_CODE_COMPARISON.md)（站在 Agent Harness 视角深度剖析 **OMP (Oh My Pi)** 与 **Claude Code**：垂直共生 vs 异构分工、Prewalk 阶梯调度、LSP 诊断与经济学选型）。
    - 端侧 Harness 设计（Android / iOS / Mac 开放助手）：[`docs/architecture/ON_DEVICE_HARNESS_DESIGN.md`](docs/architecture/ON_DEVICE_HARNESS_DESIGN.md)（系统模型 Foundation Models / Gemini Nano 与 LiteRT-LM 选型、端云路由、4096 上下文约束下的上下文装配、工具权限闸门与跨端共享规格）。
    - Harness 总体架构白皮书：[`docs/architecture/ai-agent-harness-architecture.md`](docs/architecture/ai-agent-harness-architecture.md)。
+   - 通用 Agent Harness 架构设计规范：[`docs/architecture/01_general_agent_harness_architecture_specification.md`](docs/architecture/01_general_agent_harness_architecture_specification.md)（系统解构状态外置、五层标准架构与五大顶级开源 Harness 项目深度剖析）。
