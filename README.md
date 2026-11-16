@@ -155,6 +155,7 @@ agent/
    - 模式电子书：中英双语 EPUB（[`agentic-design-patterns-cn.epub`](docs/books/agentic-design-patterns-cn.epub) / [`agentic-design-patterns-en.epub`](docs/books/agentic-design-patterns-en.epub)）
    - 企业落地实战指南：[`AI-Agent-Application-Development-Guide.md`](AI-Agent-Application-Development-Guide.md)（《AI Agent 开发实战：从基础原理到企业级应用》第 6~8 章核心工程化、多 Agent 框架选型与研报系统实战）
    - 产品经理实战指南：[`AI-Agent-Product-Manager-Guide.md`](AI-Agent-Product-Manager-Guide.md)（面向 AI PM：打破聊天框心智、商业落地 $Pass^k$ 生死线、产品设计标准五步法与 PRD 自查清单）
+   - 哈佛 CS2680 课程笔记：[`feixiao/cs2680-harvard`](https://github.com/feixiao/cs2680-harvard)（《Modern AI Systems: Agents and System Optimizations》全 14 周幻灯片中文摘要，含 Mads 全栈参照实现：Agent Loop / 上下文 / 批处理 / 分页 KV / 投机解码）
 2. **经典模式工程**：
    - 模式总览：[`patterns/README.md`](patterns/README.md)（对应开源项目 [xindoo/agentic-design-patterns](https://github.com/xindoo/agentic-design-patterns)）
    - 查看 LangChain 8 大模式实现：[`patterns/langchain/ReadMe.md`](patterns/langchain/ReadMe.md)
