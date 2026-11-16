@@ -346,6 +346,7 @@ flowchart LR
 如果你正在从传统 PM、技术或运营转型为 AI Agent PM，请不要停留在“阅读理论”层面。业内招聘或业务立项最看重的是**你的可验证工程手感**。
 
 ```mermaid
+%%{init:{"theme":"base","themeVariables":{"cScale0":"#e8eef7","cScale1":"#dde7f3","cScale2":"#d3dfee","cScale3":"#c9d7e9","cScale4":"#e8eef7","cScale5":"#dde7f3","cScale6":"#d3dfee","cScale7":"#c9d7e9","cScale8":"#e8eef7","cScale9":"#dde7f3","cScale10":"#d3dfee","cScale11":"#c9d7e9","cScale12":"#e8eef7","cScale13":"#dde7f3","cScale14":"#d3dfee","cScale15":"#c9d7e9","cScaleLabel0":"#243043","cScaleLabel1":"#243043","cScaleLabel2":"#243043","cScaleLabel3":"#243043","cScaleLabel4":"#243043","cScaleLabel5":"#243043","cScaleLabel6":"#243043","cScaleLabel7":"#243043","cScaleLabel8":"#5a6b8c","cScaleLabel9":"#5a6b8c","cScaleLabel10":"#5a6b8c","cScaleLabel11":"#5a6b8c","cScaleLabel12":"#5a6b8c","cScaleLabel13":"#5a6b8c","cScaleLabel14":"#5a6b8c","cScaleLabel15":"#5a6b8c","cScaleInv0":"#8fa3bf","cScaleInv1":"#8fa3bf","cScaleInv2":"#8fa3bf","cScaleInv3":"#8fa3bf","cScaleInv4":"#8fa3bf","cScaleInv5":"#8fa3bf","cScaleInv6":"#8fa3bf","cScaleInv7":"#8fa3bf","cScaleInv8":"#8fa3bf","cScaleInv9":"#8fa3bf","cScaleInv10":"#8fa3bf","cScaleInv11":"#8fa3bf","cScaleInv12":"#8fa3bf","cScaleInv13":"#8fa3bf","cScaleInv14":"#8fa3bf","cScaleInv15":"#8fa3bf"}}}%%
 timeline
     title 30 天 AI Agent PM 转型实战跃迁路径
     第 1 周 : 建立标杆手感 : 深度拆解 3 款标杆 Agent（Cursor, v0, Perplexity 等）: 在 Playground 中系统测试主流模型的 Tool Calling 与格式遵循边界

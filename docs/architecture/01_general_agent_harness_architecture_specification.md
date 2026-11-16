@@ -35,41 +35,40 @@
 
 ```mermaid
 flowchart TD
-    subgraph L1["1. 上下文编译器与内存布局 (Context Compiler & Memory Layout)"]
-        Pinned["静态只读段 Pinned Prefix (100% KV Cache 命中)"]
-        Standing["常驻规则段 Standing Instructions (AGENTS.md / CLAUDE.md)"]
-        JIT["动态按需装载段 JIT Retrieval & Skills (按需加载/用完即焚)"]
-        History["滑动事务历史段 Sliding Transaction History"]
-        Compaction["水位线监控与自动折叠器 Watermark & Auto-Compaction"]
-    end
+    L1["1. 上下文编译器与内存布局<br>Pinned 只读段 · KV 命中<br>Standing 规则 · AGENTS.md<br>JIT 技能段 · 用完即焚<br>滑动历史段 · 超限折叠"]
 
-    subgraph L2["2. 确定性主控执行循环 (The Deterministic Agentic Loop)"]
+    subgraph L2["2. 确定性主控执行循环 (Agentic Loop)"]
         InputNorm["输入归一化"] --> StreamInfer["流式推理与语法拦截"]
         StreamInfer --> Branch{"分支路由判定"}
         Branch -->|End Turn| Render["渲染回复 / 挂起等待"]
         Branch -->|Tool Use| ToolExec["工具分发与沙箱执行"]
-        ToolExec --> ObsInject["观测回填与自愈重试 (Observation Injection)"]
+        ToolExec --> ObsInject["观测回填与自愈重试"]
         ObsInject --> StreamInfer
     end
 
-    subgraph L3["3. 工具路由器与动态协议扩展层 (Tool Router & MCP Host)"]
-        Builtin["内建原子工具集 Built-in Primitives (Shell / File IO / AST)"]
-        MCP["MCP Host 协议适配"]
-        Deferred["延迟工具展开 Deferred Tool Loading (轻量索引 -> 动态展开)"]
-    end
+    L3["3. 工具路由与协议扩展<br>内置原子工具 · Shell/File/AST<br>MCP Host · 外部服务接入<br>延迟展开 · 轻量索引注入"]
 
-    subgraph L4["4. 权限门控与安全沙箱 (Permission Gate & Execution Sandbox)"]
-        Gate{"语义决策门控"}
-        Gate -->|Allow| ExecDirect["自动放行 (只读/查询/无副作用)"]
-        Gate -->|Confirm| ExecAsk["人工确认 (配置修改/写/删/网络外呼)"]
-        Gate -->|Block| ExecDeny["硬性阻断 (敏感凭据/高危路径/黑名单)"]
-        Sandbox["OS 级沙箱隔离 (Seatbelt / Seccomp / 受控白名单)"]
-    end
+    L4["4. 权限门控与安全沙箱<br>Allow 放行 · 只读查询<br>Confirm 确认 · 写删外呼<br>Block 阻断 · 高危凭据<br>沙箱隔离 · Seatbelt/Seccomp"]
 
-    subgraph L5["5. 子智能体分派与多模型路由 (Subagent Dispatcher & Multi-Model Routing)"]
-        ForkJoin["Fork-Join 上下文隔离 (主智能体 Context 保持纯净)"]
-        ModelRoute["多模型角色路由 (旗舰模型规划推理 + 轻量模型转换压缩)"]
-    end
+    L5["5. 子智能体与多模型路由<br>Fork-Join · 上下文隔离<br>多模型路由 · 旗舰+轻量"]
+
+    L1 --> InputNorm
+    ToolExec --> L3
+    L3 --> L4
+    ToolExec --> L5
+    L4 -.->|观测回传| ObsInject
+
+    classDef cL1 fill:#e8eef7,stroke:#8fa3bf,color:#243043
+    classDef cL2 fill:#dde7f3,stroke:#7d90b0,color:#243043
+    classDef cL3 fill:#d3dfee,stroke:#7d90b0,color:#243043
+    classDef cL4 fill:#c9d7e9,stroke:#6b80a3,color:#243043
+    classDef cL5 fill:#bfd0e6,stroke:#6b80a3,color:#243043
+    class L1 cL1
+    class L3 cL3
+    class L4 cL4
+    class L5 cL5
+    class InputNorm,StreamInfer,Render,ToolExec,ObsInject cL2
+    class Branch cL4
 ```
 
 ### 2.1 上下文编译器与内存布局管理层（Context Compiler & Memory Layout）
