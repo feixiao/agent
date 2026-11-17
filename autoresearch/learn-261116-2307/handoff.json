@@ -1,0 +1,13 @@
+{
+  "subcommand": "learn",
+  "generated_at": "2026-11-16T23:11:40+08:00",
+  "status": "completed",
+  "findings": {
+    "modules_created": 4,
+    "code_examples_created": 2,
+    "verified_clean_execution": true
+  },
+  "verdict": "STABLE",
+  "target_directory": "harness",
+  "symlink_created": "harmness -> harness"
+}

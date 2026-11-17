@@ -1,0 +1,8 @@
+# metric_direction: higher_is_better
+iteration	timestamp	file_documented	validation_status	issues_found	issues_fixed	description
+1	2026-11-16T23:08:29	harness/README.md	VALID	0	0	Created root index and overview for harness knowledge base
+2	2026-11-16T23:09:17	harness/01_core_concepts_and_components.md	VALID	0	0	Universal components, error compound law, and seven sub-systems of Agent Harness
+3	2026-11-16T23:09:52	harness/02_edge_vs_cloud_harness.md	VALID	0	0	Edge vs Cloud harness differences, constraints, and Dual-Loop hybrid architecture
+4	2026-11-16T23:10:29	harness/03_open_source_projects_guide.md	VALID	0	0	Curated open-source projects (OpenHands, SWE-agent, LangGraph, PalmClaw, llama.cpp, etc.) with code reading guide
+5	2026-11-16T23:10:58	harness/examples/minimal_harness.py	VALID	0	0	White-box runnable minimal agent harness with circuit breaker and prefix caching
+6	2026-11-16T23:11:18	harness/examples/edge_rule_arbiter.py	VALID	0	0	Fast intent arbiter and on-device PII redactor example
