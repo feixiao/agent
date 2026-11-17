@@ -9,5 +9,5 @@
   },
   "verdict": "STABLE",
   "target_directory": "harness",
-  "symlink_created": "harmness -> harness"
+  "symlink_created": "harmness -> harness (removed 2026-11-17 per user request; use harness/)"
 }

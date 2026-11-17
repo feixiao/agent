@@ -1,8 +1,8 @@
-# Autoresearch Summary: AI Agent Harness (and Harmness) Knowledge Base
+# Autoresearch Summary: AI Agent Harness Knowledge Base
 
 ## Research Overview
 - **Goal**: 创建专门研究 Harness 通用组件和作用的目录，对比端侧与云端 Harness 的区别及联系，并提供优质开源项目代码精读指南。
-- **Term Clarification**: 标准行业学术及工业界术语为 **Harness**（线束/底座/运行底盘），常见误拼为 `harmness`（混淆 hardness 或 harmlessness）。根目录已建立符号链接 `harmness -> harness` 确保双路径无缝访问。
+- **Term Clarification**: 标准行业学术及工业界术语为 **Harness**（线束/底座/运行底盘），常见误拼为 `harmness`（混淆 hardness 或 harmlessness）。根目录曾建立符号链接 `harmness -> harness`（2026-11-17 已删除，统一使用 `harness/`）。
 - **Generated Modules**:
   1. `harness/README.md`: 导读全景、本质公式、知识库架构与学习路线。
   2. `harness/01_core_concepts_and_components.md`: 7 大核心子系统（状态机循环、上下文治理、工具沙箱、动态提示词、模型路由与语法约束、安全护栏、可观测性与评测）。
