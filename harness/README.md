@@ -49,8 +49,8 @@ $$\text{Agent} = \text{Model（概率模型引擎）} + \text{Harness（确定�
 | **01** | [`01_core_concepts_and_components.md`](01_core_concepts_and_components.md) | **Harness 通用组件与核心作用**：深入剖析状态机、上下文治理、工具沙箱、语法约束解码、安全护栏、可观测性 7 大核心子系统。 |
 | **02** | [`02_edge_vs_cloud_harness.md`](02_edge_vs_cloud_harness.md) | **端侧与云端 Harness 的区别与联系**：算力/内存严苛约束下的端侧工程、云端高并发分布式架构、端云协同双环（Dual-Loop）机制深度对比。 |
 | **03** | [`03_open_source_projects_guide.md`](03_open_source_projects_guide.md) | **优质开源项目盘点与源码学习指南**：精选 OpenHands、SWE-agent、LangGraph、PalmClaw、LiteRT-LM、llama.cpp 等经典项目，提供代码定位与精读切入点。 |
+| **04** | [`04_hermes_agent_harness_deep_dive.md`](04_hermes_agent_harness_deep_dive.md) | **Nous Research Hermes Agent 架构与工程实现深度解析**：以 Hermes 为参考范本，详解“单核窄腰”网关、控制回路、缓存敏感型提示词装配、四阶段微压缩、三级工具渐进暴露、零对话历史隔离子智能体与 8 层安全体系。 |
 | **附录** | [`examples/`](examples/) | **白盒代码实战示例**：包含单文件纯 Python 实现的最小可用 Harness，以及端侧毫秒级规则短路仲裁器。 |
-
 ---
 
 ## 三、 推荐学习路线
@@ -58,4 +58,5 @@ $$\text{Agent} = \text{Model（概率模型引擎）} + \text{Harness（确定�
 1. **第一步（树立系统观）**：阅读 [`01_core_concepts_and_components.md`](01_core_concepts_and_components.md)，搞清楚一个高可用 Agent Harness 内部必须包含哪些齿轮和链条；
 2. **第二步（掌握场景差异）**：阅读 [`02_edge_vs_cloud_harness.md`](02_edge_vs_cloud_harness.md)，理解为什么手机/车机端不能照搬服务端的 Python 架构，以及端云混合（Hybrid Edge-Cloud）的通信形态；
 3. **第三步（结合源码精读）**：阅读 [`03_open_source_projects_guide.md`](03_open_source_projects_guide.md)，挑选 1~2 个最契合你业务方向的开源项目（如服务端推荐精读 OpenHands，移动/端侧推荐精读 PalmClaw），对照文中的文件索引去 GitHub 深入看代码；
-4. **第四步（上手调试原型）**：运行 `harness/examples/minimal_harness.py`，直观感受熔断机制、工具沙箱与上下文预算是如何运行的。
+4. **第四步（上手调试原型）**：运行 `harness/examples/minimal_harness.py`，直观感受熔断机制、工具沙箱与上下文预算是如何运行的；
+5. **第五步（进阶工业级参考范本）**：阅读 [`04_hermes_agent_harness_deep_dive.md`](04_hermes_agent_harness_deep_dive.md)，深入学习以 Nous Research Hermes Agent 为代表的生产级开源 Harness 核心机制与 10 项评估核对清单。
