@@ -73,35 +73,7 @@
 | 8 | 可中断流式调用 | `_interruptible_api_call()` 后台流；`incomplete_response` 最多自动续写 3 次，仍无进展触发 `_try_activate_fallback` 切供应商 + 凭据池轮转 |
 | 9 | 终结分支 | A) 有 `tool_calls`：线程池并发/屏障串行执行，按原序写回 `role:tool`，跳回 Step 5；B) 纯文本：`pre_verify` 完成度校验 → 输出转换 → 写 `state.db` → 增量微压缩 → 异步拉起后台复盘（见 §6） |
 
-
-**最小 IR 契约与不变量校验**：
-
-```python
-@dataclass
-class CanonicalMessage:
-    message_uid: str                         # 32-hex 跨压缩持久 ID
-    role: Literal["user", "assistant", "tool"]
-    content: str = ""
-    tool_calls: list[ToolCall] = field(default_factory=list)
-    tool_call_id: str | None = None          # role=="tool" 时必填
-    absorbed_message_uids: list[str] = field(default_factory=list)
-
-def assert_role_invariants(messages: list[CanonicalMessage]) -> None:
-    for i, m in enumerate(messages):
-        if i > 0 and m.role in ("user", "assistant") and messages[i - 1].role == m.role:
-            if not (m.role == "assistant" and messages[i - 1].role == "tool"):
-                raise ProtocolInvariantError(f"Consecutive {m.role} at index {i}")
-        if m.role == "assistant" and m.tool_calls:
-            expected_ids = [tc.id for tc in m.tool_calls]
-            actual_ids = [
-                messages[j].tool_call_id
-                for j in range(i + 1, min(i + 1 + len(expected_ids), len(messages)))
-                if messages[j].role == "tool"
-            ]
-            if actual_ids != expected_ids:
-                raise ProtocolInvariantError("Unclosed or out-of-order tool_calls")
-```
-
+- **IR 校验处理逻辑**：每条消息带跨压缩持久 `message_uid`；落盘或发请求前统一跑一次线性扫描断言——若出现连续两个 `user`/`assistant`，或某条 `assistant(tool_calls)` 后面紧跟的 `tool` 消息数量、顺序、`tool_call_id` 与请求不一致，立即在本地拦截修复（合成占位结果或回滚残缺末尾），绝不把非法序列发往上游 API。
 **坑**：`ThreadPoolExecutor` 并发执行多个工具时，若按 `as_completed` 完成先后而非**模型原始请求顺序**写回 `role: tool`，或流式中断残留未闭合的 `tool_calls`，Anthropic / OpenAI 严格协议校验会直接返回 `400 Bad Request` 锁死整个会话。
 ---
 
@@ -151,18 +123,6 @@ def assert_role_invariants(messages: list[CanonicalMessage]) -> None:
    - 微压缩（`agent/micro_compactor.py`，`compression.micro_compact: true`）：每回合 `finalize_turn` 只吸收最老一组 Assistant 交互进滚动摘要标记，**永久跳过 User 消息原样保留**；滚动摘要超 `micro_compact_defrag_threshold_tokens=2000` 自动碎片整理 → 长会话水位稳定在 **~22%** 直线，消灭锯齿卡顿（代价：每轮重写摘要标记使其后缓存失效，适合重低水位场景）。
 5. **跨压缩身份追踪**：`ContextEngine` 为每条消息分配持久化 32 位 hex `message_uid`，摘要上维护 `absorbed_message_uids` 与 `_tool_call_uids`，外部图谱/DAG 记忆插件可追溯任意结论的原始出处。
 
-
-**可插拔 `ContextEngine` ABC 最小签名**：
-
-```python
-class ContextEngine(ABC):
-    @abstractmethod
-    def record_usage_anchor(self, prompt_tokens: int, completion_tokens: int) -> None: ...
-    @abstractmethod
-    def should_defer_preflight_to_real_usage(self) -> bool: ...
-    @abstractmethod
-    def select_context(self, messages: list[CanonicalMessage], budget_tokens: int) -> list[CanonicalMessage]: ...
-```
 
 **坑**：① `_align_boundary_backward()` 回滑切分点时，若遇到单轮并发调用 20+ 工具的超大回合，整组 `assistant + 20×tool` 不能拆散，回滑会瞬间吃光尾部预算——必须在 P1 对单条超长 `tool` 输出做硬截断兜底。② 开启 `micro_compact` 后每轮改写滚动摘要标记，其后的历史消息 KV Cache 会逐轮失效；高缓存命中率优先场景应关闭微压缩，改用 `prepare_ahead` 预备压缩。
 ---
@@ -252,16 +212,6 @@ class ContextEngine(ABC):
 - `MemoryProvider` ABC（`agent/memory_provider.py`）：可挂 RetainDB、ByteRover、Honcho、OpenViking、Mem0、Hindsight、Holographic、Supermemory、Memori 等第三方图谱/向量记忆系统；**静态块走 System Prompt 易变层，动态检索结果走 API 调用期临时层**——外部记忆同样服从缓存经济学。
 
 
-```python
-class MemoryProvider(ABC):
-    def get_static_snapshot(self) -> str:
-        """会话启动时调用一次，拼入 System Prompt volatile 层并冻结"""
-        return ""
-    def get_ephemeral_overlay(self, user_query: str) -> str:
-        """每轮 Step 6 调用，仅注入当次 HTTP 请求副本，不落盘、不破前缀缓存"""
-        return ""
-```
-
 **坑**：后台复盘分支复用父会话热缓存时，**绝不能通过删减 API 请求参数里的 `tools` Schema 列表来限制权限**——只要请求体中的 `tools` 定义变了一个字节，父会话预热的数万 token KV Cache 立即 100% 失效。正确做法是：**API 请求保持与父会话完全相同的 `tools` Schema 列表，在运行时分发层拦截非白名单工具调用**。
 ---
 
@@ -330,38 +280,10 @@ class MemoryProvider(ABC):
    - **Tier 1（FTS5 局部损坏）**：捕获损坏异常 → 删同步触发器与虚拟表 → 置 `fts_stale` → `session_search` 降级 `LIKE` → 会话结束后后台静默重建；
    - **Tier 2（主库物理损坏）**：抛 `StateDbCorruptError` → 所有旧连接句柄设 `SQLITE_DBCONFIG_NO_CKPT_ON_CLOSE`（防关句柄时坏页刷入 WAL）→ 原库连同 `-wal`/`-shm` 原子重命名 `.corrupt.<timestamp>.<pid>` 现场保全 → 内存当轮消息转储 `~/.hermes/sessions/corrupt_recovery_<session_id>.jsonl` → 毫秒级新建库继续服务（**零停机**）。
 
-
-**核心状态表最小 DDL（SQLite WAL 模式）**：
-
-```sql
-PRAGMA journal_mode = WAL;
-PRAGMA synchronous = NORMAL;
-
-CREATE TABLE runtime_state (
-    id INTEGER PRIMARY KEY CHECK (id = 1),
-    runtime_epoch INTEGER NOT NULL DEFAULT 0
-);
-
-CREATE TABLE session_admissions (
-    admission_id TEXT PRIMARY KEY,
-    session_id TEXT NOT NULL,
-    payload_json TEXT NOT NULL,
-    status TEXT NOT NULL CHECK (status IN ('queued', 'started', 'completed', 'unknown')),
-    runtime_epoch INTEGER NOT NULL,
-    updated_at REAL NOT NULL
-);
-
-CREATE TABLE messages (
-    message_uid TEXT PRIMARY KEY,
-    session_id TEXT NOT NULL,
-    seq INTEGER NOT NULL,
-    role TEXT NOT NULL CHECK (role IN ('user', 'assistant', 'tool', 'summary')),
-    content_json TEXT NOT NULL,
-    active INTEGER NOT NULL DEFAULT 1,
-    compacted INTEGER NOT NULL DEFAULT 0
-);
-```
-
+5. **三张核心状态表的协同逻辑**：
+   - `runtime_state`：单行表，存当前单调递增的 `runtime_epoch`，网关启动时自增，所有写事务先比对 epoch；
+   - `session_admissions`：存每次外部输入，`status` 按 `queued → started → completed/unknown` 流转，崩溃重启以此表判断是自动续跑还是挂起防重放；
+   - `messages`：按 `message_uid` 主键存储，靠 `active`（当前是否在上下文窗口内）与 `compacted`（是否已被折叠进摘要）两个标志位实现原地无损压缩切换。
 **坑**：主库物理损坏执行隔离时，若直接 `close()` 旧 SQLite 连接而不先设置 `SQLITE_DBCONFIG_NO_CKPT_ON_CLOSE`，SQLite 会在关闭最后一个连接句柄时自动触发 WAL Checkpoint，把损坏页刷入文件并覆盖残留可用数据。
 ---
 
