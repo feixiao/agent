@@ -41,7 +41,7 @@
 **规格**：
 
 - 一个核心 = 一个回合状态机（见 §2），入口只是它的"驱动器"。
-- 本地入口发现常驻网关在线时，**自动退化为薄附着客户端**（见 §7），不再自行运行编排循环。
+- 本地入口发现常驻网关在线时，**自动退化为薄附着客户端**（见 §9），不再自行运行编排循环。
 
 **坑**：最隐蔽的分叉不在代码里，而在"每个入口各自刷新 System Prompt"——只要有一处多拼了一行时间戳，该入口就永远吃不到缓存折扣，且与网关会话的 prompt 前缀分裂。
 
@@ -73,6 +73,36 @@
 | 8 | 可中断流式调用 | `_interruptible_api_call()` 后台流；`incomplete_response` 最多自动续写 3 次，仍无进展触发 `_try_activate_fallback` 切供应商 + 凭据池轮转 |
 | 9 | 终结分支 | A) 有 `tool_calls`：线程池并发/屏障串行执行，按原序写回 `role:tool`，跳回 Step 5；B) 纯文本：`pre_verify` 完成度校验 → 输出转换 → 写 `state.db` → 增量微压缩 → 异步拉起后台复盘（见 §6） |
 
+
+**最小 IR 契约与不变量校验**：
+
+```python
+@dataclass
+class CanonicalMessage:
+    message_uid: str                         # 32-hex 跨压缩持久 ID
+    role: Literal["user", "assistant", "tool"]
+    content: str = ""
+    tool_calls: list[ToolCall] = field(default_factory=list)
+    tool_call_id: str | None = None          # role=="tool" 时必填
+    absorbed_message_uids: list[str] = field(default_factory=list)
+
+def assert_role_invariants(messages: list[CanonicalMessage]) -> None:
+    for i, m in enumerate(messages):
+        if i > 0 and m.role in ("user", "assistant") and messages[i - 1].role == m.role:
+            if not (m.role == "assistant" and messages[i - 1].role == "tool"):
+                raise ProtocolInvariantError(f"Consecutive {m.role} at index {i}")
+        if m.role == "assistant" and m.tool_calls:
+            expected_ids = [tc.id for tc in m.tool_calls]
+            actual_ids = [
+                messages[j].tool_call_id
+                for j in range(i + 1, min(i + 1 + len(expected_ids), len(messages)))
+                if messages[j].role == "tool"
+            ]
+            if actual_ids != expected_ids:
+                raise ProtocolInvariantError("Unclosed or out-of-order tool_calls")
+```
+
+**坑**：`ThreadPoolExecutor` 并发执行多个工具时，若按 `as_completed` 完成先后而非**模型原始请求顺序**写回 `role: tool`，或流式中断残留未闭合的 `tool_calls`，Anthropic / OpenAI 严格协议校验会直接返回 `400 Bad Request` 锁死整个会话。
 ---
 
 ## 3. 提示词装配与前缀缓存经济学
@@ -121,6 +151,20 @@
    - 微压缩（`agent/micro_compactor.py`，`compression.micro_compact: true`）：每回合 `finalize_turn` 只吸收最老一组 Assistant 交互进滚动摘要标记，**永久跳过 User 消息原样保留**；滚动摘要超 `micro_compact_defrag_threshold_tokens=2000` 自动碎片整理 → 长会话水位稳定在 **~22%** 直线，消灭锯齿卡顿（代价：每轮重写摘要标记使其后缓存失效，适合重低水位场景）。
 5. **跨压缩身份追踪**：`ContextEngine` 为每条消息分配持久化 32 位 hex `message_uid`，摘要上维护 `absorbed_message_uids` 与 `_tool_call_uids`，外部图谱/DAG 记忆插件可追溯任意结论的原始出处。
 
+
+**可插拔 `ContextEngine` ABC 最小签名**：
+
+```python
+class ContextEngine(ABC):
+    @abstractmethod
+    def record_usage_anchor(self, prompt_tokens: int, completion_tokens: int) -> None: ...
+    @abstractmethod
+    def should_defer_preflight_to_real_usage(self) -> bool: ...
+    @abstractmethod
+    def select_context(self, messages: list[CanonicalMessage], budget_tokens: int) -> list[CanonicalMessage]: ...
+```
+
+**坑**：① `_align_boundary_backward()` 回滑切分点时，若遇到单轮并发调用 20+ 工具的超大回合，整组 `assistant + 20×tool` 不能拆散，回滑会瞬间吃光尾部预算——必须在 P1 对单条超长 `tool` 输出做硬截断兜底。② 开启 `micro_compact` 后每轮改写滚动摘要标记，其后的历史消息 KV Cache 会逐轮失效；高缓存命中率优先场景应关闭微压缩，改用 `prepare_ahead` 预备压缩。
 ---
 
 ## 5. 工具运行时与认知卸载
@@ -149,6 +193,8 @@
 5. **执行沙箱 7 后端**：`local` / `docker`（单容器跨回合跨子 Agent 持久复用，强制 `--read-only` 根 FS、`--cap-drop ALL`、`--pids-limit 256`、`tmpfs` 隔离）/ `ssh` / `modal` / `daytona` / `vercel_sandbox`（退出拍快照、下次恢复）/ 插件 `singularity`、`sprites`。
 6. **防轮询**：`process_wait_auto_notify` 开启后，对同一后台进程连续 **2 次空轮询**自动注册 `notify_on_complete`，并在工具返回中明确命令模型停止轮询、结束本回合等待唤醒。
 
+
+**坑**：① `tool_call(name=...)` 间接调用若不在分发前**透明解包**还原为真实工具名，下游 `pre_tool_call` 与安全审批层看到的永远是白名单元工具 `"tool_call"`，会直接绕过危险工具拦截。② `execute_code` 派生 Python 子进程时若忘记剥离宿主 `os.environ`，模型生成的脚本一次 `print( dict(os.environ) )` 就能把所有供应商 API Key 读进上下文。
 ---
 
 ## 6. 记忆系统与成长闭环（Multi-Tier Memory & Self-Improvement）
@@ -205,6 +251,18 @@
 - `/learn`：整本 EPUB/PDF、文档站点或 GitHub 仓库蒸馏为技能包——顶层 `SKILL.md` 作总目录索引，`references/` 存按章节拆分的精炼文档，`sources.json` 记录源文件路径或 Git Commit SHA 供增量更新。
 - `MemoryProvider` ABC（`agent/memory_provider.py`）：可挂 RetainDB、ByteRover、Honcho、OpenViking、Mem0、Hindsight、Holographic、Supermemory、Memori 等第三方图谱/向量记忆系统；**静态块走 System Prompt 易变层，动态检索结果走 API 调用期临时层**——外部记忆同样服从缓存经济学。
 
+
+```python
+class MemoryProvider(ABC):
+    def get_static_snapshot(self) -> str:
+        """会话启动时调用一次，拼入 System Prompt volatile 层并冻结"""
+        return ""
+    def get_ephemeral_overlay(self, user_query: str) -> str:
+        """每轮 Step 6 调用，仅注入当次 HTTP 请求副本，不落盘、不破前缀缓存"""
+        return ""
+```
+
+**坑**：后台复盘分支复用父会话热缓存时，**绝不能通过删减 API 请求参数里的 `tools` Schema 列表来限制权限**——只要请求体中的 `tools` 定义变了一个字节，父会话预热的数万 token KV Cache 立即 100% 失效。正确做法是：**API 请求保持与父会话完全相同的 `tools` Schema 列表，在运行时分发层拦截非白名单工具调用**。
 ---
 
 ## 7. 子智能体编排（Subagent Delegation）
@@ -224,33 +282,41 @@
 | Worktree 隔离 + 实时控制 | `worktree_isolation: true` 自动建 `.worktrees/subagent-<id>`，结束后清理未修改分支；异步模式支持 `steer`（注入新指令，若恰在注入前结束标 `missed_steer`）、`interrupt`、`status`、`handoff`（移交最多 3 个后台进程） | 并发改文件物理隔离 + 运行时动态纠偏、免销毁重来 |
 | 独立完成 + 崩溃恢复 | `independent_completions` 按 `group` 聚合唤醒；持久化子任务崩溃恢复按五级策略处置：`AUTO_AT` / `AUTO_ON_BOOT` / `ON_FIX` / `REPAIR_THEN_CONTINUE` / `HANDOFF` | 慢子任务不拖住整批快子任务；网关重启不丢任务 |
 
+
+**坑**：`worktree_isolation: true` 默认基于当前 `HEAD` 检出新工作树——若父智能体在主工作区有尚未提交的脏改动，子智能体拿到的是旧代码。派生前必须先检查工作区状态，或通过独立补丁/只读挂载传递未提交上下文。
 ---
 
-## 8. 错误停止（Fault Termination）：五道独立防线
+## 8. 错误停止（Fault Termination）：两级熔断与五道防线
 
-开发者最常低估的模块。核心纪律：**所有失败路径必须有降级，不允许裸 `raise` 杀死整条任务链；所有有副作用的路径必须有防重放；所有不可逆动作必须 fail-closed。**
+**痛点**：只设全局 `max_turns=500` 的 Harness 在遇到模型"以相同参数反复调用同一报错工具"或 `A ↔ B` 振荡时，会白白烧满 500 轮才停；反过来，任意一处超时或网络抖动直接裸 `raise` 又会让跑了 30 轮的长任务前功尽弃，或在崩溃恢复时把转账/发邮件工具重放执行第二遍。
 
-| 防线 | 故障域 | 机制与参数 |
-|---|---|---|
-| **1. 迭代预算** | 长程死循环 / 空转 | 原子计数器两级：主 Agent `max_turns=500`、子 Agent `max_iterations=250`；**预算耗尽时先切供应商，再授予备用模型单次有界宽限调用（1 Bounded Grace Call）**汇总进展体面收尾，而非硬崩 |
-| **2. 供应商故障转移** | 429 / 402 / 5xx / 上游宕机 | Fallback chain；`incomplete_response`（如 codex 只回思考块无正文）最多自动续写 **3 次**仍无进展才切 `_try_activate_fallback`；CredentialPool 四策略：`fill_first` / `round_robin` / `random` / `least_used` |
-| **3. 中断即丢弃** | 用户中断破坏协议 | 后台守护线程跑流式 HTTP，主线程轮询中断事件；中断即丢弃残缺 Assistant 响应、未完成 `tool_call` 合成占位结果 → 历史恒满足角色交替不变量（§2） |
-| **4. 停滞检测** | 子智能体挂死 | 心跳进度（最后一次实质进展：API 响应或工具调用完成）：思考空闲 450s / 工具中 1,200s；先带外警告促收尾 → 120s 宽限 → 终止（§7） |
-| **5. 崩溃防重放** | 网关崩溃重启 | `session_admissions` 表三态状态机 `queued → started → completed/unknown`：恢复时 `queued` 可安全自动唤醒；**`started`（工具可能已产生外部副作用）严禁自动重放**，标记 `unknown` 并**挂起该会话后续队列**等人工确认 |
+**决策**：**局部调用指纹熔断（Circuit Breaker）+ 全局迭代预算（Iteration Budget）两级计数**；所有失败路径强制绑定确定性降级，所有副作用路径强制经过三态防重放状态机。
 
-**降级路径纪律（不硬崩清单）**：
+**规格**：
 
-- 预备压缩超时：60s → 300s → 900s 阶梯冷却，连续 2 次超时 → 降级**确定性无 LLM 摘要**；
-- FTS 索引损坏：解耦触发器，`session_search` 降级 `LIKE`，后台空闲重建（核心写入不受影响）；
-- 主库物理损坏：隔离旧库 + `.jsonl` 应急转储未落盘消息 + 毫秒级新建库继续服务（§9）；
-- 迭代预算耗尽：宽限调用收尾（防线 1）；
-- 子任务崩溃：五级恢复策略（§7）。
+| 防线 | 故障域 | 触发条件与处置机制 | 权威细节引用 |
+|---|---|---|---|
+| **1A. 局部指纹与振荡熔断** | 单步死循环 / 连续报错 / `A↔B` 振荡 | 计算工具调用归一化签名 `hash(tool_name + canonical_json(args))`：<br/>• 同一签名连续重复 $\ge 2\sim 3$ 次（`identical_call_limit`）→ 注入强制反思错误或直接熔断；<br/>• 连续工具/解析异常 $\ge 3$ 次（`consecutive_error_limit`）→ 熔断并回退 | 本仓库 [circuit_breaker.hpp]( ../core/native_cpp/include/harness/circuit_breaker.hpp )、[minimal_harness.py](examples/minimal_harness.py) |
+| **1B. 全局迭代预算 + 宽限收尾** | 长程任务失控空转 | 原子计数器：主 Agent `max_turns=500`、子 Agent `max_iterations=250`；预算耗尽时先切备用供应商，再授予**单次有界宽限调用（1 Bounded Grace Call）**汇总当前进展体面收尾，绝不硬崩 | §2 Step 1 / Step 8 |
+| **2. 供应商故障转移** | 429 / 402 / 5xx / 残缺推理流 | `incomplete_response` 最多自动续写 **3 次**仍无进展 → `_try_activate_fallback` 切备用供应商链 + `CredentialPool` 轮转 | §2 Step 8 |
+| **3. 中断即丢弃** | 用户中断破坏协议 | 后台守护线程跑流式 HTTP；中断即丢弃残缺 Assistant 响应，对未完成 `tool_call` 合成占位结果闭合配对 | §2 决策 & Step 8 |
+| **4. 心跳进度停滞检测** | 子智能体静默挂死 | 按"最后一次实质进展（API 响应或工具完成）"计时：思考空闲 `450s`（`360s` 注入收尾警告）/ 工具执行中 `1,200s` → `120s` 宽限汇总 → 终止；崩溃按五级策略恢复 | §7 规格表 |
+| **5. 崩溃防重放状态机** | 网关断电/进程崩溃重启 | `session_admissions` 三态 `queued → started → completed/unknown`：恢复时发现 `started`（工具可能已产生外部副作用）**严禁自动重放**，标 `unknown` 并挂起该会话队列待人工确认 | §9 规格 |
 
+**组件级降级路径速查（严禁裸抛异常杀死主回路）**：
+
+- **预备压缩超时** → `60s → 300s → 900s` 阶梯冷却，连续 2 次超时降级为**确定性无 LLM 摘要**（§4.4）；
+- **FTS5 索引损坏** → 解耦触发器，`session_search` 自动降级 `LIKE`，会话后后台重建（§9.4）；
+- **SQLite 主库物理损坏** → 冻结旧句柄 Checkpointing + 隔离坏库 + `.jsonl` 应急转储 + 毫秒级新建库继续服务（§9.4）。
+
+**坑**：局部指纹熔断对 JSON 参数做哈希前，必须先按 Key 排序做 Canonical JSON 归一化（`json.dumps(args, sort_keys=True)`），否则模型仅调换两个参数顺序或增减空格就会绕过重复调用检测。
 ---
 
 ## 9. 状态一致性与容灾
 
 **痛点**：多端（CLI/桌面/手机 IM/车载）+ Cron 同时附着同一会话 → 双写脑裂、消息序号错乱、`SQLITE_BUSY` 锁死；网关在"工具已执行、回合未收尾"时断电 → 重启重放 = 邮件发两遍/转账两遍；FTS5 虚拟表非正常关机易损坏 → 检索抛异常拖垮全部消息写入。
+
+**决策**：单一会话写权威（Single-Writer Authority）+ 本地入口薄代理化 + Epoch 写栅栏 + 派生索引与主库分级自愈。
 
 **规格**：
 
@@ -264,9 +330,44 @@
    - **Tier 1（FTS5 局部损坏）**：捕获损坏异常 → 删同步触发器与虚拟表 → 置 `fts_stale` → `session_search` 降级 `LIKE` → 会话结束后后台静默重建；
    - **Tier 2（主库物理损坏）**：抛 `StateDbCorruptError` → 所有旧连接句柄设 `SQLITE_DBCONFIG_NO_CKPT_ON_CLOSE`（防关句柄时坏页刷入 WAL）→ 原库连同 `-wal`/`-shm` 原子重命名 `.corrupt.<timestamp>.<pid>` 现场保全 → 内存当轮消息转储 `~/.hermes/sessions/corrupt_recovery_<session_id>.jsonl` → 毫秒级新建库继续服务（**零停机**）。
 
+
+**核心状态表最小 DDL（SQLite WAL 模式）**：
+
+```sql
+PRAGMA journal_mode = WAL;
+PRAGMA synchronous = NORMAL;
+
+CREATE TABLE runtime_state (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    runtime_epoch INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE session_admissions (
+    admission_id TEXT PRIMARY KEY,
+    session_id TEXT NOT NULL,
+    payload_json TEXT NOT NULL,
+    status TEXT NOT NULL CHECK (status IN ('queued', 'started', 'completed', 'unknown')),
+    runtime_epoch INTEGER NOT NULL,
+    updated_at REAL NOT NULL
+);
+
+CREATE TABLE messages (
+    message_uid TEXT PRIMARY KEY,
+    session_id TEXT NOT NULL,
+    seq INTEGER NOT NULL,
+    role TEXT NOT NULL CHECK (role IN ('user', 'assistant', 'tool', 'summary')),
+    content_json TEXT NOT NULL,
+    active INTEGER NOT NULL DEFAULT 1,
+    compacted INTEGER NOT NULL DEFAULT 0
+);
+```
+
+**坑**：主库物理损坏执行隔离时，若直接 `close()` 旧 SQLite 连接而不先设置 `SQLITE_DBCONFIG_NO_CKPT_ON_CLOSE`，SQLite 会在关闭最后一个连接句柄时自动触发 WAL Checkpoint，把损坏页刷入文件并覆盖残留可用数据。
 ---
 
 ## 10. 安全纵深（8 层体系中的三道执行闸门）
+
+**痛点**：Agent 拥有执行任意 Shell、读写本地文件与发起网络请求的能力；恶意网页中的间接提示词注入（Indirect Prompt Injection）或模型幻觉一旦触发毁灭性指令或读取 `.env` 外发，后果不可逆。
 
 **决策**：安全必须是确定性外围拦截，不能依赖模型"懂规矩"。三道闸门按执行顺序：
 
@@ -278,13 +379,17 @@
 
 三道闸门合起来斩断"读本地 `.env` 或云主机 Metadata 偷密钥并外发"的完整攻击链，并保证间接提示注入（恶意网页）无法造成不可逆系统损毁。
 
+
+**坑**：① 仅用正则匹配原始命令字符串极易被引号拼接（如 `r"m" -rf /`）或未闭合引号逃逸绕过——Shell 语法解析器遇到任何畸形语法必须 **fail-closed**（直接按最高风险拒绝，绝不回退放行）。② SSRF 防护若只校验初始 URL 字符串而不校验 DNS 解析后的实际 IP 及 HTTP `30x` 重定向目标，会被 DNS Rebinding 或公网短链跳板直接绕过访问 `169.254.169.254`。
 ---
 
-## 11. 插件扩展契约
+## 11. 插件扩展契约与流式语音管线
 
-**痛点**：要允许开发者注入监控/审计/路由/上下文增强，又要防劣质插件卡死主循环或撑爆上下文。
+**痛点**：① 要允许开发者注入监控/审计/路由/上下文增强，又要防劣质插件抛异常卡死主循环或返回大文本撑爆上下文；② 语音交互场景若等整篇回复生成完再调 TTS，首包静默长达数秒，且容易把 `<think>...</think>` 思考过程念出来。
 
-**规格**：
+**决策**：观察者钩子与洋葱中间件正交分离（仅 2 个钩子可干预控制流）；流式 TTS 采用跨 Delta 状态机剥离思维链 + 子句并发预取。
+
+### 11.1 插件扩展规格
 
 - **20+ 生命周期钩子**：覆盖会话/网关启停、回合开始/结束、压缩前后、子 Agent 派生、内存写入、技能加载等全链路节点。
 - **控制权收口**：仅 **`pre_llm_call`**（注入本轮临时上下文 / 动态过滤工具集）与 **`pre_tool_call`**（`{"block": True, "reason": "..."}` 拦截工具执行）可干预控制流；其余全部为纯观察（Fire-and-Forget），任何插件异常捕获隔离，绝不中断主回路。
@@ -292,6 +397,12 @@
 - **四类洋葱中间件链**：`tool_request` / `llm_request` / `tool_execution` / `llm_execution` 四条可组合 `next()` 管道，供需要改写请求载荷、缓存结果、统计耗时的切面使用。
 - **边界纪律**：插件需要修改核心文件才能工作 = 架构异味，打回重设计（公理 5）。
 
+### 11.2 流式语音合成管线（Streaming TTS Pipeline）
+
+- **跨 Token Delta 思维链剥离**：`SentenceChunker` 维护流式状态机，实时拦截并剥离 `<think>...</think>` 推理块（哪怕标签被切分在两个相邻 Token Delta 中也精确识别），绝不把内部推理念出声。
+- **自然韵律切分 + 3 句并发预取**：按句末标点、换行及逗号子句边界切分，后台并发预取最多 **3 个句子的音频流**，将原始 PCM 音频帧实时推入播放队列（原生支持 `elevenlabs`、`openai`、`gemini`、`xai` 流式接口；对 Edge TTS 等非流式接口自动分片降级）。
+
+**坑**：流式文本的 `<think>` 标签经常被分词器拆成 `"<th"` + `"ink>"` 两个相邻 chunk，若用单 chunk 正则匹配而非跨 chunk 状态机，思考链就会漏进 TTS 被直接朗读出来。
 ---
 
 ## 12. 模块依赖与构建顺序
@@ -322,6 +433,20 @@ flowchart TD
 7. **安全三道闸门 + 插件契约**；
 8. **子智能体编排（最后做，因为 1~7 全部是它的前置：预算、隔离、停滞检测、防重放、权限剥离都依赖前述模块）**。
 
+
+### 本仓库代码资产对照表（从规格到源码）
+
+本仓库已内置 Python 最小白盒实现与 C++ 原生高性能实现，落地时可直接对照复用：
+
+| 模块章节 | Python 白盒原型（`harness/examples/`） | C++ 原生引擎（`core/native_cpp/include/harness/`） |
+|---|---|---|
+| §2 控制回路与状态机 | [`minimal_harness.py`](examples/minimal_harness.py) `MinimalHarness.run()` | [`harness_engine.hpp`](../core/native_cpp/include/harness/harness_engine.hpp) `HarnessEngine::process_turn()`、[`agent_state.hpp`](../core/native_cpp/include/harness/agent_state.hpp) |
+| §3 前缀缓存保护 | [`minimal_harness.py`](examples/minimal_harness.py) `ContextManager.system_prefix_hash` | [`context_engine.hpp`](../core/native_cpp/include/harness/context_engine.hpp) 预计算静态系统前缀 |
+| §4 上下文预算与滑动裁剪 | [`minimal_harness.py`](examples/minimal_harness.py) `ContextManager.compact_if_needed()` | [`token_budget.hpp`](../core/native_cpp/include/harness/token_budget.hpp)、[`context_engine.hpp`](../core/native_cpp/include/harness/context_engine.hpp) |
+| §5 工具注册与强类型校验 | [`minimal_harness.py`](examples/minimal_harness.py) `ToolRegistry` | [`tool_registry.hpp`](../core/native_cpp/include/harness/tool_registry.hpp) 零拷贝字段校验 |
+| §6 工作记忆管理 | — | [`memory.hpp`](../core/native_cpp/include/harness/memory.hpp) |
+| §8 局部死循环与振荡熔断 | [`minimal_harness.py`](examples/minimal_harness.py) `CircuitBreaker` | [`circuit_breaker.hpp`](../core/native_cpp/include/harness/circuit_breaker.hpp) `CircuitBreaker::record_action()` |
+| §10 沙箱审批与敏感信息脱敏 | [`edge_rule_arbiter.py`](examples/edge_rule_arbiter.py) 本地规则短路拦截 | [`sandbox.hpp`](../core/native_cpp/include/harness/sandbox.hpp)、[`pii_sanitizer.hpp`](../core/native_cpp/include/harness/pii_sanitizer.hpp)、[`router.hpp`](../core/native_cpp/include/harness/router.hpp) |
 ---
 
 ## 13. 发布前走查清单（27 项，引自 04 号 §10）
