@@ -16,6 +16,9 @@
 | **llama.cpp** | [ggerganov/llama.cpp](https://github.com/ggerganov/llama.cpp) <br/> `MIT` | 算力与推理底座 | C/C++ 极简无依赖推理、GBNF 语法树约束解码（物理消除 JSON 格式错误） | ⭐⭐⭐⭐⭐ (底层必读) |
 | **OpenManus** | [mannaandpoem/OpenManus](https://github.com/mannaandpoem/OpenManus) <br/> `Apache-2.0` | 极简微内核 | 不依赖庞大框架的白盒纯 Python 原生 Agent Loop 与工具链，适合新手快速通关 | ⭐⭐⭐⭐ (入门首选) |
 | **lm-evaluation-harness** | [EleutherAI/lm-eval](https://github.com/EleutherAI/lm-evaluation-harness) <br/> `MIT` | 评测基准底座 | 行业事实标准的模型自动化评测 Harness、Task Registry、动态批处理与指标聚合 | ⭐⭐⭐⭐ (评测必读) |
+| **gBench** | [google-deepmind/gbench](https://github.com/google-deepmind/gbench) <br/> `Apache-2.0` | 性能+Agent联合评测 | 统一 `/v1` Serving+能力三层评测、Subject/Scaffold 双轴锁定、Chat Template 成对隔离、进度感知 Endpoint Relay | ⭐⭐⭐⭐⭐ (评测必读) |
+| **Inspect AI** | [UKGovernmentBEIS/inspect_ai](https://github.com/UKGovernmentBEIS/inspect_ai) <br/> `MIT` | 可编程沙盒评测 | `Task/Solver/Scorer/Sandbox` 组合架构、Expected/Unexpected 沙盒错误边界、`agent_bridge` 代理外部智能体 | ⭐⭐⭐⭐⭐ (沙盒必读) |
+| **Harbor** | [laude-institute/harbor](https://github.com/laude-institute/harbor) <br/> `Apache-2.0` | 容器化 Agent 底座 | Terminal-Bench 2.0 官方 Harness、`ErrorPolicy` 奖赏有效性真值表、独立 Verifier 沙盒、`ATIF-v1.8` 轨迹规范 | ⭐⭐⭐⭐⭐ (端到端必读) |
 
 ---
 
@@ -152,6 +155,72 @@ palmclaw/
 2. `app/agent/toolcall.py`：理解大模型原生 Function Calling 的解析、执行、异常捕获与格式重整；
 3. `app/tool/base.py`：工具注册中心的极简实现，学习如何用 Python 函数的类型注解（Type Hint）自动生成标准的 JSON Schema。
 
+
+### gBench (google-deepmind/gbench)
+> **代码定位**：Google DeepMind 开源的“Serving 性能 + 模型/Agent 能力”一体化基准底座，重点解决传统评测把推理性能与多轮 Agent 能力割裂、以及脚手架漂移导致不可比的问题。
+
+#### 核心目录结构
+```text
+gbench/
+├── cli.py                        # 统一入口：本地 vLLM 编排或 --remote-endpoint /v1 路由
+├── core/
+│   └── scaffold.py               # Subject vs. Scaffold 11 字段双轴版本哈希与诚实覆盖 (covers/unpinned)
+├── runners/
+│   ├── golden.py                 # Tier 2 Golden Set 16 用例：双边断言、python_exec、模板成对诊断
+│   ├── quality.py                # Tier 3 GemmaClaw 60 场景多轮 Agentic QA 容器化套件
+│   ├── evals.py                  # Tier 1 86 个学术与 Agent 基准调度（含 --eval-provenance 与 --merge）
+│   └── eval_suites/
+│       └── swebench_common.py    # Progress-based Endpoint Relay（进度超时与 AGENT_MAX_TOKENS 注入）
+└── analysis/
+    └── statistics.py             # tail_validity 样本量审计与 block_bootstrap_percentile_ci
+```
+
+#### 推荐精读切入点
+1. **双轴版本锁定**：精读 `gbench/core/scaffold.py`，看它如何把模型权重/量化（`Subject`）与提示/解码/负载形态（`Scaffold`）分开哈希，防止混杂变更误导对比。
+2. **模板与能力隔离**：精读 `gbench/runners/golden.py` 与 `docs/golden-set.md`，学习用 `template_tool_response` + `template_tool_response_twin` 成对隔离 Chat Template 故障与模型自身弱点。
+3. **Agent 代理中继**：精读 `docs/relay.md` 与 `gbench/runners/eval_suites/swebench_common.py`，看它如何用“进度停滞检测”替代固定的客户端 600s 超时，防止慢思考长轨迹被静默丢弃重采样。
+
+👉 详细架构解析与本仓库映射见 [`docs/architecture/GBENCH_EVALUATION_DEEP_DIVE.md`](../docs/architecture/GBENCH_EVALUATION_DEEP_DIVE.md)。
+
+### Inspect AI (UKGovernmentBEIS/inspect_ai)
+> **代码定位**：英国 AI 安全研究所（UK AISI）与 Meridian Labs 开源的可编程 Agent 与前沿能力评估框架，强在“代码级自由编排 Solver + 多后端容器沙盒 + 外部 Agent 桥接”。
+
+#### 核心目录结构
+```text
+src/inspect_ai/
+├── _eval/task/                   # Task(dataset, solver, scorer, sandbox) 生命周期编排
+├── agent/
+│   ├── _react.py                 # 内置 ReAct Agent 与工具循环
+│   └── _bridge/                  # agent_bridge() / sandbox_agent_bridge() 拦截外部框架请求
+├── solver/                       # 可组合 Solver 链（generate, use_tools, system_message）
+├── scorer/                       # 确定性断言与 Model-Graded 评分器
+└── util/_sandbox/                # SandboxEnvironment 抽象（docker/k8s/daytona/modal/local）
+```
+
+#### 推荐精读切入点
+1. **沙盒与错误隔离**：精读 `src/inspect_ai/util/_sandbox/` 与官方文档 `Sandboxing`，学习为何 `ToolError`（预期错误）要回灌给模型自愈，而容器崩溃等非预期异常必须把样本标为 `error`。
+2. **外部 Agent 无侵入桥接**：精读 `src/inspect_ai/agent/_bridge/`，看它如何在进程内或容器沙盒内拦截 OpenAI/Anthropic/Google SDK 请求并重定向到当前评测模型与 `model_aliases`。
+
+### Harbor (laude-institute/harbor)
+> **代码定位**：Terminal-Bench 团队打造的容器化 Agent 评测与 RL 训练调度器，直接评测 Claude Code、Codex CLI、OpenHands 等完整 Agent 产品。
+
+#### 核心目录结构
+```text
+src/harbor/
+├── models/
+│   ├── task/                     # instruction.md + task.toml + environment/ + tests/ 解析与校验
+│   ├── trial/error_policy.py     # ErrorPolicy(should_retry, should_grade, has_valid_reward) 单一真值表
+│   └── trajectories/             # ATIF-v1.8 (trajectory.json) Pydantic 规范模型
+├── agents/                       # Claude Code / Codex / OpenHands / ACP / 自定义 BaseAgent 适配
+├── environments/                 # Docker / Daytona / Modal 等云端沙盒运行时
+└── verifier/                     # 独立 Verifier 沙盒与 /logs/verifier/reward.{txt,json} 解析
+```
+
+#### 推荐精读切入点
+1. **Trial 错误策略真值表**：精读 `src/harbor/models/trial/error_policy.py`，理解 `AgentTimeoutError`（`reward_valid=True`）与 `ApiRateLimitError` / `EnvironmentStartTimeoutError`（`reward_valid=False`）如何避免脏数据污染基准均值与 RL 梯度。
+2. **标准化轨迹格式 ATIF**：精读 `rfcs/0001-trajectory-format.md` 与 `src/harbor/utils/trajectory_validator.py`，学习如何跨 Agent 统一交换工具调用、观察、子 Agent 轨迹与 Token 度量。
+
+👉 多框架全景对比与选型决策见 [`docs/architecture/EVAL_FRAMEWORKS_COMPARISON.md`](../docs/architecture/EVAL_FRAMEWORKS_COMPARISON.md)。
 ---
 
 ## 五、 新手源码精读路线图建议

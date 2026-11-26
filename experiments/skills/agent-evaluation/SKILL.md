@@ -108,6 +108,9 @@ description: 为 Agent 建立或改进评估体系时使用——设计评估指
 - 把多项上下文优化的节省比例直接相加；或凭单次运行的结果做选型决策。
 - 配对比较不交换候选顺序，位置偏差让先出现者系统性占优。
 - 子集小样本通过后直接当整体水平汇报，结论超出证据规模。
+- 把基础设施/容器/端点故障静默记为 `0` 分，或混杂更改模型权重与 Scaffold（提示词/模板/解码/负载定义）后直接画在同一条对比曲线上。
+- 未做 `template_tool_response` vs `twin` 成对隔离就直接下结论“模型不会工具调用”，把 Chat Template 序列化 Bug 误判为模型能力退化。
+- 样本量不足（如仅几十条请求）却直接把 P99 尾延迟或单次均值当硬指标对比。
 
 ## 配套代码
 - `chapter7/tau2-bench-eval/` — τ²-bench telecom 五任务双控环境评估：环境 reset、轨迹保存、二元奖励与失败任务（错选线路漏做充值）分析
@@ -117,6 +120,9 @@ description: 为 Agent 建立或改进评估体系时使用——设计评估指
 - `chapter7/model-benchmark/` — 多维度模型基准 campaign：吞吐/TTFT/尾延迟、168 小时可用性、限流爬坡、同模型不同供应商对照
 - `chapter7/model-action-threshold/` — 固定 Coding Harness 下测量不同模型的行动阈值（首次修改前的工具调用与文件阅读）
 - `chapter7/elo-leaderboard/` — 从 Chatbot Arena 真实投票实现 Elo/Bradley-Terry 配对排名与历史快照
+- `chapter7/gbench-eval/` — 对标 `google-deepmind/gbench` 的 Golden Set 冒烟、Chat Template 成对隔离、Subject/Scaffold 双轴版本锁定与 `/v1` 端点对接（配套底层实现位于仓库顶层 `evals/`）
+- `chapter7/inspect-ai-eval/` — 对标 `UKGovernmentBEIS/inspect_ai` 的 `Task/Solver/Scorer/Sandbox`、Expected 工具异常自愈 vs Unexpected 沙盒故障隔离与 `EvalLog` 首错定位
+- `chapter7/harbor-eval/` — 对标 `laude-institute/harbor` 的 `task.toml` 任务包规范、`ErrorPolicy` / `reward_valid` 聚合与 `ATIF-v1.8` 轨迹校验
 
 ## 深度阅读
 - `book/chapter7.md`「评估指标：成功的定义」
@@ -127,3 +133,5 @@ description: 为 Agent 建立或改进评估体系时使用——设计评估指
 - `book/chapter7.md`「Agent 的可观测性」
 - `book/chapter7.md`「从 Benchmark 报告到系统改进」
 - `book/chapter7.md`「从外部评估到内部评估：生产级 Agent 的评估基础设施」
+- `docs/architecture/GBENCH_EVALUATION_DEEP_DIVE.md` — `google-deepmind/gbench` 三层评估体系、Endpoint Relay 与统计严谨性深解
+- `docs/architecture/EVAL_FRAMEWORKS_COMPARISON.md` — `gbench` × `Inspect AI` × `Harbor` × `Promptfoo`/`DeepEval` 四大评估阵营选型对比与决策流

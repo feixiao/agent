@@ -268,5 +268,5 @@ asyncio_default_fixture_loop_scope = "function"
 
 [tool.setuptools.packages.find]
 where = [".", "experiments"]
-include = ["core*", "tools*", "patterns*", "perception*", "apps*", "agentbook*"]
+include = ["core*", "tools*", "patterns*", "perception*", "apps*", "evals*", "agentbook*"]
 exclude = ["tests*", "docs*"]

@@ -188,10 +188,12 @@ agent/
 │   ├── edge_platforms/            # 三大边缘节点架构：Mac Studio / Android Pixel 10 / Jetson
 │   └── labs/                      # 音视频多模态实战套件（VLM、Whisper、LoRA 仿真、Pixel 10 导出）
 │
-├── evals/                         # 【评测与数据飞轮】连续可靠性度量与故障归因
-│   ├── benchmarks/                # 测试基准集（金标用例、多步长程用例）
-│   ├── metrics/                   # 核心指标（Pass^k 连续成功率、单步准确率、Token 成本）
-│   └── prefix_regression/         # 故障归因：前缀回归定位首个偏离错误 (First Mistake)
+├── evals/                         # 【评测与数据飞轮】对标 google-deepmind/gbench 与 Pass^k 可靠性工程
+│   ├── scaffold.py                # Subject vs Scaffold 双轴版本锁定与可比性仲裁
+│   ├── benchmarks/                # 确定性 Golden Set 冒烟集与 Chat Template 成对隔离诊断
+│   ├── metrics/                   # Pass^k / Pass@k / tail_validity 尾延迟审计 / infra_required 诚实上报
+│   ├── frameworks/                # Inspect AI (Task/Solver/Sandbox) 与 Harbor (ErrorPolicy/ATIF-v1.8) 契约适配器
+│   └── prefix_regression/         # 故障归因：前缀回归二分定位首个偏离错误 (First Mistake)
 │
 ├── tests/                         # 单元与回归测试套件 (包含 720+ 自动化测试)
 ├── pyproject.toml                 # 模块化依赖定义
@@ -231,3 +233,5 @@ agent/
    - 端云生产框架实战指南：[`docs/architecture/AGENT_FRAMEWORKS_CPP_GO.md`](docs/architecture/AGENT_FRAMEWORKS_CPP_GO.md)（掌握 C++ 端侧运行时 `llama.cpp` / `MNN-LLM` 与 Go 云端微服务框架 `Eino` / `Genkit`）。
    - 终端智能体架构对比白皮书：[`docs/architecture/OMP_VS_CLAUDE_CODE_COMPARISON.md`](docs/architecture/OMP_VS_CLAUDE_CODE_COMPARISON.md)（站在 Agent Harness 视角深度剖析 **OMP (Oh My Pi)** 与 **Claude Code**：垂直共生 vs 异构分工、Prewalk 阶梯调度、LSP 诊断与经济学选型）。
    - 端侧 Harness 设计（Android / iOS / Mac 开放助手）：[`docs/architecture/ON_DEVICE_HARNESS_DESIGN.md`](docs/architecture/ON_DEVICE_HARNESS_DESIGN.md)（系统模型 Foundation Models / Gemini Nano 与 LiteRT-LM 选型、端云路由、4096 上下文约束下的上下文装配、工具权限闸门与跨端共享规格）。
+   - gBench 联合评估深度白皮书：[`docs/architecture/GBENCH_EVALUATION_DEEP_DIVE.md`](docs/architecture/GBENCH_EVALUATION_DEEP_DIVE.md)（深度解析 [`google-deepmind/gbench`](https://github.com/google-deepmind/gbench) 的 Serving+能力三层评估、Subject/Scaffold 双轴版本锁定、Chat Template 成对隔离与 Progress-based Endpoint Relay）。
+   - Agent 评估框架选型对比白皮书：[`docs/architecture/EVAL_FRAMEWORKS_COMPARISON.md`](docs/architecture/EVAL_FRAMEWORKS_COMPARISON.md)（系统对比 `gbench`、`Inspect AI`、`Harbor`、`EvalScope`、`Promptfoo`、`DeepEval` 等四大评估阵营与选型决策流）。
